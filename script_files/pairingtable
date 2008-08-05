@@ -1,22 +1,9 @@
 #!/usr/bin/perl
 
-=head1 NAME
-
-pairingtable - Show player scoregroups for next round of swiss tournament
-
-=head1 VERSION
-
-Version 0.04
-
-=cut
-
-our $VERSION = '0.04';
-
 use strict;
 use warnings;
 
 use YAML qw/LoadFile DumpFile/;
-use List::MoreUtils qw/all/;
 
 use Games::Tournament::Swiss::Config;
 
@@ -24,16 +11,16 @@ my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $league = LoadFile "./league.yaml";
 die 'round.yaml already exists' if -e 'round.yaml';
-my $roles = $league->{roles} || [qw/White Black/];
+my $roles = $league->{roles} || [qw/Black White/];
 my $scores = $league->{scores} ||
 	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
-my $firstround = $league->{firstround} || 1;
+my $firstRound = $league->{firstround} || 1;
 my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
-my $abbrev = $league->{abbreviation} ||
-    { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
 
-$swiss->frisk($scores, $roles, $firstround, $algorithm, $abbrev);
+my $firstround = $swiss->frisk($firstRound);
+$scores = $swiss->frisk($scores);
+$roles = $swiss->frisk($roles);
+$algorithm = $swiss->frisk($algorithm);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
 %Games::Tournament::Swiss::Config::scores = %$scores;
@@ -49,20 +36,12 @@ my $table;
 my $players;
 my $games;
 
-## Make it possible to pass round number as an argument to this script.
-## If no argument is given then number of current round is computed 
-## by looking what's the last score file.
-
 my @rounds;
-if (($ARGV[0]) and ($ARGV[0] =~ /^\d+$/)) {
-    @rounds = (1..$ARGV[0]);
-} else {
-    for my $number ( glob ('./*') ) {
-	push @rounds, $number if -d $number and $number =~ m/\/(\d+)$/
-	    and -e "./scores/$number.yaml";
-    }
+for my $file ( glob ('./*') )
+{
+    push @rounds, $1 if -d $file and $file =~ m/\/(\d+)$/ and
+							    glob( "./$file/*" );
 }
-
 for my $round ( @rounds )
 {
     next unless glob( "./$round/*" );
@@ -72,24 +51,9 @@ for my $round ( @rounds )
 	if ($tourney->unmarkedCards(@$games))
 	{
 		my $results = LoadFile( "./scores/$round.yaml" );
-    my @tables;
-    if ( @tables = (keys %$results) and all {ref} @{$results}{@tables} ) {
-	for my $table ( @tables ) {
-	    for my $player ( keys %{$results->{$table}} ) {
-		my $result = $results->{$table}->{$player};
-		if ( exists $scores->{$result} )
-		{ $results->{$player} = $result; }
-		elsif ( $abbrev->{$result} )
-		{ $results->{$player} = $abbrev->{$result}; }
-		else { die
-"Player $player on table $table in round $round got $result?";
-		}
-	    }
-	}
-    }
 		for my $game ( @$games )
 		{
-			my (%score, %result);
+			my %result;
 			my $total;
 			my @roles =  keys %{ $game->contestants }; 
 			my @contestants = map {$_->id} values
@@ -97,24 +61,17 @@ for my $round ( @rounds )
 			for my $role ( @roles )
 			{
 				my $player = $game->contestants->{$role};
-				my $result = $results->{$player->name};
-				warn "$player->{name} got $result in round $game->{round}"
-							unless defined $result;
-				$result{$role} = $result;
-				$score{$role} =
-				    $role =~ m/Bye/i ? $scores->{bye}
-				  : $result =~ m/Win/i ? $scores->{win}
-				  : $result =~ m/Draw/i ? $scores->{draw}
-				  : $result =~ m/Loss/i ? $scores->{loss}
-				  : $result =~ m/Absent/i ? $scores->{absent}
-				  : "Error";
-				$total += $score{$role};
+				my $result = $results->{$player->id};
+				$total += $result;
+				$result{$role} =
+					$role eq 'Bye'? $player
+				      : $result == $scores->{win}    ? 'Win'
+				      : $result == $scores->{draw}   ? "Draw"
+				      : $result == $scores->{loss}   ? "Loss"
+				      : $result == $scores->{absent} ? 'Absent'
+				      : "Error";
 			}
-			die "total scores in round $round game with players @contestants not $total"
-			unless $total == $scores->{win} + $scores->{loss} or 
-			$total == 2 * $scores->{draw} or
-			$total == $scores->{draw} + $scores->{absent} or
-			$total == 2 * $scores->{absent};
+			die "total scores in round $round game with players @contestants not 1" if $total != 1;
 			$game->result( \%result );
 		}
 	}
@@ -135,7 +92,7 @@ for my $round ( @rounds )
 	}
 }
 
-my %brackets = $tourney->formBrackets;
+my @brackets = $tourney->formBrackets;
 my $playerN = 0;
 
 print "
@@ -143,11 +100,11 @@ print "
 -------------------------------------------------------------------------
 Place  No  Opponents     Roles     Float Score
 ";
-for my $index ( reverse sort keys %brackets )
+for my $bracket ( @brackets )
 {
 	$playerN++;
 	my $place = $playerN;
-	my @members = @{$brackets{$index}->members};
+	my @members = @{$bracket->members};
 	$place .= '-' . ($playerN+$#members) if $#members;
 	$playerN += $#members;
 	print "$place\n";
@@ -158,8 +115,8 @@ for my $index ( reverse sort keys %brackets )
 		my $floats = $member->floats;
 		my $float = '';
 		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
-		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
-		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+		$float = 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+		$float .= 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
 		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
 
 	# no warnings;
@@ -174,9 +131,13 @@ for my $index ( reverse sort keys %brackets )
 
 __END__
 
+=head1 NAME
+
+pair - Pair players for the next round of a swiss tournament
+
 =head1 SYNOPSIS
 
-pairingtable [n]
+pair
 
 Options:
 
@@ -184,11 +145,53 @@ Options:
 
 --man            A man page
 
+--id 9598457	Id of person claiming these beans to be theirs
+
+--name Momotaro	Name of person claiming these beans to be theirs
+
+--session first	The part of the semester in which the beans were won
+
+--team Gray	The team to which the claimant belongs
+
+--league m/j	The league to which the claimant belongs
+
+--beans 75	Number of beans they are asking to be recorded 
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-id>
+
+Id of person claiming these beans to be theirs.
+
+=item B<-name>
+
+Name of person claiming these beans to be theirs.
+
+=item B<-league>
+
+The league to which the redeemer belongs
+
+=item B<-session>
+
+The session in which the beans were won.
+
+=item B<-team>
+
+The team to which the claimant belongs.
+
+=item B<-beans>
+
+Number of beans they are asking to be recorded.
+
+=back
+
 =head1 DESCRIPTION
 
-B<pairingtable> shows the scoregroups that players with equal scores fall into, allowing calculation of who will play who in the next round. Included is place so far, opponents each player has already met, the roles in the previous rounds, downfloating (and upfloating) in the previous round (D) and in the round before the previous round (d).
+B<pair> tallies beans that students have earned for classwork and are redeeming and stores them in beans.yaml as a total, logging their entry in beans.log. The separate script, B<grades> adds the total (divided by 5) to homework, midterm and final scores and outputs the grade so far.
 
-Run it in the directory league.yaml is in and pass a round number, it will show pairgroups for that round. If no number is passed, the next round is the round following the highest existing one in the directory. Run it in a round directory, it will show pairgroups for the round after that round.
+The configuration file, league.yaml, in the directory above contains tournament entrants, series, members fields.
 
 =cut
 
