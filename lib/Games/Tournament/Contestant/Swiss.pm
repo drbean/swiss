@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2007 Nov 28, 07:36:32 AM
+# Last Edit: 2007 Sep 02, 09:45:32 PM
 # $Id: $
 
 use warnings;
@@ -16,11 +16,11 @@ Games::Tournament::Contestant::Swiss  A competitor in a FIDE-Swiss-Rules event
 
 =head1 VERSION
 
-Version 0.03
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
@@ -159,7 +159,7 @@ sub floating {
 	$member->floats( $round, 'Down' )
 	$rolehistory = $member->floats
 
-If a round number and float is passed, inserts this in an anonymous array representing the old floats that $member has had in this tournament. If only a round is passed, returns the float for that round. If no parameter is passed,  returns a anonymous array of all the floats indexed by the round. (Watch out for round 0, there. Heh-hey.) If the player was not floated, pass 'Not'. For convenience, if -1 or -2 are passed for the last round before, or the round 2 rounds ago, and those rounds do not exist (perhaps the tournament only started one round before), 'Not' is returned.
+If a round number and float is passed, inserts this in an anonymous array representing the old floats that $member has had in this tournament. If only a round is passed, returns the float for that round. If no parameter is passed,  returns a anonymous array of all the floats indexed by the round. (Watch out for round 0, there. Heh-hey.) If the player was not floated, pass 'Not'.
 
 =cut
 
@@ -170,15 +170,9 @@ sub floats {
     my $float = shift;
     if ( defined $round and defined $float ) {
         $self->{floats}->[$round] = $float;
-	return;
     }
-    elsif ( defined $round ) {
-	if (not exists $self->{floats}->[$round] and ($round==-1 or $round==-2))
-	{return 'Not'}
-	else { return $self->{floats}->[$round]; }
-    }
+    elsif ( defined $round )  { return $self->{floats}->[$round]; }
     elsif ( $self->{floats} ) { return $self->{floats}; }
-    else { return; }
 }
 
 =head2 importPairtableRecord
@@ -211,24 +205,6 @@ sub importPairtableRecord {
     $self->{score} = $record->{score};
     return;
 }
-
-=head2 unbyable
-
-    $member->unbyable(1)
-    return BYE unless $member->unbyable
-
-A flag of convenience telling you whether to let this player have the bye. Am I doing the right thing here? This will be gettable and settable, but will it be reliable?
-
-=cut
-
-sub unbyable {
-    my $self = shift;
-    my $unbyable = shift;
-    if ( $unbyable ) { $self->{unbyable} = 1; return }
-    elsif ( defined $self->{unbyable} ) { return $self->{unbyable}; }
-    else { return; }
-}
-
 
 =head1 AUTHOR
 

@@ -1,0 +1,89 @@
+---
+algorithm: Games::Tournament::Swiss::Procedure::FIDE
+hw: ../scores
+member:
+  - id: 1
+    name: 'Laver, Rod'
+    pairingnumber: 1
+    rating: 2810
+  - id: 2
+    name: 'Sampras, Pete'
+    pairingnumber: 2
+    rating: 2800
+  - id: 3
+    name: 'McEnroe, John'
+    pairingnumber: 3
+    rating: 2780
+  - id: 4
+    name: 'Agassi, Andre'
+    pairingnumber: 4
+    rating: 2775
+  - id: 5
+    name: 'Borg, Bjorn'
+    pairingnumber: 5
+    rating: 2770
+  - id: 6
+    name: 'Federer, Roger'
+    pairingnumber: 6
+    rating: 2760
+  - id: 7
+    name: 'Becker, Boris'
+    pairingnumber: 7
+    rating: 2750
+  - id: 8
+    name: 'Edberg, Stefan'
+    pairingnumber: 8
+    rating: 2740
+  - id: 9
+    name: 'Courier, Jim'
+    pairingnumber: 9
+    rating: 2735
+  - id: 10
+    name: 'Hewitt, Lleyton'
+    pairingnumber: 10
+    rating: 2730
+  - id: 11
+    name: 'Nadal, Rafael'
+    pairingnumber: 11
+    rating: 2725
+  - id: 12
+    name: 'Rafter, Pat'
+    pairingnumber: 12
+    rating: 2720
+  - id: 13
+    name: 'Chang, Michael'
+    pairingnumber: 13
+    rating: 2715
+  - id: 14
+    name: 'Nalbandian, David'
+    pairingnumber: 14
+    rating: 2712
+  - id: 15
+    name: 'Roddick, Andy'
+    pairingnumber: 15
+    rating: 2710
+  - id: 16
+    name: 'Cash, Pat'
+    pairingnumber: 16
+    rating: 2680
+  - id: 17
+    name: 'El Aynaoui, Younes'
+    pairingnumber: 17
+    rating: 2660
+  - id: 18
+    name: 'Philippousis, Mark'
+    pairingnumber: 18
+    rating: 2650
+  - id: 19
+    name: 'Baghdatis, Marcos'
+    pairingnumber: 19
+    rating: 2640
+roles:
+  - White
+  - Black
+scores:
+  absent: 0
+  bye: 1
+  draw: 0.5
+  loss: 0
+  win: 1

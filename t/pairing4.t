@@ -11,13 +11,13 @@ BEGIN {
     $Games::Tournament::Swiss::Config::firstround = 1;
     @Games::Tournament::Swiss::Config::roles      = qw/Black White/;
     %Games::Tournament::Swiss::Config::scores      = (
-    Win => 1, Draw => 0.5, Loss => 0, Absence => 0, Bye => 1 );
+    Win => 1, Draw => 0.5, Loss => 0, Absence => 0 );
     $Games::Tournament::Swiss::Config::algorithm  =
       'Games::Tournament::Swiss::Procedure::FIDE';
 }
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
-use Games::Tournament::Swiss::Bracket;
+use Games::Tournament::Card;
 
 my @members = Load(<<'...');
 ---
@@ -49,9 +49,6 @@ my $t = Games::Tournament::Swiss->new(
     rounds   => 3,
     entrants => [ $antonio, $tiago, $bruno, $paulo ]
 );
-
-my $bracket = Games::Tournament::Swiss::Bracket->new( score => 1,
-			members => [ $antonio, $tiago, $bruno, $paulo ]);
 
 $t->round(0);
 $t->assignPairingNumbers;
