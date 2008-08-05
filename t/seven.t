@@ -154,9 +154,7 @@ push @tests, (
 [ $five == $m3{'1Bye'}->[0]->contestants->{Bye},	'@m3 Bye'],
 );
 
-my @teststoo;
-
-# =begin comment text
+=begin comment text
 
 my @matches3;
 for my $bracket ( values %m3 )
@@ -179,33 +177,30 @@ my $paired4 = $p4->matchPlayers;
 my %m4 = %{ $paired4->{matches} };
 $t->round(4);
 
-# Round 4:  5 6 7 (2), 1 2 3 4 (1.5),
-
-TODO: {
+TODO {
 	my $problem = "Overvigourous exercise.";
 	local $TODO = $problem;
-	# skip $problem, 12 if 1;
-	@teststoo = (
-	[ $m4{2}->[0]->isa('Games::Tournament::Card'),	'42 isa'],
-	[ $m4{'1.5'}->[0]->isa('Games::Tournament::Card'), '415R isa'],
-	[ $m4{'1.5Remainder'}->[0]->isa('Games::Tournament::Card'), '415R isa'],
- 	[ $m4{'1.5RemainderBye'}->[0]->isa('Games::Tournament::Card'), '415RB isa'],
-	[ $five == $m4{2}->[0]->contestants->{White},	'4 White0'],
-	[ $six == $m4{2}->[0]->contestants->{Black},	'4 Black0'],
-	[ $seven == $m4{'1.5'}->[0]->contestants->{White}, '4R White'],
-	[ $three == $m4{'1.5'}->[0]->contestants->{Black}, '4R Black'],
-	[ $two == $m4{'1.5Remainder'}->[0]->contestants->{White}, '4R White'],
-	[ $four == $m4{'1.5Remainder'}->[0]->contestants->{Black}, '4R Black'],
-	[ $one == $m4{'1.5RemainderBye'}->[0]->contestants->{Bye}, '4RB Bye'],
+	# skip $problem, 2 if 1;
+	my @teststoo = (
+	[ $m4{0}->[0]->isa('Games::Tournament::Card'),	'@m4 isa'],
+	[ $m4{1}->[0]->isa('Games::Tournament::Card'),	'@m4 isa'],
+	[ $m4{1}->[1]->isa('Games::Tournament::Card'),	'@m4 isa'],
+	[ $m4{1}->[2]->isa('Games::Tournament::Card'),	'@m4 isa'],
+	[ $four == $m4{0}->[0]->contestants->{White},	'@m4 White0'],
+	[ $seven == $m4{0}->[0]->contestants->{Black},	'@m4 Black0'],
+	[ $three == $m4{1}->[0]->contestants->{Black},	'@m4 Black1'],
+	[ $one == $m4{1}->[0]->contestants->{White},	'@m4 White1'],
+	[ $six == $m4{1}->[1]->contestants->{White},	'@m4 White2'],
+	[ $two == $m4{1}->[1]->contestants->{Black},	'@m4 Black2'],
+	[ $five == $m4{1}->[2]->contestants->{Bye},	'@m4 Bye'],
 	);
+	ok( $_->[0], $_->[ 1, ], ) for @teststoo;
 }
 
-# =end comment text
+=end comment text
 
-# =cut
+=cut
 
-plan tests => $#tests + $#teststoo + 2;
-# plan tests => $#tests + 1;
+plan tests => $#tests + 1;
 
 ok( $_->[0], $_->[ 1, ], ) for @tests;
-ok( $_->[0], $_->[ 1, ], ) for @teststoo;

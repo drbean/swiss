@@ -6,11 +6,11 @@ pairtable2yaml - Create YAML version of pairing table
 
 =head1 VERSION
 
-Version 0.02
+0.01
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.01';
 
 use strict;
 use warnings;
