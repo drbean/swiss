@@ -1,7 +1,7 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
 # Last Edit: 2007 Nov 28, 05:55:03 PM
-# $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
+# $Id: /swiss/tags/Swiss-Tournament-Swiss-0.15/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
 use strict;
