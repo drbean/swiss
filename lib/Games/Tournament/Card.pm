@@ -1,17 +1,14 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2007 Nov 28, 07:36:50 AM
+# Last Edit: 2007 Sep 02, 09:45:50 PM
 # $Id: $
 
 use warnings;
 use strict;
-use Carp;
 
 use List::Util qw/min reduce sum/;
 
-use constant ROLES => @Games::Tournament::Swiss::Config::roles?
-			@Games::Tournament::Swiss::Config::roles:
-			Games::Tournament::Swiss::Config->roles;
+use constant ROLES => @Games::Tournament::Swiss::Config::roles;
 
 =head1 NAME
 
@@ -19,11 +16,11 @@ Games::Tournament::Card - A record of the results of a match
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
@@ -47,10 +44,9 @@ In a tournament, matches take place in rounds between contestants, who are maybe
     $bye = Games::Tournament:Card->new(
 	    round => 1,
 	    contestants => {Bye => $player},
-	    result => "Bye"
-	    floats => 'Down' );
+	    result => "Bye");
 
-'contestants' is a hash ref of player objects, keyed on Black and White, or Home and Away, or some other role distinction that needs to be balanced over the tournament. The players are probably instances of the Games::Tournament::Contestant::Swiss class. 'result' is a hash reference, keyed on the same keys as contestants, containing the results of the match. 'floats' is a hash of  which role was floated up and which down. The default is neither contestant was floated, and 'Down' for a Bye. A4. What are the fields in NoShow and byes? NoShow has no special form. Bye is { Bye => $player }. TODO Perhaps the fields should be Winner and Loser, and Down and Up?
+'contestants' is a hash ref of player objects, keyed on Black and White, or Home and Away, or some other role distinction that needs to be balanced over the tournament. The players should be instances of the Games::Tournament::Contestant::Swiss class but perhaps some other class that overloads both string quoting with a 'name' method and arithmetical operations with an 'index' method will do. 'result' is a hash reference, keyed on the same keys as contestants, containing the results of the match. 'floats' is a hash of  which role was floated up and which down. The default is neither contestant was floated, and 'Down' for a Bye. A4. What are the fields in NoShow and byes? NoShow has no special form. Bye is { Bye => $player }. TODO Perhaps the fields should be Winner and Loser, and Down and Up?
 
 =cut 
 
@@ -139,7 +135,7 @@ sub myResult {
     my %result;
     my %roles = map { $contestants->{$_}->id => $_ } keys %$contestants;
     my $role = $roles{ $contestant->id };
-    return $result->{$role};
+    $result->{$role};
 }
 
 
@@ -154,8 +150,7 @@ Returns an array of the players from $game, eg ($alekhine, $yourNewNicks).
 sub myPlayers {
     my $self        = shift;
     my $contestants = $self->contestants;
-    my @players     = values %$contestants;
-    return @players;
+    my @players     = map { $contestants->{$_} } keys %$contestants;
 }
 
 
@@ -170,27 +165,9 @@ Returns the role for $player from $game, eg 'White', 'Banker' or 'Away'.
 sub myRole {
     my $self       = shift;
     my $contestant = shift;
-    my $id = $contestant->id;
     my $contestants = $self->contestants;
-    my @contestants = values %$contestants;
-    my %dupes;
-    for my $contestant ( @contestants )
-    {
-	die "Player $contestant isn't a contestant"
-	unless $contestant and
-		$contestant->isa('Games::Tournament::Contestant::Swiss');
-    }
-    my @dupes = grep { $dupes{$_->id}++ } @contestants;
-    croak "Players @dupes had more than one role" if @dupes;
-    my %roleReversal;
-    for my $role ( keys %$contestants )
-    {
-	my $id = $contestants->{$role}->id;
-	$roleReversal{$id} = $role;
-    }
-    my $role        = $roleReversal{ $id };
-    carp "No role for player $id in round " . $self->round unless $role;
-    return $role;
+    my %roles       = map { $contestants->{$_}->id => $_ } keys %$contestants;
+    my $role        = $roles{ $contestant->id };
 }
 
 
@@ -207,7 +184,6 @@ sub myFloat {
     my $contestant = shift;
     # $self->canonize;
     my $float = $self->float($contestant);
-    return $float;
 }
 
 
@@ -268,10 +244,10 @@ Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated.
 sub float {
     my $self   = shift;
     my $player = shift;
-    die "Player is $player ref"
-      unless $player and $player->isa('Games::Tournament::Contestant::Swiss');
+    die "Player is ref $player"
+      unless $player->isa('Games::Tournament::Contestant::Swiss');
     my $role = $self->myRole($player);
-    croak "Player " . $player->id . " has $role role in round $self->{round}?"
+    die "$player is $role?"
       unless $role eq 'Bye'
       or $role     eq (ROLES)[0]
       or $role     eq (ROLES)[1];

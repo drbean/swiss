@@ -1,10 +1,5 @@
 #!usr/bin/perl
 
-# http://chesschat.org/showthread.php?t=6619
-# the pairings accepted in this test are disputable
-
-# backed out changes made in r1506 to allow r1505 to pass
-
 use lib qw/t lib/;
 
 use strict;
@@ -175,36 +170,32 @@ for my $round ( 1..$lastround )
    $tourney->collectCards( @games );
 }
 
-my %b = $tourney->formBrackets;
-my $pairing  = $tourney->pairing( \%b );
-my $p        = $pairing->matchPlayers;
-my %m = %{ $p->{matches} };
+my @b = $tourney->formBrackets;
+my $pairing  = $tourney->pairing( \@b );
+my %p        = $pairing->matchPlayers;
+my @m = @{ $p{matches} };
 $tourney->round(5);
 
-# Round 5:  1 2 (3.5), 3 6 (2.5), 4 5 8 (2), 7 9 (1), 10 (0),
-
 my @tests = (
-[ $m{2.5}->[0]->isa('Games::Tournament::Card'),	'$m25 isa'],
-[ $m{0}->[0]->isa('Games::Tournament::Card'),	'$m00 isa'],
-[ $m{0}->[1]->isa('Games::Tournament::Card'),	'$m01 isa'],
-[ $m{0}->[2]->isa('Games::Tournament::Card'),	'$m02 isa'],
-[ $m{0}->[3]->isa('Games::Tournament::Card'),	'$m03 isa'],
-
-[ $one, $m{2.5}->[0]->contestants->{White},	'$m25 White'],
-[ $three, $m{2.5}->[0]->contestants->{Black},	'$m25 Black'],
-[ $ten, $m{0}->[0]->contestants->{White},	'$m00 White'],
-[ $two, $m{0}->[0]->contestants->{Black},	'$m00 Black'],
-[ $six, $m{0}->[1]->contestants->{White},	'$m01 White'],
-[ $seven, $m{0}->[1]->contestants->{Black},	'$m01 Black'],
-[ $four, $m{0}->[2]->contestants->{White},	'$m02 White'],
-[ $eight, $m{0}->[2]->contestants->{Black},	'$m02 Black'],
-[ $nine, $m{0}->[3]->contestants->{White},	'$m03 White'],
-[ $five, $m{0}->[3]->contestants->{Black},	'$m03 Black'],
+[ $m[1][0]->isa('Games::Tournament::Card'),	'$m0 isa'],
+[ $m[2][0]->isa('Games::Tournament::Card'),	'$m0 isa'],
+[ $m[2][1]->isa('Games::Tournament::Card'),	'$m1 isa'],
+[ $m[2][2]->isa('Games::Tournament::Card'),	'$m2 isa'],
+[ $m[2][3]->isa('Games::Tournament::Card'),	'$m3 isa'],
+[ $one == $m[1][0]->contestants->{White},	'$m0 White'],
+[ $three == $m[1][0]->contestants->{Black},	'$m0 Black'],
+[ $ten == $m[2][0]->contestants->{White},	'$m0 White'],
+[ $two == $m[2][0]->contestants->{Black},	'$m0 Black'],
+[ $six == $m[2][1]->contestants->{White},	'$m1 White'],
+[ $seven == $m[2][1]->contestants->{Black},	'$m1 Black'],
+[ $four == $m[2][2]->contestants->{White},	'$m2 White'],
+[ $eight == $m[2][2]->contestants->{Black},	'$m2 Black'],
+[ $nine == $m[2][3]->contestants->{White},	'$m3 White'],
+[ $five == $m[2][3]->contestants->{Black},	'$m3 Black'],
 );
 
 plan tests => $#tests + 1;
 
-map { ok( $_->[0], $_->[ 1, ], ) } @tests[0..4];
-map { is( $_->[0], $_->[ 1, ], $_->[ 2, ], ) } @tests[5..$#tests];
+map { ok( $_->[0], $_->[ 1, ], ) } @tests;
 
 # vim: set ts=8 sts=4 sw=4 noet:

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-# Last Edit: 2007 Oct 27, 11:35:25 AM
-# $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
+# Last Edit: 2007 Sep 01, 08:32:43 AM
+# $Id: /swiss/branches/lastgp/script_files/pair 1313 2007-09-01T01:01:33.125763Z greg  $
 
 =head1 NAME
 
@@ -9,16 +9,16 @@ pair - Pair players for the next round of a swiss tournament
 
 =head1 VERSION
 
-Version 0.09
+0.07
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.07';
 
 use strict;
 use warnings;
 
-use YAML qw/LoadFile DumpFile Bless/;
+use YAML qw/LoadFile DumpFile/;
 
 use Games::Tournament::Swiss::Config;
 
@@ -31,11 +31,11 @@ my $scores = $league->{scores} ||
 	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
 my $firstround = $league->{firstround} || $swiss->firstround;
 my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
-my $abbrev = $league->{abbreviation} ||
-    { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
 
-$swiss->frisk($scores, $roles, $firstround, $algorithm, $abbrev);
+$scores = $swiss->frisk($scores);
+$roles = $swiss->frisk($roles);
+$firstround = $swiss->frisk($firstround);
+$algorithm = $swiss->frisk($algorithm);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
 %Games::Tournament::Swiss::Config::scores = %$scores;
@@ -55,6 +55,8 @@ die "round $next directory name not a round number" unless
 my $previous = $next-1;
 my $round = $previous;
 my $n = 0;
+
+my $results;
 
 my $oldlist;
 my $lineup;
@@ -81,42 +83,57 @@ $tourney->initializePreferences;
 
 my @ids = map { $_->{pairingNumber} } @$lineup;
 my $pairingtable;
-if ( $round >= $firstround and -e "./pairtable.yaml" )
-{
-    my $pairingtable = LoadFile "./pairtable.yaml";
-    my ( $opponents, $roles, $floats, $score ) =
-        @$pairingtable{qw/opponents roles floats score/};
-    for my $player ( @$lineup )
-    {
-       my $id = $player->id;
-       $player->score( $score->{$id} );
-    }
+if ( $round >= $firstround and -e "./pairtable.yaml" ) {
+    $pairingtable = LoadFile "./pairtable.yaml";
+    my ( $opponents, $roles, $floats, $score ) = 
+	@$pairingtable{qw/opponents roles floats score/};
+	die "player missing items from pairtable."
+	    unless keys %$score == keys %$opponents;
+	    for my $player ( @$lineup )
+	    {
+		my $id = $player->id;
+		$player->score( $score->{$id} );
+	    }
     my $lastround = $round;
     for my $round ( 1..$lastround )
    {
-       my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
-       my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
-       my %floats =
-	   map { $_ => $floats->{$_}->[$round-$lastround-1]||undef } @ids;
-       my @games = $tourney->prepareCards( {
-	   round => $round, opponents => \%opponents,
-	    roles => \%roles, floats => \%floats } );
+       my (%games, @games);
+       for my $id ( @ids )
+       {
+	   next if $games{$id};
+	   my $player = $tourney->ided($id);
+       my $opponentId = $opponents->{$id}->[$round-1];
+       my $opponent = $tourney->ided($opponentId);
+       die
+"Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent isn't $id"
+	   if $opponents->{$opponentId}->[$round-1] != $id;
+       my $role = $roles->{$id}->[$round-1];
+       my $opponentRole = $roles->{$opponentId}->[$round-1];
+        my $game = Games::Tournament::Card->new(
+	    round => $round,
+	    contestants => { $role => $player, $opponentRole => $opponent} );
+	    if ($round >= $lastround-1)
+	    {
+		my $float = $floats->{$id}->[$round-$lastround-1];
+		my $opponentFloat = $floats->{$opponent}->[$round-$lastround-1];
+		$game->float($player, $float);
+		$game->float($opponent, $opponentFloat);
+	    }
+	    $games{$id} = $game;
+	    $games{$opponentId} = $game;
+	    push @games, $game;
+       }
        $tourney->collectCards( @games );
     }
 }
 
-my %brackets = $tourney->formBrackets;
-my $pairing = $tourney->pairing( \%brackets );
-my $results = $pairing->matchPlayers;
-my $matches = $results->{matches};
+my @brackets = $tourney->formBrackets;
+my $pairing = $tourney->pairing( \@brackets );
+my %pairing = $pairing->matchPlayers;
 my @games;
-
-my %number = map { $_ => $brackets{$_}->number } keys %brackets;
-for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
+for my $bracket ( @{$pairing{matches}} )
 {
-    my $bracketmatches = $matches->{$bracket};
-    push @games, grep { $_ if ref eq 'Games::Tournament::Card' }
-	@$bracketmatches;
+    push @games, grep { $_ if ref eq 'Games::Tournament::Card' } @$bracket;
 }
 $tourney->round($next);
 $tourney->publishCards(@games);
@@ -129,7 +146,7 @@ if ( -e '../assistants.yaml' ) {
     my $assistantFile = LoadFile '../assistants.yaml';
     $schedule->{assistant} = $assistantFile->{$next};
 }
-$n = 1;
+$n = 0;
 for my $game (@games) {
     my %group = map { $_ => $game->{contestants}->{$_}->{name} }
       keys %{ $game->{contestants} };
@@ -163,11 +180,7 @@ DumpFile 'player.yaml', $tourney->entrants;
 DumpFile 'tourney.yaml', $tourney;
 DumpFile 'pairing.yaml', $pairing;
 DumpFile 'matches.yaml', \@games;
-DumpFile 'brackets.yaml', \%brackets;
-
-my @keys = sort {$a<=>$b} keys %{$schedule->{group}};
-Bless($schedule->{group})->keys( \@keys );
-
+DumpFile 'brackets.yaml', \@brackets;
 DumpFile 'round.yaml', $schedule;
 
 __END__
