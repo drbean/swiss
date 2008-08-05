@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # Last Edit: 2007 Oct 13, 09:40:34 AM
-# $Id: /swiss/trunk/script_files/pairstately 1472 2007-10-13T02:03:22.823448Z greg  $
+# $Id: /swiss/tags/Swiss-Tournament-Swiss-0.14/script_files/pairstately 1472 2007-10-13T02:03:22.823448Z greg  $
 
 use strict;
 use warnings;
