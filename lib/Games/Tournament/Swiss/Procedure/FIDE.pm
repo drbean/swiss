@@ -1,14 +1,14 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2007 Nov 28, 05:55:03 PM
-# $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
+# Last Edit: 2007 Oct 27, 11:32:34 AM
+# $Id: /swiss/tags/Swiss-Tournament-Swiss-0.13/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1533 2007-10-27T03:40:00.331146Z greg  $
 
 use warnings;
 use strict;
 use Carp;
 
 use List::Util qw/first/;
-use List::MoreUtils qw/all notall/;
+use List::MoreUtils qw/all/;
 
 use constant ROLES      => @Games::Tournament::Swiss::Config::roles;
 use constant FIRSTROUND => $Games::Tournament::Swiss::Config::firstround;
@@ -46,11 +46,11 @@ Games::Tournament::Swiss::Procedure::FIDE - FIDE Swiss Rules Based on Rating 04.
 
 =head1 VERSION
 
-Version 0.13
+Version 0.12
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.12';
 
 
 =head1 SYNOPSIS
@@ -113,19 +113,19 @@ Run the FIDE C 04.1 algorithm adding matches to $pairing->matches. NOTE: At one 
 sub matchPlayers {
     my $self    = shift;
     my %machine = (
-        START, [ \&start, NEXT ],
-        C1, [ \&c1, C2, NEXT, C13, C12, C1 ],
+        START, [ \&next, C1, LAST ],
+        C1, [ \&c1, C2, NEXT, C13, C12 ],
         C2,      [ \&c2,      C3 ],
         C3,      [ \&c3,      C4 ],
         C4,      [ \&c4,      C5 ],
         C5,      [ \&c5,      C6PAIRS ],
         C6PAIRS, [ \&c6pairs, C6OTHERS, C7, NEXT ],
-        C6OTHERS, [ \&c6others, NEXT, C1, C2, C10, BYE ],
-        C7, [ \&c7, C6PAIRS, C8, C9, C10, C11 ],
+        C6OTHERS, [ \&c6others, NEXT, C1, C2, BYE ],
+        C7, [ \&c7, C6PAIRS, C8, C9, C10 ],
         C8,  [ \&c8,  C5, C9,  C10 ],
         C9,  [ \&c9,  C4, C10 ],
         C10, [ \&c10, C7, C4,  C11 ],
-        C11, [ \&c11, C12, C4, C7 ],
+        C11, [ \&c11, C12, C3, C7 ],
         C12,    [ \&c12,    C13, C7, ],
         C13,    [ \&c13,    C14, C7, C1, BYE ],
         C14,    [ \&c14,    NEXT, C4, C13 ],
@@ -147,7 +147,7 @@ sub matchPlayers {
 	if ( $self->loggedProcedures->{$oldState} )
 	{
 	    my %log = $self->tailLog($oldState);
-	    print $oldState . "," . $log{$oldState} if %log;
+	    print $log{$oldState} if %log;
 	}
         if ( $state eq ERROR ) {
             die
@@ -160,41 +160,21 @@ qq/Pairing error: @{[map { "$_ => $args{$_}, " } keys %args]} Pairing NOT comple
 }
 
 
-=head2 start
-
- $pairing->start;
-
-Start at the start before the first bracket. Go to the next bracket.
-
-=cut 
-
-sub start {
-    my $self  = shift;
-    my $index = $self->thisBracket;
-    my $groups = $self->brackets;
-    die "Can't start. Already started." if defined $index;
-    $self->thisBracket('START');
-    $self->log( "Go" );
-    return NEXT;
-}
-
-
 =head2 next
 
  $pairing->next;
 
-Pair the next bracket. End if this is the last bracket. Die if we are not pairing any bracket now.
+Pair the next bracket. End if this is the last bracket. If we are not pairing any bracket now, set the next bracket to the firstBracket.
 
 =cut 
 
 sub next {
     my $self  = shift;
     my $index = $self->thisBracket;
-    die "No bracket being paired" unless defined $index;
+    my $groups = $self->brackets;
     return LAST if defined $index and $index eq $self->lastBracket;
     my $next    = $self->nextBracket;
-    die "No next bracket to $index-Bracket" unless defined $next;
-    my $groups = $self->brackets;
+    $next = $self->firstBracket unless defined $next;
     my $nextBracket = $groups->{$next};
     die "Next bracket is: $next Bracket?" unless defined $nextBracket
 		    and $nextBracket->isa('Games::Tournament::Swiss::Bracket');
@@ -202,7 +182,7 @@ sub next {
     my @ids = map {$_->id} @$members;
     my $number = $nextBracket->number;
     $self->thisBracket($next);
-    $self->log( "$next-Bracket [$number]: @ids" );
+    $self->log( "Bracket $number ($next): @ids" );
     return C1;
 }
 
@@ -256,7 +236,7 @@ sub c1 {
         push @unpairables, $member;
 	my $id = $member->id;
 	$nokmessage .= " $id";
-	$self->log( $nokmessage . " only member in $index-Bracket [$number]" );
+	$self->log( $nokmessage . " only member in $number ($index)." );
     }
     else {
 	  for my $player (@$members) {
@@ -269,44 +249,28 @@ sub c1 {
 		elsif ( $colorClashes->{$id}->{$candidate} ) { $rejections++; }
             }
             if ( $rejections >= @candidates or @candidates == 0 ) {
-		$nokmessage .= " $id";
+                $nokmessage .= " $id";
                 push @unpairables, $player;
             }
         }
-	if ( @unpairables )
-	{
-	    my @ids = map { $_->id } @unpairables;
-	    $self->log(
-		"$nokmessage @ids B1a/B2a incompatible in $number ($index)" );
-	}
     }
-    my @unpairableIds = map {$_->id} @unpairables;
-    my ($previousIndex, $previousBracket, $previousMembers, $previousNumber);
-    $previousIndex = $self->previousBracket;
-    $previousBracket = $groups->{$previousIndex} if $previousIndex;
-    $previousMembers = $previousBracket->members if $previousBracket;
-    $previousNumber = $previousBracket->number if $previousBracket;
     if (@unpairables) {
-        if ( $index eq $self->lastBracket and $self->lastBracket ne
-	    $self->firstBracket )
-	{
-	    $self->log( "@unpairableIds in last bracket, $number ($index)." );
+        if ( $index eq $self->lastBracket ) {
+	    $self->log( $nokmessage . " in last bracket, $number ($index)." );
             return C13;
         }
         elsif ((grep {$_->floating and $_->floating eq 'Down'} @unpairables)
-		    and $previousIndex and $previousMembers )
+		    and @{$groups->{$self->previousBracket}->members})
 	{
 	    $self->log(
-	      "@unpairableIds floaters from $previousNumber ($previousIndex)" );
+		$nokmessage . ": partnerless floaters in $number($index)" );
 	    return C12;
         }
-        elsif (defined $self->nextBracket)
-	{
+        else {
 	    my $next = $self->nextBracket;
 	    my $nextBracket = $groups->{$next};
 	    my $nextNumber = $nextBracket->number;
-	    $self->log(
-		"Floating @unpairableIds down to $next-Bracket [$nextNumber]" );
+	    $self->log( $nokmessage . ": floating down from $number" );
 	    $group->exit($_) for @unpairables;
 	    $_->floating('Down') for @unpairables;
 	    $nextBracket->entry($_) for @unpairables;
@@ -314,19 +278,14 @@ sub c1 {
 	    my @new = map {$_->id} @{$nextBracket->members};
             $self->log( "[$number] @originals & [$nextNumber] @new" );
             if ( @unpairables == @$members ) {
-		my $previous = $self->previousBracket;
-		$self->log( "$index-Bracket [$number] dissolved" );
-		$self->thisBracket($previous);
+		$self->log( "Bracket $number ($index) dissolved." );
+		$next = $self->nextBracket;
+		$self->thisBracket($next);
 		$group->dissolved(1);
-		return NEXT;
+		return C2;
 	    }
 	    else { return C2; }
         }
-	else {
-	    $self->log(
-	    "No destination for unpairable @unpairableIds. Go to C2" );
-	    return C2;
-	}
     }
     else {   
 	$self->log( "B1,2 test: OK, no unpairables" );
@@ -336,57 +295,13 @@ sub c1 {
 }
 
 
-=head2 rejectionTest
-
- ($message, @unpairables) = $pairing->rejectionTest(@members)
-
-Returns the unpairable players in a score bracket, if it contains players for whom no opponent can be found (B1,B2). This is useful in C1, but it is also useful in pairing a remainder group, where we want to know the same thing but don't want to take the same action as in C1. It would be convenient to know that the group is unpairable as-is, without going through all the C6,7,8,9,10 computations.
-
-=cut 
-
-sub rejectionTest {
-    my $self          = shift;
-    my @members        = @_;
-    my $alreadyPlayed = $self->whoPlayedWho;
-    my $colorClashes  = $self->colorClashes;
-    my @unpairables;
-    my $nokmessage = 'NOK.';
-    if ( @members == 1 ) {
-	my $member = $members[0];
-        push @unpairables, $member;
-	my $id = $member->id;
-	$nokmessage .= " $id only member";
-    }
-    else {
-	  for my $player (@members) {
-	  my $id = $player->id;
-            my $rejections  = 0;
-            my @candidates = grep { $_ != $player } @members;
-            my @ids       = map { $_->pairingNumber } @candidates;;
-            foreach my $candidate ( @ids ) {
-		if ( $alreadyPlayed->{$id}->{$candidate} ) { $rejections++; }
-		elsif ( $colorClashes->{$id}->{$candidate} ) { $rejections++; }
-            }
-            if ( $rejections >= @candidates or @candidates == 0 ) {
-                push @unpairables, $player;
-            }
-        }
-	if ( @unpairables )
-	{
-	    my @ids = map { $_->id } @unpairables;
-	    $nokmessage .= " @ids B1a/B2a incompatible";
-	}
-    }
-    if ( @unpairables ) { return $nokmessage, @unpairables; }
-    else {  return "B1,2 test: OK, no unpairables"; }
-}
 
 
 =head2 c2
 
  $pairing->c2
 
-Determine x according to A8. But only if xprime has not been defined for the bracket (remainder group) by C11. See B4 and http://chesschat.org/showthread.php?p=173273#post173273
+Determine x according to A8.
 
 =cut 
 
@@ -397,9 +312,8 @@ sub c2 {
     my $group  = $groups->{$this};
     my $number  = $group->number;
     my $x      = $group->x;
-    $group->xprime( $group->x ) unless defined $group->xprime;
-    my $xprime = $group->xprime;
-    $self->log( "x=$xprime" );
+    $group->xprime( $group->x );
+    $self->log( "x=$x" );
     return C3;
 }
 
@@ -445,7 +359,7 @@ sub c4 {
     my $s2      = $group->s2;
     my @s1ids = map {$_->id} @$s1;
     my @s2ids = map {$_->id} @$s2;
-    $self->log( "S1: @s1ids & S2: @s2ids" );
+    $self->log( "C4, S1: @s1ids & S2: @s2ids" );
     die "Empty S1 in Bracket $number with S2: @s2ids." unless @$s1;
     die "Empty Bracket $number with  S1: @s1ids." unless @$s2;
     return C5;
@@ -471,9 +385,9 @@ sub c5 {
     my $s2      = $group->s2;
     my @s1      = $self->rank(@$s1);
     my @s2      = $self->rank(@$s2);
-    my @s1ids = map {$_->id} @s1;
-    my @s2ids = map {$_->id} @s2;
-    $self->log( "ordered: @s1ids\n\t       & @s2ids" );
+    my @s1ids = map {$_->id} @$s1;
+    my @s2ids = map {$_->id} @$s2;
+    $self->log( "ordered: @s1ids\n           & @s2ids" );
     $group->s1( \@s1 );
     $group->s2( \@s2 );
     for my $member ( @{ $group->s2 } ) {
@@ -558,10 +472,7 @@ sub c6pairs {
               and defined $pair[1]->preference->role
               and $pair[0]->preference->role eq
               $pair[1]->preference->role );
-	if ( $quota <= $x ) {
-	    $group->{xdeduction} = $quota if $group->hetero;
-	    $Xpasser[$pos] = \@pair;
-	}
+	if ( $quota <= $x ) { $Xpasser[$pos] = \@pair; }
 	else { $badpos = defined $badpos? $badpos: $pos; last B4; }
     }
     unless ( (grep { defined $_ } @Xpasser) >= $pprime )
@@ -613,20 +524,21 @@ sub c6pairs {
     }
     @nonpaired = map { my $pair=$_; grep { defined } @$pair } @nonpaired;
     my @tables = grep { defined $passer->[$_-1] } 1..@$passer;
-    $self->log( "$index-Bracket ($number) tables @tables paired. OK" );
+    $self->log( "@tables paired. OK" );
     $self->nonpaired(\@nonpaired) if @nonpaired;
     my $allMatches = $self->matches;
+    my $undoneBracket = $allMatches->{$index};
     my ($pairmessage, @matches) = $self->colors( paired => \@paired ) if @paired;
     $self->log( $pairmessage );
-    if ( $group->hetero and @nonpaired and $group->bigGroupXprime )
+    if ( defined $undoneBracket )
     {
-	my $bigXprime = $group->bigGroupXprime;
-	my $usedX = $group->{xdeduction};
-	my $remainingX = $bigXprime - $usedX;
-	$self->log(
-"$usedX of $bigXprime X points used. $remainingX left for remainder group" );
+	$allMatches->{$index} = \@matches;
     }
-    $allMatches->{$index} = \@matches;
+    #elsif ($group->{remainderof})
+    #{
+    #     $allMatches->{"${thisBracket}Remainder"} = \@matches;
+    #}
+    else { $allMatches->{$index} = \@matches; }
     if (@paired) {if ( @nonpaired ) { return C6OTHERS } else { return NEXT } }
     return ERROR, msg => "No paired in C6PAIRS";
 }
@@ -636,7 +548,7 @@ sub c6pairs {
 
  Games::Tournament::Swiss::Procedure->c6others($group, $matches)
 
-After pairing players, if there are remaining players in a homogeneous group, float them down to the next score group and continue with C1 (NEXT). In a heterogeneous group, start at C2 with the remaining players, now a homogeneous remainder group.
+After pairing players, if there are remaining players in a homogeneous group, float them down to the next score group and continue with C1. In a heterogeneous group, start at C2 with the remaining players, now a homogeneous remainder group. XXX I am restarting at NEXT. See the problem http://chesschat.org/showpost.php?p=140199&postcount=150, which may be connected, even though C1 leads to C12 only if the player was moved down! As for what to do with remaining players in a last homogeneous group: C13 has to prevent that state from occurring.
 
 =cut 
 
@@ -664,55 +576,39 @@ sub c6others {
             $nextBracket->entry($evacuee);
         }
 	my @floaters = map {$_->id} @$nonpaired;
-	my @pairIds = map {$_->id} @{$group->members};
+	my @members = map {$_->id} @{$group->members};
 	my @next = map {$_->id} @{$nextBracket->members};
-        $self->log(
-"Floating remaining @floaters Down. [$number] @pairIds & [$nextNumber] @next" );
+        $self->log( "Floating remaining @floaters Down. [$number] @members & [$nextNumber] @next" );
         return NEXT;
     }
     else {
-	my $xprime = $group->xprime;
+	# print
+# "$index Bracket $number($index)'s Remainder Group: @{[map{$_->id}@$nonpaired]}\n";
         my $remainderGroup = Games::Tournament::Swiss::Bracket->new(
             score       => $group->score,
             remainderof => $group,
-	    number      => "${number}'s Remainder Group",
-	    xprime => ($group->bigGroupXprime - $group->{xdeduction}),
+	    number      => "${number}'s Remainder Group"
         );
 	# $group->{remainder} ||= $remainderGroup;
 	$group->{remainder} = $remainderGroup;
-	my $remaIndex = "${index}Remainder";
-        $groups->{$remaIndex} = $remainderGroup;
-	my $remainderIndex = $self->nextBracket;
-	my $remainder = $groups->{$remainderIndex};
-	my $remainderNumber = $remainder->number;
+	my $newIndex = "${index}Remainder";
+        $groups->{$newIndex} = $remainderGroup;
+	my $next = $self->nextBracket;
+	my $nextBracket = $groups->{$next};
+	my $nextNumber = $nextBracket->number;
         for my $remainer (@$nonpaired) {
             $group->exit($remainer);
-	    # $remainder->entry($remainer);
+	    # $nextBracket->entry($remainer);
 	    $remainderGroup->entry($remainer);
         }
 	my @remains = map {$_->id} @$nonpaired;
-	my $members = $group->members;
-	my @memberIds = map {$_->id} @$members;
+	my @members = map {$_->id} @{$group->members};
+	# my @next = map {$_->id} @{$nextBracket->members};
 	my @next = map {$_->id} @{$remainderGroup->members};
-        $self->log( "Remaindering @remains.
-    [$number] @memberIds & [$remainderNumber] @next" );
-	$remainderGroup->{c10repaired} = 1 if $group->{c10repaired};
-	$remainderGroup->{lowfloaterlastshuffle} = 1
-	    if $group->{lowfloaterlastshuffle}; 
-	$remainderGroup->{c11repaired} = 1 if $group->{c11repaired};
-	$remainderGroup->{lastheteroshuffle} = 1
-	    if $group->{lastheteroshuffle};
+        $self->log( "Remaindering @remains.\n\t[$number] @members & [$nextNumber] @next" );
 	$self->brackets($groups);
-	$self->thisBracket($remainderIndex);
-	my ( $rejectionSlip, @rejections) = $self->rejectionTest(@$nonpaired);
-	if ( @rejections and not @$nonpaired % 2 )
-	{
-	    $self->log(
-"$rejectionSlip. $remainderIndex-Group [$remainderNumber] unpairable. Go C10" );
-	    $remainderGroup->{lastshuffle} = 1;
-	    return C10;
-	}
-	else { return C2; }
+	$self->thisBracket($next);
+        return C2;
     }
 }
 
@@ -725,47 +621,31 @@ sub c6others {
 	    create match cards unless this permutation is incompatible;
 	}
 
-Apply a new transposition of S2 according to D1 and restart at C6. But take precautions to prevent transposing players who are no longer in the bracket, when finding a different pairing, returning from C10,12,13. In particular, when returning from C10, stop when the last alternative pairing for the lowest downfloater has been tried.
+Apply a new transposition of S2 according to D1 and restart at C6. But take precautions to prevent transposing players who are no longer in the bracket, when finding a different pairing, returning from C10,12,13
 
 =cut 
 
 sub c7 {
     my $self   = shift;
     my $groups = $self->brackets;
-    my $index =  $self->thisBracket;
-    my $group   = $groups->{$index};
+    my $group   = $groups->{ $self->thisBracket };
     my $number  = $group->number;
-    if ( $self->{lowfloaterlastshuffle} )
-    {
-	$self->log("last C10 transposition in $index-Bracket [$number]");
-	return C10;
-    }
     my $s1      = $group->s1;
     my $s2      = $group->s2;
     my $badpair = $group->badpair;
     $badpair = $#$s2 if not defined $badpair;
     my @newS2   = $group->c7shuffler($badpair);
     unless (@newS2) {
-        $self->log("last transposition in $index-Bracket [$number]");
+        $self->log("last transposition");
         $group->resetS12;
-	$group->{lastshuffle} = 1;
-	$group->{lastheteroshuffle} = 1 if ($group->hetero or
-	($group->{remainderof} and $group->{remainderof}->{lastheteroshuffle}));
-	# return C11 if $group->{c11repaired};
-	# return C10 if $group->{c10repaired};
         return C8 unless $group->hetero;
+	return C10 if $group->{c10repairof};
         return C9;
     }
-    $group->s2( \@newS2 );
-    $group->members( [ @$s1, @newS2 ] );
     my @newOrder = map { $_->id } @newS2;
     $self->log( "         @newOrder");
-    my $lastC10shuffle = $group->{lastC10Alternate};
-    if ( $lastC10shuffle and ref $lastC10shuffle eq 'ARRAY' and @$lastC10shuffle
-	and all {$newOrder[$_] == $lastC10shuffle->[$_]} 0..$#$lastC10shuffle )
-    {
-	$group->{lowfloaterlastshuffle} = 1;
-    }
+    $group->s2( \@newS2 );
+    $group->members( [ @$s1, @newS2 ] );
     $groups->{ $self->thisBracket } = $group;
     return C6PAIRS;
 }
@@ -798,7 +678,7 @@ sub c8 {
         $group->c8swapper($swapper);
     }
     my ($message, @newMembers) = &$swapper;
-    $self->log( "$message in $this-Bracket [$number]" );
+    $self->log( "$message in $number" );
     unless (@newMembers) {
       $swapper = $group->c8iterator;
         $group->c8swapper($swapper);
@@ -827,44 +707,20 @@ Drop, in order, criterion B6 (no identical float to 2 rounds before) and B5 (no 
 sub c9 {
     my $self    = shift;
     my $groups  = $self->brackets;
-    my $index = $self->thisBracket;
-    my $group   = $groups->{ $index };
+    my $group   = $groups->{ $self->thisBracket };
     my $number   = $group->number;
     if ( $group->floatCheckWaive eq 'None' ) {
         $group->floatCheckWaive('B6Down');
-	delete $group->{lastshuffle};
-	delete $group->{lastheteroshuffle};
-        $self->log( "No pairing with float checks on. Dropping B6 for Downfloats in $index-Bracket [$number]" );
+        $self->log( "Dropping B6 for Downfloats" );
         return C4;
     }
     elsif ( $group->floatCheckWaive eq 'B6Down' ) {
         $group->floatCheckWaive('B5Down');
-	delete $group->{lastshuffle};
-	delete $group->{lastheteroshuffle};
-        $self->log( "No pairing with B6 check off. Dropping B5 for Downfloats in $index-Bracket [$number]" );
+        $self->log( "Dropping B5 for Downfloats" );
         return C4;
     }
-    elsif ( $group->floatCheckWaive eq 'B5Down' ) {
-	$self->log(
-"No pairing with all Downfloat checks dropped in $index-Bracket [$number]" );
-	return C10;
-    }
-    elsif ( $group->floatCheckWaive eq 'B6Up' ) {
-	$self->log(
-"No pairing with all Downfloat checks dropped in $index-Bracket [$number]" );
-	return C10;
-    }
-    elsif ( $group->floatCheckWaive eq 'B5Up' ) {
-	$self->log(
-"No pairing with all Downfloat checks dropped in $index-Bracket [$number]" );
-	return C10;
-    }
-    elsif ( $group->floatCheckWaive eq 'All' ) {
-        $group->floatCheckWaive('B6Down');
-        $self->log( "No Pairing with all Downfloat checks dropped. Pairing again with B6 dropped in $index-Bracket [$number]" );
-	return C4;
-    }
-    return ERROR, msg => "$index-Bracket [$number] fell through C9";
+    $self->log( " B5,6 already dropped for Downfloats in Bracket $number." );
+    return C10;
 }
 
 
@@ -882,136 +738,118 @@ sub c10 {
     my $index = $self->thisBracket;
     my $group  = $brackets->{ $index };
     my $groupNumber = $group->number;
-    my $lowFloat = $group->s1->[0]->id;
-    if ( $group->{c10repaired} and $group->{lowfloaterlastshuffle})
+    if ( defined $group->{c10repairof} )
     {
-	my ($heteroBracket, $heteroNumber, $heteroIndex);
-	if ( $group->{remainderof} )
+	if ( $group->floatCheckWaive eq 'B5Down' ) {
+	    $group->floatCheckWaive('B6Up');
+	    $self->log(
+		"Dropping B6 for Upfloats in Bracket $groupNumber($index)");
+	    return C4;
+	}
+	elsif ( $group->floatCheckWaive eq 'B6Up' ) {
+	    $group->floatCheckWaive('B5Up');
+	    $self->log(
+		"Dropping B5 for Upfloats in Bracket $groupNumber($index)");
+	    return C4;
+	}
+	my $id = $group->s1->[0]->id;
+	my $index = $self->thisBracket;
+	$self->log( "No more opponents for Player $id" );
+	$self->log( "Giving up on Bracket $groupNumber ($index)" );
+	return C11;
+    }
+    elsif ( defined $group->{remainderof} ) {
+	if ( $group->{remainderof}->{c11repairof} or
+			$group->{remainderof}->{c12repairof} )
 	{
-	    $heteroBracket = $group->{remainderof};
-	    $heteroNumber = $heteroBracket->number;
-	    $heteroIndex = $self->index($heteroBracket);
+	    # $self->log( "Passing $groupNumber ($index) to C11." );
+	    return C11;
+	}
+	elsif ( $group->{remainderof}->{c10repairof} )
+	{
 	    my $repairgroupRemainder = $group;
-	    my $lowest = $heteroBracket->s1->[0];
-	    my $lowFloat = $lowest->id;
-	    my $inadequateS2member = $heteroBracket->s2->[0];
+	    my $c10RepairGroup = $group->{remainderof};
+	    my $lowest = $c10RepairGroup->s1->[0];
+	    my $id = $lowest->id;
+	    my $inadequateS2member = $c10RepairGroup->s2->[0];
 	    my $partnerId = $inadequateS2member->id;
 	    my $unpaired = $repairgroupRemainder->members;
 	    $repairgroupRemainder->exit($_) for @$unpaired;
 	    $_->floating('')            for @$unpaired;
-	    $heteroBracket->entry($_)   for @$unpaired;
-	    # $heteroBracket->floatCheckWaive('None');
-	    # $heteroBracket->badpair(0);
-	    $self->thisBracket($heteroIndex);
+	    $c10RepairGroup->entry($_)   for @$unpaired;
+	    $c10RepairGroup->floatCheckWaive('None');
+	    $c10RepairGroup->badpair(0);
+	    my $repairGroupNumber = $c10RepairGroup->number;
+	    my $repairGroupIndex = $self->previousBracket;
+	    $self->thisBracket($repairGroupIndex);
 	    $repairgroupRemainder->dissolved(1);
-	    delete $repairgroupRemainder->{lowfloaterlastshuffle};
-	    delete $heteroBracket->{lowfloaterlastshuffle};
 	    $self->log(
-"Can't repair lowest downfloater, $lowFloat in $heteroIndex-Bracket [$heteroNumber]" );
-	}
-	elsif ( $group->hetero ) {
-	    $heteroBracket = $group;
-	    $heteroNumber = $groupNumber;
-	    $heteroIndex = $index;
-	    delete $heteroBracket->{lowfloaterlastshuffle};
-	}
-	if ( $heteroBracket->floatCheckWaive eq 'B5Up' ) {
-	    $heteroBracket->floatCheckWaive('All');
+		"Player $id and $partnerId pairing in $repairGroupNumber" );
 	    $self->log(
-"Float checks all dropped, but can't repair heterogeneous $index-Bracket [$groupNumber]. Go C11 " );
-	    return C11;
+		"failed in $groupNumber. Returning to $repairGroupNumber" );
+	    return C7;
 	}
-	elsif (  $heteroBracket->floatCheckWaive eq 'B6Down' or
-			$heteroBracket->floatCheckWaive eq 'B5Down' ) {
-	    $heteroBracket->floatCheckWaive('B6Up');
-	    $self->log(
-	"Dropping B6 for Upfloats in $heteroIndex-Bracket [$heteroNumber]");
-	}
-	elsif ( $heteroBracket->floatCheckWaive eq 'B6Up' ) {
-	    $heteroBracket->floatCheckWaive('B5Up');
-	    $self->log(
-	"Dropping B5 for Upfloats in $heteroIndex-Bracket [$heteroNumber]");
-	}
-	$self->log(
-	"Repairing whole of $heteroIndex-Bracket [$heteroNumber]" );
-	return C4;
-    }
-    elsif ( $group->{remainderof} ) {
-	if ( $group->{remainderof}->{c11repaired} or
-			$group->{remainderof}->{c12repaired} )
-	{
-	    $self->log( "Passing $index-Bracket [$groupNumber] to C11." );
-	    return C11;
-	}
-	my $remaindered = $group->members;
-	my @remaindered = map {$_->id} @$remaindered;
-	my $heteroBracket = $group->{remainderof};
-	my $index = $self->index($heteroBracket);
-	my $number  = $heteroBracket->number;
-	my @ids = map { $_->id } @{ $heteroBracket->members };
-	$self->log(
-"Pairing of @ids in $index-Bracket [$number] failed pairing @remaindered in remainder group." );
-	my $matches = delete $self->matches->{$index};
-	    $group->dissolved(1);
-	    # $heteroBracket->floatCheckWaive('None');
-	    $self->thisBracket( $index );
-	    $group->exit($_) for @$remaindered;
-	    $_->floating('')            for @$remaindered;
-	    $heteroBracket->entry($_)   for @$remaindered;
-	if ( not $heteroBracket->{c10repaired} )
-	{
-	    $heteroBracket->{c10repaired} = 1;
+	elsif ( not $group->{remainderof}->{c10repairof} ) {
+	    my $heteroBracket = $group->{remainderof};
+	    my $number  = $heteroBracket->number;
+	    my $score = $heteroBracket->score;
+	    my $index = $self->index($heteroBracket);
+	    my $matches = $self->matches->{$index};
 	    my $s1 = $heteroBracket->s1;
 	    my $s2 = $heteroBracket->s2;
-	    my @wellpairedS2 = map { $s2->[$_] } 0..$#$s1-1;
-	    my @unpairedS2 = map { $s2->[$_] } $#$s1+1..$#$s2;
-	    my $lastShufflePossibility = ( $self->rank(@unpairedS2) )[-1];
-	    my @lastIds = map { $_->id } @wellpairedS2, $lastShufflePossibility;
-	    $heteroBracket->{lastC10Alternate} = \@lastIds;
 	    my $lowest = $s1->[-1];
 	    my $id = $lowest->id;
-	    my $match = $matches->[-1];
+	    my $match = delete $matches->[-1];
 	    my $partner = first { $_->id != $id } $match->myPlayers;
 	    my $partnerId = $partner->id;
 	    $self->log(
-"Unpairing lowest downfloater, $id and $partnerId in $index-Bracket [$number]
-	Returning @remaindered to $index-Bracket [$number]
-	Trying different partner for $id in $index-Bracket [$number]");
-	    return C7;
-	}
-	elsif ( $group->{lastshuffle} ) {
-	    $self->log("Trying next pairing in $index-Bracket [$number]");
+		"Unpairing $id and $partnerId in Bracket $number($index)");
+	    my $remaindered = $group->members;
+	    my @ids = map {$_->id} @$remaindered;
+	    $self->log( "Bracket ${number}'s C10Repair Group: $id $partnerId @ids" );
+	    my $key = $score . "C10Repair";
+	    my $c10RepairGroup = Games::Tournament::Swiss::Bracket->new(
+		score       => $score,
+		c10repairof => $heteroBracket,
+		number      => "${number}'s C10 Repair Group"
+		);
+	    $heteroBracket->{c10repair} = $c10RepairGroup;
+	    $heteroBracket->exit($_) for ( $lowest, $partner );
+	    $_->floating('')            for ( $lowest, $partner );
+	    $c10RepairGroup->entry($_)   for ( $lowest, $partner );
+	    $group->exit($_) for @$remaindered;
+	    $_->floating('')            for @$remaindered;
+	    $c10RepairGroup->entry($_)   for @$remaindered;
+	    # $c10RepairGroup->dissolved(0);
+	    $group->dissolved(1);
+	    $c10RepairGroup->floatCheckWaive('None');
+	    $brackets->{$key} = $c10RepairGroup;
+	    $self->thisBracket( $key );
+	    $c10RepairGroup->badpair(0);
 	    return C7;
 	}
     }
-    elsif ( $group->floatCheckWaive eq 'B5Down' ) {
-        $group->floatCheckWaive('B6Up');
-        $self->log(
-"No more pairings. Dropping B6 for Upfloats in $index-Bracket [$groupNumber]");
-        return C4;
+    if ( $group->floatCheckWaive eq 'B5Down' ) { # XXX remainder group too?jjjj
+	$group->floatCheckWaive('B6Up');
+	$self->log("Dropping B6 for Upfloats in Bracket $groupNumber($index)");
+	return C4;
     }
-    elsif ( $group->floatCheckWaive eq 'B6Up' ) {
-        $group->floatCheckWaive('B5Up');
-        $self->log(
-"No more pairings. Dropping B5 for Upfloats in $index-Bracket [$groupNumber]");
-        return C4;
+    elsif ( $group->floatCheckWaive eq 'B6Up' ) { # XXX remainder group too?jjjj
+	$group->floatCheckWaive('B5Up');
+	$self->log("Dropping B5 for Upfloats in Bracket $groupNumber($index)");
+	return C4;
     }
     elsif ( $group->floatCheckWaive eq 'B5Up' ) {
-        $group->floatCheckWaive('All');
-        $self->log("Float checks all dropped in $index-Bracket [$groupNumber]");
-        return C11;
+	$group->floatCheckWaive('All');
+	$self->log("Float checks all dropped in Bracket $groupNumber($index)");
+	return C11;
     }
     elsif ( $group->floatCheckWaive eq 'All' ) {
-        $group->floatCheckWaive('None');
-        $self->log("Float checks already off in $index-Bracket [$groupNumber]");
-        return C11;
+	$group->floatCheckWaive('None');
+	$self->log("Float checks already off in Bracket $groupNumber($index)");
+	return C11;
     }
-    #elsif ( $group->{lastshuffle} ) {
-    #    $self->log(
-    #        "Repairing of whole $index-Bracket [$groupNumber] failed. Go C11" );
-    #    return C11;
-    #}
-    return ERROR, msg => "$index-Bracket [$groupNumber] fell through C10";
+    return ERROR, msg => "$groupNumber($index) fell through C10", pairing => $self;
 }
 
 
@@ -1019,7 +857,7 @@ sub c10 {
 
  Games::Tournament::Swiss::Procedure->c11
 
-As long as x (xprime) is less than p: increase it by 1. When pairing a remainder group undo all pairings of players moved down also. Restart at C3. (We were restarting at C7 after resetting the C7shuffler (Why?) We restart at C4 (to avoid resetting p) the 1st time, and C7 after that).
+As long as x (xprime) is less than p: increase it by 1. When pairing a remainder group undo all pairings of players moved down also. Restart at C3. We restart at C7 after resetting the C7shuffler transposer.
         
 =cut 
 
@@ -1029,103 +867,127 @@ sub c11 {
     my $index = $self->thisBracket;
     my $group   = $brackets->{ $index };
     my $number   = $group->number;
-    my ($heteroBracket, @remaindered);
+    my $heteroBracket = $group->{c10repairof};
+    my $x       = $group->x;
     my $xprime  = $group->xprime;
-    my $pprime  = $group->pprime;
-    my $bigGroupXprime       = $group->bigGroupXprime;
-    my $bigGroupPprime       = $group->bigGroupPprime;
-    if ( $group->{c11repaired} and $group->{lastheteroshuffle} )
+    my $pprime       = $group->pprime;
+    $xprime = defined $xprime ? $xprime + 1 : $x;
+    $group->xprime($xprime);
+    if ( $group->{c11repairof} )
     {
-	if ( $heteroBracket = $group->{remainderof} )
-	{
-	    my $remaindered = $group->members;
-	    @remaindered = map { $_->id } @$remaindered;
-	    $group->exit($_) for @$remaindered;
-	    $_->floating('')            for @$remaindered;
-	    $heteroBracket->entry($_)   for @$remaindered;
-	    delete $group->{lastheteroshuffle};
-	    $group->dissolved(1);
-	}
-	elsif ( $group->hetero ) { $heteroBracket = $group; }
-	my $heteroIndex = $self->index($heteroBracket);
-	$self->thisBracket( $heteroIndex );
-	my $heteroNumber = $heteroBracket->number;
-	my $heteroMembers = $heteroBracket->members;
-	my @heteroIds = map { $_->id } @$heteroMembers;
-	$heteroIndex = $self->index($heteroBracket);
-	$self->log(
-"Repairing of $heteroIndex-Bracket [$heteroNumber] failed. No more pairings with X=$bigGroupXprime" );
-	delete $heteroBracket->{lastheteroshuffle};
-	if ( $bigGroupXprime < $bigGroupPprime ) {
-	$heteroBracket->bigGroupXprime(++$bigGroupXprime);
-	    $heteroBracket->{c8swapper} = $heteroBracket->c8iterator;
-	    $heteroBracket->floatCheckWaive('None');
+	$heteroBracket = $group->{c11repairof};
+	if ( $xprime <= $pprime ) {
+	    $group->{c8swapper} = $group->c8iterator;
+	    $group->floatCheckWaive('None');
 	    $self->log(
-		"Retrying with X=$bigGroupXprime. All float checks on in $heteroIndex-Bracket [$heteroNumber]" );
-	    return C4;
+		"x=$xprime. All float checks on in Bracket $number($index)" );
+	    return C3;
 	}
 	else {
 	    $self->log(
-	    "X=P=$bigGroupPprime, no more X increases in $index-Bracket [$number].
-	    Giving up on C11 Repair. Go C12");
+	    "x=p=$pprime, no more x increases in Bracket $number ($index).
+	    Giving up on C11 Repair of Bracket $number($index). Trying C12");
 	    return C12;
 	}
     }
-    elsif ( $group->{c10repaired} ) {
+    elsif ( $group->{c10repairof} ) {
+	if (not $group->{c10repairof}->{c11repairof}) {
+	    my $heteroBracket = $group->{c10repairof};
+	    my $number  = $heteroBracket->number;
+	    my $score = $heteroBracket->score;
+	    my $index = $self->index($heteroBracket);
 	    my $matches = $self->matches->{$index};
 	    delete $self->matches->{$index} if $matches;
-	    $self->log( "Deleting all matches in $index-Bracket [$number]");
-	    my $members = $group->members;
-	    my @ids = map {$_->id} @$members;
-	    $group->bigGroupXprime(++$bigGroupXprime);
-	    $group->xprime(++$xprime);
-	    $group->{c10repaired} = 0;
-	    $group->{lastshuffle} = 0;
-	    delete $group->{lastheteroshuffle};
-	    $group->{c11repaired} = 1;
-	    $group->floatCheckWaive('None');
-	    my $message = $group->{remainder}? "X=$bigGroupXprime": "x=$xprime";
-	    $self->log(
-		    "Bracket ${number}'s C11 Repairing: @ids, with $message" );
-	    return C4;
+	    $self->log( "Deleting matches in Bracket $number($index)");
+	    my $paired = $heteroBracket->members;
+	    my $unpaired = $group->members;
+	    my @floaters = $group->downFloaters;
+	    die "2 or more downfloaters in C10 repair group." if @floaters > 1;
+	    my @ids = map {$_->id} @$unpaired, @$paired;
+	    my $key = $score . "C11Repair";
+	    my $c11RepairGroup = Games::Tournament::Swiss::Bracket->new(
+	    score       => $score,
+	    c11repairof => $heteroBracket,
+	    number      => "$number (post-C11)"
+	    );
+	    $self->log( "Bracket ${number}'s C11 Repairing: @ids" );
+	    $group->exit($_) for @$unpaired;
+	    $heteroBracket->exit($_) for @$paired;
+	    $_->floating('')            for @$unpaired, @$paired;
+	    $c11RepairGroup->entry($_) for @$unpaired, @$paired;
+	    $heteroBracket->{c11repair} = $c11RepairGroup;
+	    $c11RepairGroup->{c11repairof} = $heteroBracket;
+	    $group->dissolved(1);
+	    $heteroBracket->dissolved(1);
+	    $c11RepairGroup->floatCheckWaive('None');
+	    $c11RepairGroup->{c8swapper} = $heteroBracket->c8iterator;
+	    $c11RepairGroup->resetS12;
+	    my $s2 = $c11RepairGroup->s2;
+	    $c11RepairGroup->badpair($#$s2);
+	    $brackets->{$key} = $c11RepairGroup;
+	    $self->thisBracket($key);
+	    return C7;
+	}
     }
     elsif ( $group->{remainderof} )
     {
-	if ( $group->{remainderof}->{c12repaired} )
+	if ( $group->{remainderof}->{c12repairof} )
 	{
 	    $self->log( "Passing to C12." );
 	    return ERROR, msg => "$number($index) shouldn't pass this way";
 	    return C12;
 	}
-	elsif ( $group->{c11repaired} )
+	elsif ( $group->{remainderof}->{c11repairof} )
 	{
-	    $heteroBracket = $group->{remainderof};
-	    my $remaindered = $group->members;
-	    my @remaindered = map { $_->id } @$remaindered;
-	    my $heteroNumber = $heteroBracket->number;
-	    my $heteroIndex = $self->previousBracket;
-	    my $heteroMembers = $heteroBracket->members;
-	    my @heteroIds = map { $_->id } @$heteroMembers;
-	    # $heteroBracket->bigGroupXprime(++$bigGroupXprime);
+	    if ( $xprime <= $pprime )
+	    {
+		$self->log( "Trying next pairing in $number($index)" );
+		return C7;
+	    }
+	    my $c11RepairRemainder = $group;
+	    my $heteroBracket = $group->{remainderof};
+	    my $unpaired = $c11RepairRemainder->members;
+	    my $paired = $heteroBracket->members;
+	    $c11RepairRemainder->exit($_) for @$unpaired;
+	    $_->floating('')            for @$unpaired;
+	    $heteroBracket->entry($_)   for @$unpaired;
+	    $heteroBracket->floatCheckWaive('None');
+	    my $repairGroupNumber = $heteroBracket->number;
+	    my $repairGroupIndex = $self->previousBracket;
+	    $self->thisBracket($repairGroupIndex);
+	    $c11RepairRemainder->dissolved(1);
+	    my @unpairedids = map { $_->id } @$unpaired;
+	    my @pairedids = map { $_->id } @$paired;
+	    $heteroBracket->resetS12;
+	    my $s2 = $c11RepairRemainder->s2;
+	    $heteroBracket->badpair($#$s2);
 	    $self->log(
-"Repairing of @heteroIds in $heteroIndex-Bracket [$heteroNumber] failed pairing @remaindered. Trying next pairing with X=$bigGroupXprime" );
-	    $group->exit($_) for @$remaindered;
-	    $_->floating('')            for @$remaindered;
-	    $heteroBracket->entry($_)   for @$remaindered;
-	    $group->dissolved(1);
-	    $self->thisBracket( $heteroIndex );
+"Repairing @pairedids in $repairGroupIndex-Bracket ($repairGroupNumber) failed.
+@unpairedids in $index-Bracket ($number) unpairable." );
+	    my $x       = $heteroBracket->x;
+	    my $xprime  = $heteroBracket->xprime;
+	    my $pprime       = $heteroBracket->pprime;
+	    if ( $xprime <= $pprime ) {
+		$self->log( "x=$xprime" );
+	    $xprime = defined $xprime ? $xprime + 1 : $x;
+	    $heteroBracket->xprime($xprime);
+	    $self->log( "Trying next pairing in $repairGroupNumber" );
 	    return C7;
+	    }
+	    else {
+		$self->log(
+"No repairings in $repairGroupIndex-Bracket ($repairGroupNumber). Go to C12." );
+		return C12;
+	    }
 	}
     }
-    elsif ( $xprime < $pprime ) {
-	$group->xprime(++$xprime);
+    elsif ( $xprime <= $pprime ) {
         $self->log( "x=$xprime" );
-        if ( $group->{remainder} )
+        if ( $heteroBracket )
         {
-	    $heteroBracket = $group;
             delete $self->matches->{$index};
-            $self->log("Undoing all hetero $index-Bracket [$number] matches.");
-	    $self->log( "All float checks on in $index-Bracket [$number]" );
+            $self->log("Undoing all hetero Bracket $number ($index) matches.");
+	    $self->log( "All float checks on in Bracket $number($index)" );
 	    $heteroBracket->floatCheckWaive('None');
 	    $heteroBracket->resetShuffler;
 	    return C7;
@@ -1133,13 +995,13 @@ sub c11 {
 	else {
 	    $group->{c8swapper} = $group->c8iterator;
 	    $group->floatCheckWaive('None');
-	    $self->log( "All float checks on in $index-Bracket [$number]" );
-	    return C4;
+	    $self->log( "All float checks on in Bracket $number ($index)" );
+	    return C3;
 	}
     }
     else {
 	$self->log(
-         "x=p=$bigGroupPprime, no more x increases in $index-Bracket [$number]" );
+         "x=p=$pprime, no more x increases in Bracket $number ($index)." );
 	return C12;
     }
     return ERROR, msg => "$number($index) fell through C11", pairing => $self;
@@ -1150,7 +1012,7 @@ sub c11 {
 
  Games::Tournament::Swiss::Procedure->c12
 
-If the group contains a player who cannot be paired without violating B1 or B2 and this is a heterogeneous group, undo the pairing of the previous score bracket. If in this previous score bracket a pairing can be made whereby another player will be moved down to the current one, and this now allows p pairing to be made then this pairing in the previous score bracket will be accepted. (If there was only one (or two) players in the previous score bracket, obviously (heh-heh) there is no use going back and trying to find another pairing). Using a c12repaired flag to tell if this is the 2nd time through (but what if this is a backtrack to a different bracket?).
+If the group contains a player who cannot be paired without violating B1 or B2 and this is a heterogeneous group, undo the pairing of the previous score bracket. If in this previous score bracket a pairing can be made whereby another player will be moved down to the current one, and this now allows p pairing to be made then this pairing in the previous score bracket will be accepted. (If there was only one (or two) players in the previous score bracket, obviously (heh-heh) there is no use going back and trying to find another pairing). Using a c12backupto flag to tell if this is the 2nd time through (but what if this is a backtrack to a different bracket?).
 
 =cut 
 
@@ -1163,55 +1025,78 @@ sub c12 {
     my $first = $self->firstBracket;
     if ( $index eq $first )
     {  
-	$self->log( "No C12 repair from first $index-Bracket [$number]" );
+	$self->log( "No C12 repair from first bracket $number ($index)" );
 	return C13;
     }
     my $prevIndex = $self->previousBracket;
     my $previous = $brackets->{$prevIndex};
     my $prevNumber = $previous->number;
     my $previousMembers = $previous->members;
-    if ( $group->{c12repaired} or $previous->{c12repaired} )
+    if ( $group->{c12up} or $previous->{c12down} )
     {
 	$self->log(
-"Repairing of $prevIndex-Bracket [$prevNumber] failed to pair $index [$number]. Go to C13");
+"Repairing of Bracket $prevIndex ($prevNumber) failed to pair $index ($number). Go to C13");
 	return C13;
     }
-    elsif ( $group->{c11repaired} )
+    elsif ( $group->{c11repairof} )
     {
-        if (not $previous->{c12repaired}) {
-	    my @downfloaters = $group->downFloaters;
-	    my @floatIds = map { $_->id } @downfloaters;
-	    my $score = $previous->score;
-	    my $matches = $self->matches->{$prevIndex};
-	    delete $self->matches->{$prevIndex} if $matches;
-	    $self->log(
-"Deleting matches in $prevIndex-Bracket [$prevNumber], home of @floatIds");
-	    my $paired = $previous->members;
-	    my @ids = map {$_->id} @downfloaters, @$paired;
-	    $self->log(
-		"$prevIndex-Bracket [$prevNumber] C12 Repairing: @ids");
-	    $group->exit($_) for @downfloaters;
-	    $_->floating('')            for @downfloaters;
-	    $previous->entry($_) for @downfloaters;
-	    $previous->{c12repaired} = 1;
-	    $previous->floatCheckWaive('None');
-	    $previous->{c8swapper} = $previous->c8iterator;
-	    $previous->resetS12;
-	    my $s2 = $previous->s2;
-	    $self->thisBracket($prevIndex);
-	    return C7;
+	# if (not $group->{c11repairof}->{c12repairof}) 
+        if (not $group->{c12up}) {
+	    my $c11Repair = $group;
+	    my $c11RepairIndex = $prevIndex;
+	    my $c11RepairNumber = $prevNumber;
+	    if ( $previous and $previous->hetero )
+	    {
+		my @downfloaters = $c11Repair->downFloaters;
+		my @floatIds = map { $_->id } @downfloaters;
+		my $score = $previous->score;
+		my $matches = $self->matches->{$prevIndex};
+		delete $self->matches->{$prevIndex} if $matches;
+		$self->log("Deleting matches in $prevIndex, home of @floatIds");
+		my $paired = $previous->members;
+		my @ids = map {$_->id} @downfloaters, @$paired;
+		my $key = $score . "C12Repair";
+	       my $c12Repair = Games::Tournament::Swiss::Bracket->new(
+		    score       => $score,
+		   c12repairof => $previous,
+		    c12down => $c11Repair,
+		    number      => "$prevNumber (post-C12)",
+		);
+		$self->log("Bracket ${prevIndex}'s C12 Repairing: @ids");
+		$c11Repair->exit($_) for @downfloaters;
+		$previous->exit($_) for @$paired;
+		$_->floating('')            for @downfloaters;
+		$c12Repair->entry($_) for @downfloaters, @$paired;
+		$previous->{c12repair} = $c12Repair;
+		$previous->dissolved(1);
+		$c12Repair->floatCheckWaive('None');
+		$c12Repair->{c8swapper} = $c12Repair->c8iterator;
+		$c12Repair->resetS12;
+		my $s2 = $c12Repair->s2;
+		$self->thisBracket($key);
+		return C7;
+	    }
+	    elsif ( $previous and not $previous->hetero )
+	    {
+		$self->log(
+		    "Previous $prevIndex-bracket not heterogeneous. Go to C13");
+		return C13;
+	    }
+	    else {
+		die
+		"No previous $prevIndex-Bracket before $index-Bracket in C12";
+	    }
         }
     }
-    elsif ( $group->{remainderof} and $group->{remainderof}->{c12repaired} )
+    # elsif ( $group->{remainderof} and $group->{remainderof}->{c12repairof} )
+    elsif ( $group->{remainderof} and $group->{remainderof}->{c12down} )
     {
 	my $repairGroupIndex = $self->previousBracket;
 	my $heteroBracket = $group->{remainderof};
 	my $repairGroupNumber = $heteroBracket->number;
 	my $c11RepairRemainder = $group;
-	    $self->log( "No repairings in $repairGroupNumber. Go to C13." );
-	    return C13;
     }
-    elsif ( $group->{remainderof} and $group->{remainderof}->{c11repaired} )
+    elsif ( $group->{remainderof} and $group->{remainderof}->{c11repairof} )
     {
 	my $c11Remainder = $group;
 	my $c11RepairIndex = $prevIndex;
@@ -1240,7 +1125,7 @@ sub c12 {
 	    my $key = $score . "C12Repair";
 	    my $c12RepairGroup = Games::Tournament::Swiss::Bracket->new(
 	    score       => $score,
-	    c12repaired => 1,
+	    c12repairof => $bracketAbove,
 	    c12down => $c11RepairGroup,
 	    number      => "$aboveNumber(post-C12)"
 	    );
@@ -1255,7 +1140,7 @@ sub c12 {
 	    $self->log("C12 Repairing of previous $newPrevIndex-Bracket");
 	    $self->log(qq/Unfloating @floatIds back from $number ($index). /);
 	    $self->log(
-		"$index-Bracket [$number]: @thisIds & [$prevNumber]: @prevIds");
+		"Bracket $number: @thisIds & Bracket $prevNumber: @prevIds");
 	    $bracketAbove->dissolved(1);
 	    $c12RepairGroup->floatCheckWaive('None');
 	    $c12RepairGroup->{c8swapper} = $c12RepairGroup->c8iterator;
@@ -1286,7 +1171,7 @@ sub c12 {
 	my $key = $score . "C12Repair";
 	my $c12RepairGroup = Games::Tournament::Swiss::Bracket->new(
 	score       => $score,
-	c12repaired => 1,
+	c12repairof => $floaterSource,
 	c12down => $group,
 	number      => "$floaterSourceNumber(post-C12)"
 	);
@@ -1300,7 +1185,7 @@ sub c12 {
 	my @prevIds = map {$_->id} @{$c12RepairGroup->members};
 	my @thisIds = map {$_->id} @{$group->members};
 	$self->log(qq/Unfloating @floatIds back from $number ($index). /);
-	$self->log("[$number]: @thisIds & [$prevNumber]: @prevIds");
+	$self->log("Bracket $number: @thisIds & Bracket $prevNumber: @prevIds");
 	$floaterSource->dissolved(1);
 	$c12RepairGroup->floatCheckWaive('None');
 	$c12RepairGroup->{c8swapper} = $c12RepairGroup->c8iterator;
@@ -1313,11 +1198,10 @@ sub c12 {
     }
     elsif ( not $group->hetero )
     {
-	$self->log(
-	    "$index-Bracket [$number] not heterogeneous. Passing to C13.");
+	$self->log( "$number($index) not heterogeneous. Passing to C13.");
 	return C13;
     }
-    return ERROR, msg => "$index-Bracket [$number] fell through C12";
+    return ERROR, msg => "$number($index) fell through C12", pairing => $self;
 }
 
 
@@ -1339,74 +1223,70 @@ sub c13 {
     my $members = $group->members;
     unless ($index eq $self->lastBracket)
     {
-	$self->log("$index-Bracket [$number] not last group. Passing to C14" ) ;
+	$self->log( "$number ($index) not last group. Passing to C14" ) ;
 	return C14;
-    }
-    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
-	$self->byer($members->[0]);
-	return BYE;
     }
     my $penultimateIndex = $self->previousBracket;
     my $penultimateBracket = $brackets->{$penultimateIndex};
     my $penultimateNumber = $penultimateBracket->number;
+    my $penultpPrime = $penultimateBracket->pprime;
     my $penultScore = $penultimateBracket->score;
-    # $penultimateBracket->floatCheckWaive('None');
+    $self->log( "penultimate p=$penultpPrime." );
     if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
 	$self->byer($members->[0]);
 	return BYE;
     }
-    if ( $index eq $self->firstBracket )
+    if ( $index eq $self->firstBracket and defined $penultpPrime )
     {
 	return ERROR,
 	msg => "All joined into one $index bracket, but no pairings! Sorry";
     }
+    #if ( $group->{remainderof} )
+    #{
+    #    $group = $self->previousBracket;  # XXX
+    #    $penultimate = $self->previousBracket;  # XXX
+    #}
+    #else {
+    #    $penultimate = $self->previousBracket;
+    #}
     delete $matches->{ $penultimateIndex };
-    $self->log(
-	"Undoing $penultimateIndex-Bracket [$penultimateNumber] matches");
-    my @immigrants = $group->downFloaters;
+    $self->log("Undoing Bracket $penultimateNumber($penultimateIndex) matches");
+    my @immigrants      = $group->downFloaters;
     my @returnees = grep { $_->score == $penultScore } @immigrants;
-    if ( @returnees )
-    {   
-	my @floaterIds = map { $_->id } @returnees;
-	$self->log( "Unfloating @floaterIds back from $number." );
-	$group->exit($_) for @returnees;
-	$_->floating('')            for @returnees;
-	$penultimateBracket->entry($_)   for @returnees;
-	$_->floating('') for ( $penultimateBracket->upFloaters );
-	$penultimateBracket->resetShuffler;
-	$brackets->{ $index } = $group;
-    }
-    my $penultp       = $penultimateBracket->p;
-    my $penultxPrime       = $penultimateBracket->xprime;
-    my $penultpPrime  = $penultimateBracket->pprime;
-    if ($penultpPrime and not @returnees) {
-        $penultpPrime -= 1;
-        $penultxPrime -= 1 if $penultxPrime;
-    }
-    $penultimateBracket->pprime($penultpPrime);
-    $penultimateBracket->xprime($penultxPrime);
-    $self->log( "penultimate p=$penultpPrime." );
-    if ( $penultpPrime == 0 ) {
-	my $evacuees = $penultimateBracket->members;
-	my @evacuIds = map { $_->id } @$evacuees;
-	$penultimateBracket->exit($_) for @$evacuees;
-	$_->floating('Down') for @$evacuees;
-	$group->entry($_) for @$evacuees;
+    my @floaterIds = map { $_->id } @returnees if @returnees;
+    $self->log( "Unfloating @floaterIds back from $number." ) if @returnees;
+    $group->exit($_) for @returnees;
+    $_->floating('')            for @returnees;
+    $penultimateBracket->entry($_)   for @returnees;
+    $_->floating('') for ( $penultimateBracket->upFloaters );
+    $brackets->{ $index } = $group;
+    if ( defined $penultpPrime and $penultpPrime == 0 ) {
+	my @evacuees = $penultimateBracket->members;
+	$penultimateBracket->exit($_) for @evacuees;
+	$_->floating('Down') for @evacuees;
+	$group->entry($_) for @evacuees;
+	# $group->naturalize($_) for @evacuees;
 	$penultimateBracket->dissolved(1);
 	my @finalIds = map { $_->id } @$members;
 	my @penultimateIds = map { $_->id } @{$penultimateBracket->members};
         $self->log( "Joining Bracket $penultimateNumber, $number." );
-        $self->log( "[$penultimateNumber] @evacuIds => [$number] @finalIds" );
+        $self->log( "Bracket $number: @finalIds => Bracket $penultimateNumber: @penultimateIds" );
 	$group->resetShuffler;
         return C1;
     }
-    if ( $penultpPrime > 0 ) {
+    if ( not defined $penultpPrime )
+    {
+	$penultpPrime = $penultimateBracket->pprime;
+    }
+    if ( defined $penultpPrime and $penultpPrime > 0 ) {
 	my @penultids = map {$_->id} @{$penultimateBracket->members};
 	my @finalids = map {$_->id} @{$group->members};
         $self->log( "Re-pairing Bracket $penultimateNumber." );
-        $self->log( "[$penultimateNumber]: @penultids & [$number]: @finalids" );
+        $self->log( "Bracket $penultimateNumber: @penultids &" );
+	$self->log( "Bracket $number: @finalids" );
 	my $s2 = $penultimateBracket->s2;
 	$penultimateBracket->badpair($#$s2);
+	$penultimateBracket->resetShuffler;
 	$self->thisBracket($penultimateIndex);
 	$self->penultpPrime( $penultpPrime );
         return C7;
@@ -1490,7 +1370,6 @@ sub c14 {
     }
     elsif ($pprime > 0) 
     {
-	$self->log( "Trying to pair Bracket $index ($number) again" );
 	return C4;
     }
     elsif ( $nextgroup->{remainderof} )
@@ -1561,8 +1440,7 @@ sub colors {
 	    my $s1role = $rolehistory[0]->[-$round];
 	    my $s2role = $rolehistory[1]->[-$round];
 	    my @ids = map {$_->id} @pair;
-	    carp "Roles for Players @ids, $round rounds ago?" unless
-						    $s1role and $s2role;
+	    warn "Roles for @ids $round rounds ago?" unless $s1role and $s2role;
 	    next if $s1role eq $s2role;
             next unless 2 == grep { $_ eq (ROLES)[0] or $_ eq (ROLES)[1] }
 		    ($s1role, $s2role);
@@ -1681,15 +1559,15 @@ sub brackets {
 }
 
 
-=head2 bracketOrder
+=head2 _buildBracketOrder
 
-	$pairing->bracketOrder
+	$pairing->_buildBracketOrder
 
-Gets an array of homogeneous and heterogeneous brackets in order with remainder groups (iff they have been given bracket status and only until this status is withdrawn) coming after the heterogeneous groups from which they are formed. This ordered array is necessary, because remainder groups come into being and it is difficult to move back to them. Do we re-pair the remainder group, or the whole group from which it came? Remember to keep control of remainder groups' virtual bracket status with the dissolved field. This method depends on each bracket having an index made up of the bracket score and a 'Remainder' or other appropriate suffix, if it is a remainder or other kind of sub-bracket. We rely on the lexico ordering of the suffixes.
+Gets an array of homogeneous and heterogeneous brackets in order with remainder groups (iff they have been given bracket status and only until this status is withdrawn) coming after the heterogeneous groups from which they are formed. This ordered array is necessary, because remainder groups come into being and it is difficult to move back to them. Do we re-pair the remainder group, or the whole group from which it came? Remember to keep control of remainder groups' virtual bracket status with the dissolved field. This method depends on each bracket having an index made up of the bracket score and a 'Remainder' or 'C10Repair' suffix, if it is a remainder or other kind of sub-bracket. We rely on the lexico ordering of the suffixes.
 
 =cut
 
-sub bracketOrder {
+sub _buildBracketOrder {
     my $self     = shift;
     my $brackets = $self->brackets;
     my @indexes = grep { not $brackets->{$_}->dissolved } keys %$brackets;
@@ -1700,7 +1578,6 @@ sub bracketOrder {
     my @indexOrder = sort { $index{$b}->{score} <=> $index{$a}->{score} ||
 			$index{$a}->{tag} cmp $index{$b}->{tag} }
 				@indexes;
-    unshift @indexOrder, 'START';
     return @indexOrder;
 }
 
@@ -1709,16 +1586,14 @@ sub bracketOrder {
 
 	$pairing->firstBracket
 
-Gets the firstBracket. This is the undissolved bracket with the highest score.
+Gets/sets the firstBracket. This is the bracket with the highest score.
 
 =cut
 
 sub firstBracket {
     my $self     = shift;
-    my @scoreOrder = $self->bracketOrder;
-    my $startBlock = shift @scoreOrder;
-    my $firstBracket = shift @scoreOrder;
-    return $firstBracket;
+    my @scoreOrder = $self->_buildBracketOrder;
+    return shift @scoreOrder;
 }
 
 
@@ -1726,13 +1601,13 @@ sub firstBracket {
 
 	$pairing->lastBracket
 
-Gets the lastBracket. With the joining of score brackets and addition of remainder groups, this bracket may change.
+Gets/sets the lastBracket. With the joining of score brackets and addition of remainder groups, this bracket may change.
 
 =cut
 
 sub lastBracket {
     my $self     = shift;
-    my @scoreOrder = $self->bracketOrder;
+    my @scoreOrder = $self->_buildBracketOrder;
     return pop @scoreOrder;
 }
 
@@ -1748,7 +1623,7 @@ Gets the nextBracket to that which we are pairing now. This may or may not be a 
 sub nextBracket {
     my $self     = shift;
     my $place = $self->thisBracket;
-    my @scoreOrder = $self->bracketOrder;
+    my @scoreOrder = $self->_buildBracketOrder;
     my $nextBracket;
     if (defined $place)
     {
@@ -1758,7 +1633,7 @@ sub nextBracket {
 		last if $next;
 		$next++ if $index eq $place;
 	    }
-	return $nextBracket unless $nextBracket eq $place;
+	return $nextBracket;
     }
     return;
 }
@@ -1775,7 +1650,7 @@ Gets the previousBracket to that which we are pairing now. This may or may not b
 sub previousBracket {
     my $self     = shift;
     my $place = $self->thisBracket;
-    my @indexOrder = $self->bracketOrder;
+    my @indexOrder = $self->_buildBracketOrder;
     my $previousBracket;
     for my $index ( @indexOrder ) {
 	last if $index eq $place;
@@ -1799,13 +1674,13 @@ sub index {
     my $bracket = shift;
     my $score = $bracket->score;
     my $number = $bracket->number;
-    my @order = $self->bracketOrder;
+    my @order = $self->_buildBracketOrder;
     my $index = first { m/^\d+(\.5)?$/ and $brackets->{$_}->score==$score }
 					    @order;
     confess "No index for Bracket $number, with score $score. Is it dissolved?"
 				    unless defined $index;
-    # $index .= 'C11Repair' if $bracket->{c11repairof};
-    # $index .= 'C10Repair' if $bracket->{c10repairof};
+    $index .= 'C11Repair' if $bracket->{c11repairof};
+    $index .= 'C10Repair' if $bracket->{c10repairof};
     $index .= 'Remainder' if $bracket->{remainderof};
     return $index;
 }
@@ -2084,7 +1959,7 @@ sub log {
     return unless $message;
     (my $method = uc((caller 1)[3])) =~ s/^.*::(\w+)$/$1/;
     my $loggable = $self->loggedProcedures;
-    push @{ $self->{log}->{$method}->{strings} }, "\t$message\n" if $loggable->{$method};
+    push @{ $self->{log}->{$method}->{strings} }, "${method}, $message\n" if $loggable->{$method};
     return;
 }
 
@@ -2103,12 +1978,11 @@ sub loggedProcedures {
     my @states = @_;
     unless ( @states ) { return $self->{logged}; }
     my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 17;
+    @logged{qw/C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 14;
     for my $state (@states)
     {   
-	carp "$state is unloggable procedure" if not exists $logged{$state};
+	carp "$state is unloggable procedure" if not defined $logged{$state};
 	$self->{logged}->{$state} = 1;
-	# push @{ $self->{log}->{$state}->{strings} }, $state . ",";
     }
     return;
 }
@@ -2125,10 +1999,10 @@ Adds messages generated in all the procedures to a reportable log
 sub loggingAll {
     my $self = shift;
     my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 18;
+    @logged{qw/NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHER C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 15;
     for my $state ( keys %logged )
     {   
-	# carp "$state is unloggable procedure" if not exists $logged{$state};
+	# carp "$state is unloggable procedure" if not defined $logged{$state};
 	$self->{logged}->{$state} = 1;
     }
     return;

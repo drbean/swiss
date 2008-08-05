@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2007 Nov 28, 07:36:50 AM
+# Last Edit: 2007 Oct 27, 11:29:40 AM
 # $Id: $
 
 use warnings;
@@ -9,9 +9,7 @@ use Carp;
 
 use List::Util qw/min reduce sum/;
 
-use constant ROLES => @Games::Tournament::Swiss::Config::roles?
-			@Games::Tournament::Swiss::Config::roles:
-			Games::Tournament::Swiss::Config->roles;
+use constant ROLES => @Games::Tournament::Swiss::Config::roles;
 
 =head1 NAME
 
@@ -271,7 +269,7 @@ sub float {
     die "Player is $player ref"
       unless $player and $player->isa('Games::Tournament::Contestant::Swiss');
     my $role = $self->myRole($player);
-    croak "Player " . $player->id . " has $role role in round $self->{round}?"
+    croak $player->id . " has $role role in round $self->{round}?"
       unless $role eq 'Bye'
       or $role     eq (ROLES)[0]
       or $role     eq (ROLES)[1];
