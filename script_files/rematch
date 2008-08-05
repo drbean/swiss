@@ -3,32 +3,19 @@
 use strict;
 use warnings;
 
+use Games::Tournament::Swiss -base;
+use Games::Tournament::Contestant::Swiss;
+use Games::Tournament::Card;
+use Games::Tournament::Swiss::Procedure;
+
 use YAML qw/LoadFile DumpFile/;
 
-use Games::Tournament::Swiss::Config;
+my $league = LoadFile '../league.yaml';
 
-my $swiss = Games::Tournament::Swiss::Config->new;
+my $firstRound = 7;
+my %scores = ( win => 1, loss => 0.5, draw => 0.5, absent => 0, bye => 1 );
+my @roles = qw/A B/;
 
-my $league = LoadFile "../league.yaml";
-my $roles = $league->{roles} || [$swiss->roles];
-my $scores = $league->{scores} ||
-	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
-my $firstRound = $league->{firstround} || $swiss->firstround;
-my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
-
-my $firstround = $swiss->frisk($firstRound);
-$scores = $swiss->frisk($scores);
-$roles = $swiss->frisk($roles);
-$algorithm = $swiss->frisk($algorithm);
-
-$Games::Tournament::Swiss::Config::firstround = $firstround;
-%Games::Tournament::Swiss::Config::scores = %$scores;
-@Games::Tournament::Swiss::Config::roles = @$roles;
-$Games::Tournament::Swiss::Config::algorithm = $algorithm;
-
-require Games::Tournament::Swiss;
-require Games::Tournament::Contestant::Swiss;
-require Games::Tournament::Card;
 
 use File::Spec;
 use File::Basename;

@@ -1,0 +1,70 @@
+---
+algorithm: Games::Tournament::Swiss::Procedure::FIDE
+scores:
+  win: 1
+  loss: 0
+  draw: 0.5
+  absent: 0
+  bye: 1
+roles:
+  - White
+  - Black
+hw: ..
+member:
+  - id: 1
+    name: Laver, Rod
+    rating: 2810
+  - id: 2
+    name: Sampras, Pete
+    rating: 2800
+  - id: 3
+    name: McEnroe, John
+    rating: 2780
+  - id: 4
+    name: Agassi, Andre
+    rating: 2775
+  - id: 5
+    name: Borg, Bjorn
+    rating: 2770
+  - id: 6
+    name: Federer, Roger
+    rating: 2760
+  - id: 7
+    name: Becker, Boris
+    rating: 2750
+  - id: 8
+    name: Edberg, Stefan
+    rating: 2740
+  - id: 9
+    name: Courier, Jim
+    rating: 2735
+  - id: 10
+    name: Hewitt, Lleyton
+    rating: 2730
+  - id: 11
+    name: Nadal, Rafael
+    rating: 2725
+  - id: 12
+    name: Rafter, Pat
+    rating: 2720
+  - id: 13
+    name: Chang, Michael
+    rating: 2715
+  - id: 14
+    name: Nalbandian, David
+    rating: 2712
+  - id: 15
+    name: Roddick, Andy
+    rating: 2710
+  - id: 16
+    name: Cash, Pat
+    rating: 2680
+  - id: 17
+    name: El Aynaoui, Younes
+    rating: 2660
+  - id: 18
+    name: Philippousis, Mark
+    rating: 2650
+  - id: 19
+    name: Baghdatis, Marcos
+    rating: 2640

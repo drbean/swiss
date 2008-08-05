@@ -1,84 +1,112 @@
 #!usr/bin/perl
 
-# testing script_files/pair
-
 use lib qw/t lib/;
 
 use strict;
 use warnings;
 use Test::More;
-use YAML qw/Load LoadFile DumpFile/;
-
-use Config;
-my $secure_perl_path = $Config{perlpath};
-if ($^O ne 'VMS')
-{
-	$secure_perl_path .= $Config{_exe}
-		unless $secure_perl_path =~ m/$Config{_exe}$/i;
-}
 
 BEGIN {
     $Games::Tournament::Swiss::Config::firstround = 1;
-    @Games::Tournament::Swiss::Config::roles      = qw/White Black/;
-    %Games::Tournament::Swiss::Config::scores      = (
-    Win => 1, Draw => 0.5, Loss => 0, Absence => 0, Bye => 1 );
+    @Games::Tournament::Swiss::Config::roles      = qw/Black White/;
     $Games::Tournament::Swiss::Config::algorithm  =
-      'Games::Tournament::Swiss::Procedure::FIDE';
+      'Games::Tournament::Swiss::Procedure::Dummy';
 }
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
-use Games::Tournament::Swiss::Bracket;
+use Games::Tournament::Card;
 
-my @members = Load(<<'...');
----
-id: 1
-name: Your New Nicks
-rating: 12
-title: Unknown
----
-id: 2
-name: LaLa Lakers
-rating: 8
-title: Unknown
----
-id: 3
-name: Jose Capablanca
-rating: 4
-title: Unknown
----
-id: 4
-name: Alexander Alekhine
-rating: 2
-title: Unknown
-...
-
-DumpFile './league.yaml', {member => \@members};
-mkdir '1';
-chdir '1';
-system "$secure_perl_path ../script_files/pair";
-
-my $round = LoadFile './round.yaml';
-my @tests = (
-[ $round->{round} == 1, 'round 1'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{1}->{Black} eq 'Jose Capablanca' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{1}->{White} eq 'Jose Capablanca'), '$m1 is Nicks&Jose'],
-[ ($round->{group}->{2}->{White} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{Black} eq 'LaLa Lakers' or
-  $round->{group}->{2}->{Black} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{White} eq 'LaLa Lakers'), '$m2 is LaLa&Alex'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{2}->{Black} eq 'LaLa Lakers' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{2}->{White} eq 'LaLa Lakers'), 'S1 players different roles']
+my $a = Games::Tournament::Contestant::Swiss->new(
+    id     => 1,
+    name   => 'Ros',
+    title  => 'Expert',
+    rating => 100,
+);
+my $b = Games::Tournament::Contestant::Swiss->new(
+    id     => 2,
+    name   => 'Ron',
+    title  => 'Expert',
+    rating => 80,
+);
+my $c = Games::Tournament::Contestant::Swiss->new(
+    id     => 3,
+    name   => 'Rog',
+    score  => 3,
+    title  => 'Expert',
+    rating => '50',
+);
+my $d = Games::Tournament::Contestant::Swiss->new(
+    id     => 4,
+    name   => 'Ray',
+    title  => 'Novice',
+    rating => 25,
+);
+my $e = Games::Tournament::Contestant::Swiss->new(
+    id     => 5,
+    name   => 'Rob',
+    score  => 3,
+    title  => 'Novice',
+    rating => 1,
+);
+my $f = Games::Tournament::Contestant::Swiss->new(
+    id     => 6,
+    name   => 'Rod',
+    score  => 3,
+    title  => 'Novice',
+    rating => 0,
+);
+my $g = Games::Tournament::Contestant::Swiss->new(
+    id    => 7,
+    name  => 'Reg',
+    score => 3,
+    title => 'Novice',
+);
+my $h = Games::Tournament::Contestant::Swiss->new(
+    id    => 8,
+    name  => 'Red',
+    score => 3,
+    title => 'Novice',
+);
+my $i = Games::Tournament::Contestant::Swiss->new(
+    id    => 9,
+    name  => 'Roy',
+    score => 3,
+    title => 'Novice',
 );
 
-my @files = glob './*';
-unlink @files;
-chdir '..';
-rmdir '1';
-unlink './league.yaml', './league.yaml.bak';
+my $p = Games::Tournament::Swiss->new(
+    rounds   => 3,
+    entrants => [ $a, $b, $c, $d, $e, $f, $g, $h, $i ]
+);
+
+$p->round(0);
+
+$p->assignPairingNumbers;
+$p->initializePreferences;
+
+my @b = $p->formBrackets;
+
+my $pairing  = $p->pairing( \@b );
+my $m        = $pairing->matchPlayers;
+my @nextGame = map { @{$_} } @{$m};
+
+my $t;
+my @tests = (
+[ $m->[0]->[0]->isa('Games::Tournament::Card'),	'$m0 isa'],
+[ $m->[0]->[1]->isa('Games::Tournament::Card'),	'$m1 isa'],
+[ $m->[0]->[2]->isa('Games::Tournament::Card'),	'$m2 isa'],
+[ $m->[0]->[3]->isa('Games::Tournament::Card'),	'$m3 isa'],
+[ $m->[0]->[4]->isa('Games::Tournament::Card'),	'$m4 isa'],
+[ do {grep {$a == $_} $m->[0]->[0]->myPlayers},	'$m0 participant1'],
+[ do {grep {$e == $_} $m->[0]->[0]->myPlayers},	'$m0 participant2'],
+[ do {grep {$b == $_} $m->[0]->[1]->myPlayers},	'$m1 participant1'],
+[ do {grep {$f == $_} $m->[0]->[1]->myPlayers},	'$m1 participant2'],
+[ do {grep {$c == $_} $m->[0]->[2]->myPlayers},	'$m2 participant1'],
+[ do {grep {$g == $_} $m->[0]->[2]->myPlayers},	'$m2 participant2'],
+[ do {grep {$d == $_} $m->[0]->[3]->myPlayers},	'$m3 participant1'],
+[ do {grep {$h == $_} $m->[0]->[3]->myPlayers},	'$m3 participant2'],
+[ do {grep {$i == $_} $m->[0]->[4]->myPlayers},	'$m4 byer'],
+);
 
 plan tests => $#tests + 1;
 
