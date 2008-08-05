@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2007 Nov 28, 07:36:32 AM
+# Last Edit: 2007 Oct 27, 11:30:16 AM
 # $Id: $
 
 use warnings;
@@ -16,11 +16,11 @@ Games::Tournament::Contestant::Swiss  A competitor in a FIDE-Swiss-Rules event
 
 =head1 VERSION
 
-Version 0.03
+Version 0.02
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -221,14 +221,12 @@ A flag of convenience telling you whether to let this player have the bye. Am I 
 
 =cut
 
+use orz;
 sub unbyable {
-    my $self = shift;
-    my $unbyable = shift;
-    if ( $unbyable ) { $self->{unbyable} = 1; return }
-    elsif ( defined $self->{unbyable} ) { return $self->{unbyable}; }
-    else { return; }
-}
+    my $self  = shift;
 
+}
+no orz;
 
 =head1 AUTHOR
 
