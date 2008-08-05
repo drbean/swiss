@@ -6,7 +6,7 @@ pairingtable - Show player scoregroups for next round of swiss tournament
 
 =head1 VERSION
 
-Version 0.04
+0.04
 
 =cut
 
@@ -24,7 +24,7 @@ my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $league = LoadFile "./league.yaml";
 die 'round.yaml already exists' if -e 'round.yaml';
-my $roles = $league->{roles} || [qw/White Black/];
+my $roles = $league->{roles} || [qw/Black White/];
 my $scores = $league->{scores} ||
 	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
 my $firstround = $league->{firstround} || 1;
@@ -135,7 +135,7 @@ for my $round ( @rounds )
 	}
 }
 
-my %brackets = $tourney->formBrackets;
+my @brackets = $tourney->formBrackets;
 my $playerN = 0;
 
 print "
@@ -143,11 +143,11 @@ print "
 -------------------------------------------------------------------------
 Place  No  Opponents     Roles     Float Score
 ";
-for my $index ( reverse sort keys %brackets )
+for my $bracket ( @brackets )
 {
 	$playerN++;
 	my $place = $playerN;
-	my @members = @{$brackets{$index}->members};
+	my @members = @{$bracket->members};
 	$place .= '-' . ($playerN+$#members) if $#members;
 	$playerN += $#members;
 	print "$place\n";
@@ -158,8 +158,8 @@ for my $index ( reverse sort keys %brackets )
 		my $floats = $member->floats;
 		my $float = '';
 		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
-		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
-		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+		$float = 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+		$float .= 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
 		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
 
 	# no warnings;
@@ -176,7 +176,7 @@ __END__
 
 =head1 SYNOPSIS
 
-pairingtable [n]
+pairingtable
 
 Options:
 

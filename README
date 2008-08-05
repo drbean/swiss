@@ -1,16 +1,16 @@
 Games-Tournament-Swiss
 
-Version 0.15
-
-The complexity of the C11 code slowed this release down. C12 code wasn't touched, so I'm sure bugs remain. Cross your fingers that your tournament does not exercise the C12 code!
-
-This is a major revision. In addition, we have a nicer interface to writing pairing tests. Look at three.t in the t/ directory.
+What a mess 0.09 was! But 0.10 may be even worse. 
 
 Warning!
 
 This is ALPHA-level software. Although it attempts to implement the FIDE Swiss Rules, it may not pair players correctly. It may take over your computer, and force you to reboot. It may DELETE files. It may DESTROY your computer. Use at your own risk.
 
-NOTICE: More tests are needed. If you have an interesting pairing table that is difficult to pair, please report it as a bug at http://search.cpan.org/~drbean/Games-Tournament-Swiss/, ideally in the same format as t/three.t. Bring it on! Try to break Games::Tournament::Swiss and report your results!
+0.09 failed to apply even easy downfloating rules. The tests all passed, but the tests were no good, or at least, only testing a small part of what they need to test. More tests are needed. If you have an interesting pairing table that is difficult to pair, please report it as a bug at http://search.cpan.org/~drbean/Games-Tournament-Swiss/. The code to pair players applying varying relative criteria should now be better, but only one or two tests test it. So try to break Games::Tournament::Swiss and report your results!
+
+This is a major revision. The major work in this version is a move from array-based indexing of the brackets to hash-based indexing. This makes it easier to handle remainder groups, the joining of the penultimate and final brackets, and the moving down of all players to the next bracket. The creation of the index to the bracket being paired on the fly, however, is not well tested, and is clunky. The developer needs to keep it up to date by hand. Other improvements were also made.
+
+One good thing, I didn't get any cpan tester failures with 0.09. But they were all on Linux or BSD.
 
 I recommend looking at the scripts. If you want some more help, look at the 
 tests. Again, scripts are still likely to break, but the purpose of that is to get you to write your own scripts. (ha-ha) Look at the scripts and the tests.

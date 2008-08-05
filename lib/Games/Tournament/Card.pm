@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2007 Nov 28, 07:36:50 AM
+# Last Edit: 2007 Oct 06, 09:33:45 AM
 # $Id: $
 
 use warnings;
@@ -9,9 +9,7 @@ use Carp;
 
 use List::Util qw/min reduce sum/;
 
-use constant ROLES => @Games::Tournament::Swiss::Config::roles?
-			@Games::Tournament::Swiss::Config::roles:
-			Games::Tournament::Swiss::Config->roles;
+use constant ROLES => @Games::Tournament::Swiss::Config::roles;
 
 =head1 NAME
 
@@ -19,11 +17,11 @@ Games::Tournament::Card - A record of the results of a match
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
@@ -47,8 +45,7 @@ In a tournament, matches take place in rounds between contestants, who are maybe
     $bye = Games::Tournament:Card->new(
 	    round => 1,
 	    contestants => {Bye => $player},
-	    result => "Bye"
-	    floats => 'Down' );
+	    result => "Bye");
 
 'contestants' is a hash ref of player objects, keyed on Black and White, or Home and Away, or some other role distinction that needs to be balanced over the tournament. The players are probably instances of the Games::Tournament::Contestant::Swiss class. 'result' is a hash reference, keyed on the same keys as contestants, containing the results of the match. 'floats' is a hash of  which role was floated up and which down. The default is neither contestant was floated, and 'Down' for a Bye. A4. What are the fields in NoShow and byes? NoShow has no special form. Bye is { Bye => $player }. TODO Perhaps the fields should be Winner and Loser, and Down and Up?
 
@@ -154,7 +151,7 @@ Returns an array of the players from $game, eg ($alekhine, $yourNewNicks).
 sub myPlayers {
     my $self        = shift;
     my $contestants = $self->contestants;
-    my @players     = values %$contestants;
+    my @players     = map { $contestants->{$_} } keys %$contestants;
     return @players;
 }
 
@@ -271,7 +268,7 @@ sub float {
     die "Player is $player ref"
       unless $player and $player->isa('Games::Tournament::Contestant::Swiss');
     my $role = $self->myRole($player);
-    croak "Player " . $player->id . " has $role role in round $self->{round}?"
+    croak $player->id . " has $role role in round $self->{round}?"
       unless $role eq 'Bye'
       or $role     eq (ROLES)[0]
       or $role     eq (ROLES)[1];

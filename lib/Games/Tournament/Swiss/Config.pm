@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Config;
 
-# Last Edit: 2007 Nov 28, 07:36:53 AM
+# Last Edit: 2007 Oct 11, 09:20:09 AM
 # $Id: $
 
 use warnings;
@@ -12,11 +12,11 @@ Games::Tournament::Swiss::Config - Swiss Competition Configuration
 
 =head1 VERSION
 
-Version 0.03
+Version 0.02
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -28,7 +28,7 @@ our $VERSION = '0.03';
 
 Actually, a swiss tournament is not just one kind of tournament, but a whole genre of tournaments. If you are using Games::Tournament::Swiss for other than chess tournaments, where the players take black and white roles, and score 0,0.5, or 1, for example, you probably want to configure it. You also might want to start swiss pairing at a random round in the tournament, in which case you will set firstround.
 
-The roles, scores, firstround, algorithm methods in this module are here just to stop perl warning about 'only one use, possible typo' warnings, with the use of fully qualified Games::Tournament::Swiss::Config package variables. (Is that actually true? Anyway I want the methods (class and object) to return values, default and assigned.)
+The roles, scores, firstround, algorithm methods in this module are here just to stop perl warning about 'only one use, possible typo' warnings, with the use of fully qualified Games::Tournament::Swiss::Config package variables.
 
 =head1 METHODS
 
@@ -41,7 +41,6 @@ Getter/setter of the genre of competition, eg chess, basketball, football, schoo
 sub new {
     my $self = shift;
     my %args = @_;
-    $args{roles} ||= [ Games::Tournament::Swiss::Config->roles ];
     return bless \%args, $self;
 }
 
@@ -79,55 +78,31 @@ Please use only arrays and hashes in your configuration files";
 
 =head2 roles
 
-Getter/setter of the roles the 2 players take, eg Black, White, or Home, Away. The default is White, Black. Both object and class method.
+Getter/setter of the roles the 2 players take, eg Black, White, or Home, Away. The default is White, Black.
 
 =cut
 
 sub roles {
     my $self  = shift;
     my $roles = shift;
-    if (ref $self eq "Games::Tournament::Swiss::Config" and $roles) {
-        $self->{roles} = $roles; return;
-    }
-    if ( ref $self eq "Games::Tournament::Swiss::Config" and $self->{roles} )
-    { return @{ $self->{roles} }; }
+    if ($roles) { $self->{roles} = $roles; }
+    elsif ( $self->{roles} ) { return @{ $self->{roles} }; }
     else { return qw/White Black/; }
 }
 
 
 =head2 scores
 
-Getter/setter of the scores the 2 players can get, eg win: 1, loss: 0, draw: 0.5, absent: 0, bye: 1, which is the default. Both object and class method.
+Getter/setter of the scores the 2 players can get, eg win: 1, loss: 0, draw: 0.5, absent: 0, bye: 1, which is the default.
 
 =cut
 
 sub scores {
     my $self   = shift;
     my $scores = shift;
-    if (ref $self eq "Games::Tournament::Swiss::Config" and $scores)
-    { $self->{scores} = $scores; }
-    elsif (ref $self eq "Games::Tournament::Swiss::Config" and $self->{scores})
-    { return %{ $self->{scores} }; }
+    if ($scores) { $self->{scores} = $scores; }
+    elsif ( $self->{scores} ) { return %{ $self->{scores} }; }
     else { return ( win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 ) }
-}
-
-
-=head2 abbreviation
-
-Getter/setter of the abbreviations used and their full translations. The default is W: White, B: Black, 1: Win, 0: Loss, '0.5': Draw, '=': Draw. Both object and class method.
-
-=cut
-
-sub abbreviation {
-    my $self   = shift;
-    my $abbreviation = shift;
-    if (ref $self eq "Games::Tournament::Swiss::Config" and $abbreviation)
-    { $self->{abbreviation} = $abbreviation; return; }
-    elsif (ref $self eq "Games::Tournament::Swiss::Config" and
-		$self->{abbreviation} )
-    { return %{ $self->{abbreviation} }; }
-    else { return ( W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-    0.5 => 'Draw', '=' => 'Draw', A => 'Absolute', S => 'Strong', M => 'Mild', ); }
 }
 
 
@@ -149,17 +124,15 @@ sub algorithm {
 
 =head2 firstround
 
-Getter/setter of the first round in which swiss pairing started. Perhaps some other pairing method was used in rounds earlier than this. The default is 1. Both object and class method.
+Getter/setter of the first round in which swiss pairing started. Perhaps some other pairing method was used in rounds earlier than this. The default is 1.
 
 =cut
 
 sub firstround {
     my $self       = shift;
-    my $first = shift;
-    if (ref $self eq "Games::Tournament::Swiss::Config" and $first)
-    { $self->{firstround} = $first; }
-    elsif (ref $self eq "Games::Tournament::Swiss::Config" and $self->{first} )
-    { return @{ $self->{firstround} }; }
+    my $firstround = shift;
+    if ($firstround) { $self->{firstround} = $firstround; }
+    elsif ( $self->{firstround} ) { return @{ $self->{firstround} }; }
     else { return 1; }
 }
 

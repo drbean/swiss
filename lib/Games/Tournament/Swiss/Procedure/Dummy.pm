@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::Dummy;
 
-# Last Edit: 2007 Nov 28, 07:37:08 AM
+# Last Edit: 2007 Oct 11, 11:44:36 AM
 # $Id: $
 
 use warnings;
@@ -18,11 +18,11 @@ Games::Tournament::Swiss::Procedure::Dummy - A brain-dead pairing algorithm
 
 =head1 VERSION
 
-Version 0.03
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
