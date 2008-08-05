@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2007 Nov 28, 05:53:55 PM
+# Last Edit: 2007 Nov 06, 09:08:12 PM
 # $Id: $
 
 use warnings;
@@ -21,11 +21,11 @@ Games::Tournament::Swiss::Bracket - Players with same/similar scores pairable wi
 
 =head1 VERSION
 
-Version 0.06
+Version 0.05
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -480,33 +480,6 @@ sub p {
 }
 
 
-=head2 bigGroupP
-
- $tables = $group->bigGroupP
-
-Half the number of players in a big bracket (group), rounded down to the next lowest integer. Sometimes the number of pairs in a combined bracket, particularly, a heterogeneous bracket and its remainder group is needed. In such cases, p will be just the number of downfloated players, which is not what we want. In a non-heterogeneous bracket, bigGroupP will be the same as p. See C11
-
-=cut
-
-sub bigGroupP {
-    my $self    = shift;
-    my $members = $self->members;
-    my $n = @$members;
-    if ( $self->{remainderof} )
-    {
-	my $remaindered = $self->{remainderof}->members;
-	$n += @$remaindered;
-    }
-    elsif ( $self->{remaindered} ) {
-	my $heteroMembers = $self->{remainder}->members;
-	$n += @$heteroMembers;
-    }
-    return 0 unless $n >= 2;
-    my $p = int( $n / 2 );
-    return $p;
-}
-
-
 =head2 pprime
 
  $tables = $group->pprime
@@ -527,35 +500,6 @@ sub pprime {
 }
 
 
-=head2 bigGroupPprime
-
- $tables = $group->bigGroupPprime
-
-bigGroupP is half the number of players in a heterogeneous bracket and its remainder group, but we may have to accept fewer pairings than this number if suitable opponents cannot be found for players, up to the point where no players are paired. bigGroupPprime sets/gets this real p number for the combined groups/brackets. A8
-
-=cut
-
-sub bigGroupPprime {
-    my ( $self, $p ) = @_;
-    my $bigGroupPprime = $self->{biggrouppprime};
-    if ( defined $p ) {
-	$self->{biggrouppprime} = $p;
-	if ( $self->{remainderof} ) {
-	    $self->{remainderof}->{biggrouppprime} = $p;
-	}
-	elsif ( $self->{remainder} ) {
-	    $self->{remainder}->{biggrouppprime} = $p;
-	}
-	return;
-    }
-    elsif ( defined $bigGroupPprime ) { return $bigGroupPprime; }
-    else {
-	$self->{biggrouppprime} = $self->bigGroupP;
-        return $self->{biggrouppprime};
-    }
-}
-
-
 =head2 q
 
  $tables = $group->q
@@ -566,7 +510,7 @@ Number of players in the score bracket divided by 2 and then rounded up. In a ho
 
 sub q {
     my $self    = shift;
-    my $players = $self->members;
+    my $players = $self->residents;
     my $q = @$players % 2 ? ( $#$players + 2 ) / 2 : ( $#$players + 1 ) / 2;
 }
 
@@ -589,67 +533,6 @@ sub x {
     my $q = $self->q;
     my $x = $w >= $b ? $w - $q : $b - $q;
     $self->{x} = $x;
-}
-
-
-=head2 bigGroupX
-
- $tables = $group->bigGroupX
-
-x is okay for a homogeneous group, uncombined with other groups, but in the case of groups that are interacting to form joined brackets, or in that of a heterogeneous bracket and a remainder group, we need a bigGroupX to tell us how many matches in the total number, ranging from zero to bigGroupP, of matches in the score bracket(s) will have players with unsatisfied preferences. A8
-
-=cut
-
-sub bigGroupX {
-    my $self    = shift;
-    my $players = $self->members;
-    my $w       =
-      grep { $_->preference->role and $_->preference->role eq (ROLES)[0] }
-      @$players;
-    my $b = @$players - $w;
-    my $q = $self->q;
-    my $x = $w >= $b ? $w - $q : $b - $q;
-    my $bigGroupX = $x;
-    if ( $self->{remainderof} ) { $bigGroupX += $self->{remainderof}->x; }
-    elsif ( $self->{remainder} ) { $bigGroupX += $self->{remainder}->x; }
-    $self->{biggroupx} = $bigGroupX;
-    return $self->{biggroupx};
-}
-
-
-=head2 bigGroupXprime
-
- $tables = $group->bigGroupXprime
-
-xprime is a revised upper limit on matches where preferences are not satisfied, but in the case of a combined bracket (in particular, a heterogeneous bracket and a remainder group) we need a figure for the total number of preference-violating matches over the 2 sections, because the distribution of such matches may change. bigGroupXprime sets/gets this total x number. A8
-
-=cut
-
-sub bigGroupXprime {
-    my $self   = shift;
-    my $x      = shift;
-    my $xprime = $self->{biggroupxprime};
-    if ( defined $x ) {
-	$self->{biggroupxprime} = $x;
-	if ( $self->{remainderof} ) {
-	    $self->{remainderof}->{biggroupxprime} = $x;
-	}
-	elsif ( $self->{remainder} ) {
-	    $self->{remainder}->{biggroupxprime} = $x
-	}
-	return; }
-    elsif ( defined $xprime ) { return $xprime; }
-    else {
-	if ( $self->{remainderof} ) {
-	    my $x = $self->{remainderof}->{biggroupxprime};
-	    return $x if defined $x;
-	}
-	elsif ( $self->{remainder} ) {
-	     $x = $self->{remainder}->{biggroupxprime};
-	    return $x if defined $x;
-	}
-	else { return $self->bigGroupX; }
-    }
 }
 
 
@@ -678,30 +561,27 @@ sub xprime {
 
  $tables = $group->floatCheckWaive
 
-There is an ordered sequence in which the checks of compliance with the Relative Criteria B5,6 restriction on recurring floats are relaxed in C9,10. The order is 1. downfloats for players downfloated 2 rounds before, 2. downfloats for players downfloated in the previous round (in C9), 3. upfloats for players floated up 2 rounds before, 4. upfloats for players floated up in the previous round (for players paired with opponents from a higher bracket in a heterogeneous bracket, in C10). (It appears levels are being skipped, eg from B6Down to B6Up or from All to B6Down.) Finally, although it is not explicitly stated, all float checks must be dropped and pairings considered again, before reducing the number of pairs made in the bracket. (This is not entirely correct.) This method sets/gets the float check waive level at the moment. All criteria below that level should be checked for compliance. The possible values in order are 'None', 'B6Down', 'B5Down', 'B6Up', 'B5Up', 'All'. TODO Should there be some way of not requiring the caller to know how to use this method and what the levels are.
+There is an ordered sequence in which the checks of compliance with the Relative Criteria B5,6 restriction on recurring floats are relaxed in C9,10. The order is 1. downfloats for players downfloated 2 rounds before, 2. downfloats for players downfloated in the previous round (in C9), 3. upfloats for players floated up 2 rounds before, 4. upfloats for players floated up in the previous round (for players paired with opponents from a higher bracket in a heterogeneous bracket, in C10). Finally, although it is not explicitly stated, all float checks must be dropped and pairings considered again, before reducing the number of pairs made in the bracket. This method sets/gets the float check waive level at the moment. All criteria below that level should be checked for compliance. The possible values in order are 'None', 'B6Down', 'B5Down', 'B6Up', 'B5Up', 'All'. TODO Should there be some way of not requiring the caller to know how to use this method and what the levels are.
 
 =cut
 
 sub floatCheckWaive {
     my $self   = shift;
-    my $number = $self->number;
     my $level      = shift;
     warn "Unknown float level: $level" if
 	$level and $level !~ m/^(?:None|B6Down|B5Down|B6Up|B5Up|All)$/i;
     my $oldLevel = $self->{floatCheck};
     if ( defined $level ) {
 	warn 
-"Bracket [$number]'s old float check waive level, $oldLevel is now $level."
+	"Old float check waive level was $oldLevel, but new level is $level."
 	    unless $level eq 'None' or
 	    $oldLevel eq 'None' and $level eq 'B6Down' or
 	    $oldLevel eq 'B6Down' and $level eq 'B5Down' or
-	    $oldLevel eq 'B6Down' and $level eq 'B6Up' or
 	    $oldLevel eq 'B5Down' and $level eq 'B6Up' or 
 	    $oldLevel eq 'B6Up' and $level eq 'B5Up' or
 	    $oldLevel eq 'B5Up' and $level eq 'All' or
 	    # $oldLevel eq 'B5Down' and $level eq 'All' or
-	    $oldLevel eq 'All' and $level eq 'None' or
-	    $oldLevel eq 'All' and $level eq 'B6Down';
+	    $oldLevel eq 'All' and $level eq 'None';
 	$self->{floatCheck} = $level;
     }
     elsif ( defined $self->{floatCheck} ) { return $self->{floatCheck}; }

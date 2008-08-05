@@ -1,13 +1,12 @@
 package Games::Tournament;
 
-# Last Edit: 2007 Nov 28, 07:32:56 AM
+# Last Edit: 2007 Nov 09, 09:07:51 AM
 # $Id: $
 
 use warnings;
 use strict;
 use Carp;
 
-use List::Util qw/first/;
 use List::MoreUtils qw/all/;
 
 use Games::Tournament::Swiss::Config;
@@ -22,11 +21,11 @@ Games::Tournament - Contestant Pairing
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
@@ -61,7 +60,7 @@ sub new {
 
  @rankings = $tourney->rank(@players)
 
-Ranks a list of Games::Tournament::Contestant player objects by score, rating, title and name if they all have a score, otherwise ranks them by rating, title and name. This is the same ordering that is used to determine pairing numbers in a swiss tournament.
+Ranks a list of Games::Tournament::Contestant player objects by score, rating, title and name if they all have a score, otherwise ranks them by rating, title and name.
 
 =cut
 
@@ -140,7 +139,7 @@ sub ided {
     my $self        = shift;
     my $id          = shift;
     my @contestants = @{ $self->entrants };
-    return first { $_->id eq $id } @contestants;
+    return ( grep { $_->id eq $id } @contestants )[0];
 }
 
 

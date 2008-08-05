@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2007 Nov 28, 05:53:32 PM
+# Last Edit: 2007 Nov 09, 10:24:56 AM
 # $Id: $
 
 use warnings;
@@ -32,11 +32,11 @@ Games::Tournament::Swiss - FIDE Swiss Same-Rank Contestant Pairing
 
 =head1 VERSION
 
-Version 0.15
+Version 0.14
 
 =cut
 
-our $VERSION = '0.15';
+our $VERSION = '0.14';
 
 =head1 SYNOPSIS
 
@@ -206,7 +206,7 @@ sub collectCards {
     my $self     = shift;
     my @games    = @_;
     my $play     = $self->play || {};
-    # my @entrants = @{ $self->entrants };
+    my @entrants = @{ $self->entrants };
     my %games;
     for my $game ( @games )
     {
@@ -214,35 +214,33 @@ sub collectCards {
 	carp "round $round is not a number." unless $round =~ m/^\d+$/;
 	push @{ $games{$round} }, $game;
     }
-    for my $round ( sort { $a <=> $b } keys %games )
+    for my $round ( sort keys %games )
     {
-	my $games =  $games{$round}; 
-	for my $game ( @$games ) {
+	my $games = $games{$round};
+	for my $game (@$games) {
 	    my @players = $game->myPlayers;
 	    for my $player ( @players ) {
 		my $id       = $player->id;
-		# my $entrant = first { $_->id eq $id } @entrants;
-		my $entrant = $self->ided($id);
 		my $oldroles = $player->roles;
 		my $scores   = $player->scores;
 		my ( $role, $float );
 		# $myGame->canonize;
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
-		$scores->{$round} = $role eq 'Bye'? 'Bye': $game->{result}->{$role};
-  #              carp
-  #  "No result on card for player $id as $role in round $round "
-  #                unless $game->{result}->{$role};
+		$scores->{$round} = $game->{result}->{$role};
+                carp
+    "No result in round $round for player $id, $player->{name} as $role"
+                  unless $game->{result}->{$role};
 		$game ||= "No game";
 		$play->{$round}->{$id} = $game;
-		$entrant->play( { $round => $game } );
-		$entrant->scores($scores);
+		$player->play( { $round => $game } );
+		$player->scores($scores);
 		carp "No record in round $round for player $id $player->{name}"
 		  unless $play->{$round}->{$id};
-		$entrant->roles($role);
-		$entrant->floats( $round, $float );
-		$entrant->floating('');
-		$entrant->preference->update( $entrant->roles );
+		$player->roles($role);
+		$player->floats( $round, $float );
+		$player->floating('');
+		$player->preference->update( $player->roles );
 	    }
 	}
     }

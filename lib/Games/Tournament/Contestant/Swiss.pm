@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2007 Nov 28, 07:36:32 AM
+# Last Edit: 2007 Nov 04, 12:28:37 PM
 # $Id: $
 
 use warnings;
@@ -16,11 +16,11 @@ Games::Tournament::Contestant::Swiss  A competitor in a FIDE-Swiss-Rules event
 
 =head1 VERSION
 
-Version 0.03
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 

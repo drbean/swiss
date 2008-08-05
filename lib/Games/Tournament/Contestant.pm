@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2007 Nov 28, 07:37:12 AM
+# Last Edit: 2007 Nov 09, 12:27:02 PM
 # $Id: $
 
 use warnings;
@@ -25,11 +25,11 @@ Games::Tournament::Contestant  A competitor matched with others over a series of
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 

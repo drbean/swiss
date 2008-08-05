@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2007 Nov 28, 07:36:50 AM
+# Last Edit: 2007 Nov 08, 06:59:07 PM
 # $Id: $
 
 use warnings;
@@ -19,11 +19,11 @@ Games::Tournament::Card - A record of the results of a match
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 

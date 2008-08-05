@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss::Preference;
 
-# Last Edit: 2007 Nov 28, 05:53:00 PM
+# Last Edit: 2007 Nov 10, 07:37:45 AM
 # $Id: $
 
 use warnings;
@@ -26,11 +26,11 @@ Games::Tournament::Contestant::Swiss::Preference  A competitor's right to a role
 
 =head1 VERSION
 
-Version 0.04
+Version 0.01
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
@@ -73,14 +73,13 @@ sub new {
 sub update {
     my $self     = shift;
     my $roles = shift;
-    my $message = "Preference update: ";
     return unless any { $roles->[-1] eq $_ } ROLES;
     my @byeOut = grep { my $role = $_; any { $role eq $_ } ROLES } @$roles;
     my @reverseRoles = reverse @byeOut;
     my $lastRole       = $reverseRoles[0];
     my $before         = $reverseRoles[1];
     my $oneBeforeThat = $reverseRoles[2];
-    $message .= "3-game run as $lastRole\n" if $before and $oneBeforeThat and
+    carp "3-game run as $lastRole" if $before and $oneBeforeThat and
 		    $oneBeforeThat eq $before and $before eq $lastRole;
     my $difference     = $self->difference;
     my $sign      = $self->sign;
@@ -107,7 +106,7 @@ sub update {
     elsif ( $lastRole eq $sign ) {
 	$difference++;
         if ( $difference > 2 ) {
-            $message .= "$difference games more as $lastRole\n";
+            carp "$difference games more as $lastRole";
         }
     }
     else {

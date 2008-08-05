@@ -1,7 +1,7 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2007 Nov 28, 05:55:03 PM
-# $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
+# Last Edit: 2007 Nov 26, 04:05:11 PM
+# $Id: /swiss/branches/c12/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1640 2007-11-27T06:27:43.850652Z dv  $
 
 use warnings;
 use strict;
@@ -46,11 +46,11 @@ Games::Tournament::Swiss::Procedure::FIDE - FIDE Swiss Rules Based on Rating 04.
 
 =head1 VERSION
 
-Version 0.13
+Version 0.12
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.12';
 
 
 =head1 SYNOPSIS
@@ -287,10 +287,8 @@ sub c1 {
     $previousMembers = $previousBracket->members if $previousBracket;
     $previousNumber = $previousBracket->number if $previousBracket;
     if (@unpairables) {
-        if ( $index eq $self->lastBracket and $self->lastBracket ne
-	    $self->firstBracket )
-	{
-	    $self->log( "@unpairableIds in last bracket, $number ($index)." );
+        if ( $index eq $self->lastBracket ) {
+	    $self->log( $nokmessage . " in last bracket, $number ($index)." );
             return C13;
         }
         elsif ((grep {$_->floating and $_->floating eq 'Down'} @unpairables)
@@ -300,8 +298,7 @@ sub c1 {
 	      "@unpairableIds floaters from $previousNumber ($previousIndex)" );
 	    return C12;
         }
-        elsif (defined $self->nextBracket)
-	{
+        else {
 	    my $next = $self->nextBracket;
 	    my $nextBracket = $groups->{$next};
 	    my $nextNumber = $nextBracket->number;
@@ -322,11 +319,6 @@ sub c1 {
 	    }
 	    else { return C2; }
         }
-	else {
-	    $self->log(
-	    "No destination for unpairable @unpairableIds. Go to C2" );
-	    return C2;
-	}
     }
     else {   
 	$self->log( "B1,2 test: OK, no unpairables" );
@@ -1175,6 +1167,48 @@ sub c12 {
 	$self->log(
 "Repairing of $prevIndex-Bracket [$prevNumber] failed to pair $index [$number]. Go to C13");
 	return C13;
+	#if ( $recursed->trueHetero )
+	#{
+	#    $self->log(
+	#    "Recursive repairing of Bracket $number($index).");
+	#    my @downfloaters = $previous->downFloaters;
+	#    my @floatIds = map { $_->id } @downfloaters;
+	#    $self->thisBracket($iMinus2);
+	#    my $recursedNumber = $recursed->number;
+	#    my $score = $recursed->score;
+	#    my $matches = $self->matches->{$iMinus2};
+	#    delete $self->matches->{$iMinus2} if $matches;
+	#    $self->log( "Deleting matches in $recursedNumber, home of @floatIds");
+	#    my $paired = $recursed->members;
+	#    my @ids = map {$_->id} @downfloaters, @$paired;
+	#    my $key = $score . "C12Repair";
+	#    my $recursedRepair = Games::Tournament::Swiss::Bracket->new(
+	#    score       => $score,
+	#    c12repaired => 1,
+	#    number      => "$recursedNumber(post-C12)"
+	#    );
+	#    $self->log("Bracket ${recursedNumber}'s C12 Repairing: @ids");
+	#    $c12Repair->exit($_) for @downfloaters;
+	#    $recursed->exit($_) for @$paired;
+	#    $_->floating('')            for @downfloaters;
+	#    $recursedRepair->entry($_) for @downfloaters, @$paired;
+	#    $recursed->{c12repair} = $recursedRepair;
+	#    $recursed->dissolved(1);
+	#    $recursedRepair->floatCheckWaive('None');
+	#    $recursedRepair->{c8swapper} = $recursedRepair->c8iterator;
+	#    $recursedRepair->resetS12;
+	#    # my $s2 = $recursedRepair->s2;
+	#    # $recursedRepair->badpair($#$s2);
+	#    $brackets->{$key} = $recursedRepair;
+	#    $self->thisBracket($key);
+	#    return C7;
+	#}
+	#else {
+	#    $self->log(
+	#    "No recurse to homogeneous $iMinus2 Bracket ().
+	#    C12 Repairing of Bracket $number($index) failed. Go to C13");
+	#    return C13;
+	#}
     }
     elsif ( $group->{c11repaired} )
     {
@@ -1201,16 +1235,77 @@ sub c12 {
 	    $self->thisBracket($prevIndex);
 	    return C7;
         }
+        # use orz;
+        #else
+        #{	
+        #    my $heteroBracket = $group;
+        #    my $pprime       = $heteroBracket->pprime;
+        #    my $x       = $heteroBracket->x;
+        #    my $xprime  = $heteroBracket->xprime;
+        #    my $c11RepairGroup = $group;
+        #    $number = $heteroBracket->number;
+        #    $index = $self->previousBracket;
+        #    my $c11RepairGroupMembers = $c11RepairGroup->members;
+        #    $self->thisBracket($index);
+        #    $c11RepairGroup->exit($_) for @$c11RepairGroupMembers;
+        #    $_->floating('')            for @$c11RepairGroupMembers;
+        #    $heteroBracket->entry($_)   for @$c11RepairGroupMembers;
+        #    $c11RepairGroup->dissolved(1);
+        #    return C7;
+        #}
+        # no orz;
     }
+    # elsif ( $group->{remainderof} and $group->{remainderof}->{c12repaired} )
     elsif ( $group->{remainderof} and $group->{remainderof}->{c12repaired} )
     {
 	my $repairGroupIndex = $self->previousBracket;
 	my $heteroBracket = $group->{remainderof};
 	my $repairGroupNumber = $heteroBracket->number;
 	my $c11RepairRemainder = $group;
+	# my $unpaired = $c11RepairRemainder->members;
+	# my $paired = $heteroBracket->members;
+	# $c11RepairRemainder->exit($_) for @$unpaired;
+	# $_->floating('')            for @$unpaired;
+	# $heteroBracket->entry($_)   for @$unpaired;
+	# $heteroBracket->floatCheckWaive('None');
+	# $self->thisBracket($repairGroupIndex);
+	# $c11RepairRemainder->dissolved(1);
+	# my @unpairedids = map { $_->id } @$unpaired;
+	# my @pairedids = map { $_->id } @$paired;
+	# $heteroBracket->resetS12;
+	# my $s2 = $c11RepairRemainder->s2;
+	# $heteroBracket->badpair($#$s2);
+	# $self->log( "Repairing @pairedids in $repairGroupNumber failed.
+	#     @unpairedids in $number unpairable." );
+	# my $x       = $heteroBracket->x;
+	# my $xprime  = $heteroBracket->xprime;
+	# my $pprime       = $heteroBracket->pprime;
+	# if ( $xprime <= $pprime ) {
+	#     $self->log( "x=$xprime" );
+	# $xprime = defined $xprime ? $xprime + 1 : $x;
+	# $heteroBracket->xprime($xprime);
+	# $self->log( "Trying next pairing in $repairGroupNumber" );
+	# return C7;
+	# }
+	# else {
 	    $self->log( "No repairings in $repairGroupNumber. Go to C13." );
 	    return C13;
+	# }
     }
+    # use orz;
+    #if ( $group->{c12backupto} and $previous == $group->{c12backupto} )
+    #{
+    #    $self->log(
+    #    "C12 repairing of previous Bracket $prevNumber failed. Trying C13.");
+    #    return C13 ;
+    #}
+    #else {
+    #    $group->{c12backupto} = $previous;
+    #    $self->log(
+    #   "Backtracking from $index-Bracket [$number] to $prevIndex [$prevNumber],");
+    #    return C7;
+    #}
+    # no orz;
     elsif ( $group->{remainderof} and $group->{remainderof}->{c11repaired} )
     {
 	my $c11Remainder = $group;
@@ -1341,10 +1436,6 @@ sub c13 {
     {
 	$self->log("$index-Bracket [$number] not last group. Passing to C14" ) ;
 	return C14;
-    }
-    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
-	$self->byer($members->[0]);
-	return BYE;
     }
     my $penultimateIndex = $self->previousBracket;
     my $penultimateBracket = $brackets->{$penultimateIndex};
@@ -1709,7 +1800,7 @@ sub bracketOrder {
 
 	$pairing->firstBracket
 
-Gets the firstBracket. This is the undissolved bracket with the highest score.
+Gets the firstBracket. This is the bracket with the highest score.
 
 =cut
 
@@ -1758,7 +1849,7 @@ sub nextBracket {
 		last if $next;
 		$next++ if $index eq $place;
 	    }
-	return $nextBracket unless $nextBracket eq $place;
+	return $nextBracket;
     }
     return;
 }
