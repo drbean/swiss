@@ -11,21 +11,19 @@ my $builder = Module::Build->new(
     requires            => { 'List::MoreUtils' => 0 },
     build_requires      => {
 				'Test::More' => 0,
-				'Test::Base' => 0,
 				'YAML' => 0,
 				'IO::All' => 0,
 				'Parse::RecDescent' => 0,
 				},
-    recommends => { YAML => 0, 'IO::All' => 0, 'Parse::RecDescent' => 0,
-   				},
+    recommends => { YAML => 0, 'IO::All' => 0, 'Parse::RecDescent' => 0 },
     script_files	=> [qw(
         		    script_files/pair
         		    script_files/pairingtable
         		    script_files/crosstable
 			    script_files/pairtable2yaml
-			    script_files/pairyaml2txt
         		    script_files/pairstately
         			)],
     add_to_cleanup      => [ 'Games-Tournament-Swiss-*' ],
 			);
+
 			$builder->create_build_script();
