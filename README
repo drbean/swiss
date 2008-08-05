@@ -1,21 +1,14 @@
 Games-Tournament-Swiss
 
-Version 0.15
+This is version 0.05 of Games::Tournament::Swiss. This is ALPHA-level software. It may not run. It will be slow. Although it attempts to implement the FIDE Swiss Rules, it may not pair players correctly. It may take over your computer, and force you to reboot. It may DESTROY your computer. Use at your own risk. If it does work, I reserve the right to change functionality and interfaces.
 
-The complexity of the C11 code slowed this release down. C12 code wasn't touched, so I'm sure bugs remain. Cross your fingers that your tournament does not exercise the C12 code!
+In this version, I fix a few bugs and get ready in the scripts to do less serialization (storing of the program's data structures in files between runs of the program) and to do it more in a manner that is understandable by the chess world. That is, I want to use pairing tables, cross tables and the like to maintain state, rather than the pure programming objects I am freezing into the tourney.yaml, player.yaml etc files at the moment. These tables will still take the form of YAML files, and won't be pairing tables, but the contents will be relatable by the user to pairing tables.
 
-This is a major revision. In addition, we have a nicer interface to writing pairing tests. Look at three.t in the t/ directory.
+All this means that scripts which were working are likely to break. If the version you were using was doing what you wanted after a fashion (ha-ha), then you are not likely to do better with this version.
 
-Warning!
+As part of my plan, I have renamed the script_files script, 'pair' to 'pairstately' to allow me to rework pair. So the take-home message for 2-time readers of this is, use 'pairstately' rather than 'pair.'
 
-This is ALPHA-level software. Although it attempts to implement the FIDE Swiss Rules, it may not pair players correctly. It may take over your computer, and force you to reboot. It may DELETE files. It may DESTROY your computer. Use at your own risk.
-
-NOTICE: More tests are needed. If you have an interesting pairing table that is difficult to pair, please report it as a bug at http://search.cpan.org/~drbean/Games-Tournament-Swiss/, ideally in the same format as t/three.t. Bring it on! Try to break Games::Tournament::Swiss and report your results!
-
-I recommend looking at the scripts. If you want some more help, look at the 
-tests. Again, scripts are still likely to break, but the purpose of that is to get you to write your own scripts. (ha-ha) Look at the scripts and the tests.
-
-This program is run from a shell. You need to work from a command line and type commands. It also depends on perl to run. If you don't know anything about perl, you will have to learn something about installing it and running scripts, before you can use this software.
+For 1st-time readers, this program is run from a shell. You need to work from a command line and type commands. It also depends on perl to run. If you don't know anything about perl, you will have to learn something about installing it and running scripts, before you can use this software.
 
 For perl on Windows, try the free download of ActiveState's distribution at http://www.activestate.com/store/activeperl, or the experimental Strawberry Perl http://win32.perl.org/wiki/index.php?title=Strawberry_Perl
 
@@ -30,7 +23,7 @@ This software doesn't install itself. To install this module, run the following 
     ./Build test				make install
     ./Build install
 
-make may be nmake or dmake on Windows. The tests will take a few minutes.
+make may be nmake or dmake on Windows.
 
 The distribution is made up of modules and scripts. The modules provide functionality that you can use to write your own tournament software. The scripts are an example of a swiss pairing program.
 
@@ -45,11 +38,9 @@ The scripts assume that there is a directory in which a configuration file, call
 brackets.yaml  pairing.yaml  round.yaml
 matches.yaml   player.yaml   tourney.yaml
 
-are left in these subdirectories after pairing.
+are left in these subdirectories after pairing. Don't delete these, as they are what allows data to be carried over from round to round.
 
-Scores are in another subdirectory called scores. They are of the form 1.yaml, 2.yaml,.. You need to create these files, if you use 'pairstately'.
-
-You can create a pairing table with 'pairingtable,' convert it into YAML form with 'pairtable2yaml' and run 'pair.'
+Scores are in another subdirectory called scores. They are of the form 1.yaml, 2.yaml,.. You need to create these files yourself.
 
 DATA FILES
 
@@ -75,39 +66,26 @@ TODO Configuration of your own scoring scheme looks like it is broken.
 The score files: 1.yaml, etc, are of the form:
 
 'Laver, Rod': Loss
-'Sampras, Pete': Win
+'Sampras, Pete': Draw
 'McEnroe, John': Bye
 
 First number is the name of the player. (Every name will have to be unique.) The second is the result for that player.
 
-Alternatively,
-1:
-  - 'Laver, Rod': 0
-  - 'Sampras, Pete': 1
-2: 
-  - 'McEnroe, John': -
-
-A sample scoring scheme, abbreviations and roles in league.yaml could be:
+A sample scoring scheme and roles in league.yaml could be:
 
 scores:
   win: 1
-  loss: 0.5
-  draw: 0.75
+  loss: 0
+  draw: 0.5
   absent: 0
   bye: 1
-abbreviation:
-  W: White
-  1: Win
-  '=': Draw
 roles:
   - White
   - Black
 
-For the form of the pairing table and its YAML equivalent, see the documentation for 'pairtable2yaml.'
-
 GENERATING PAIRINGS
 
-Starting with an empty main directory, create league.yaml, and an empty subdirectory for the first round. Run the script, 'pair' in the empty round subdirectory. A log of the pairing is printed and 'round.yaml' in the directory contains the matches. After the games in the round are complete, in the scores subdirectory, enter the scores for the players in the file, '1.yaml', or whatever the round is. Then you can run 'crosstable 1' or 'pairingtable 1' in the original directory above the subdirectory, to get current standings. Convert your pairing table into YAML form with 'pairtable2yaml' and copy it into a subdirectory for the next round, and continue as before.
+Starting with an empty main directory, create league.yaml, and an empty subdirectory for the first round. Run the script, 'pairstately' in the empty round subdirectory. A log of the pairing is printed and 'round.yaml' in the directory contains the matches. After the games in the round are complete, in the scores subdirectory, enter the scores for the players in the file, '1.yaml', or whatever the round is. Then you can run 'crosstable' or 'pairingtable' in the original directory above the subdirectory, to get current standings. If there is a next round, make another empty subdirectory, named after it and continue as before.
 
 SUPPORT AND DOCUMENTATION
 
@@ -131,7 +109,7 @@ You can also look for information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007 Dr Bean
+Copyright (C) 2006 Dr Bean
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
