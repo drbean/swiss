@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::Dummy;
 
-# Last Edit: 2007 Nov 28, 07:37:08 AM
+# Last Edit: 2007 Apr 10, 12:30:30 PM
 # $Id: $
 
 use warnings;
@@ -18,18 +18,18 @@ Games::Tournament::Swiss::Procedure::Dummy - A brain-dead pairing algorithm
 
 =head1 VERSION
 
-Version 0.03
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
  $tourney = Games::Tournament::Swiss->new( rounds => 2, entrants => [ $a, $b, $c ] );
- %groups = $tourney->formBrackets;
- $pairing = $tourney->pairing( \%groups );
- @pairs = $pairing->matchPlayers;
+ @groups = $tourney->formBrackets;
+ $pairing = $tourney->pairing( \@groups );
+ @pairs = $pairing->matchPlayers( $index, $matches, %args );
 
 =head1 DESCRIPTION
 
@@ -52,9 +52,9 @@ sub new {
     my $round    = $args{round};
     my $brackets = $args{brackets};
     my $banner   = "Round $round:  ";
-    for my $bracket ( reverse sort keys %$brackets ) {
-        my $members = $brackets->{$bracket}->members;
-        my $score   = $brackets->{$bracket}->score;
+    for my $bracket ( 0 .. $#$brackets ) {
+        my $members = $brackets->[$bracket]->members;
+        my $score   = $brackets->[$bracket]->score;
         $banner .= "@{[map { $_->id } @$members]} ($score), ";
     }
     print $banner . "\n";
@@ -71,7 +71,7 @@ sub new {
 
  @pairs = $pairing->matchPlayers;
 
-Run a brain-dead algorithm that instead of pairing the players according to the rules creates matches between the nth and n+1th player of a bracket, downfloating the last player of the group if the number of players is odd. If there is an odd number of total players, the last gets a Bye.
+Run a brain-dead algorithm that instead of pairing the players according to the rules creates matches between the nth and n+1th player of a score group, downfloating the last player of the group if the number of players is odd. If there is an odd number of total players, the last gets a Bye. TODO Returns different data than FIDE.
 
 =cut 
 
@@ -80,11 +80,10 @@ sub matchPlayers {
     my $brackets = $self->brackets;
     my $downfloater;
     # my @allMatches = @{ $self->matches };
-    my %allMatches;
-    my $number = 1;
-    for my $score ( reverse sort keys %$brackets ) {
+    my @allMatches;
+    for my $n ( 0 .. $#$brackets ) {
         my @bracketMatches;
-        my $players = $brackets->{$score}->members;
+        my $players = $brackets->[$n]->members;
         if ($downfloater) {
             unshift @$players, $downfloater;
             undef $downfloater;
@@ -94,7 +93,6 @@ sub matchPlayers {
             push @bracketMatches, Games::Tournament::Card->new(
                 round       => $self->round,
                 result      => undef,
-		score => $score,
                 contestants => {
                     (ROLES)[0] => $players->[ 2 * $table ],
                     (ROLES)[1] => $players->[ 2 * $table + 1 ]
@@ -103,7 +101,7 @@ sub matchPlayers {
                 # floats => \%floats
             );
         }
-        if ( $number == keys %$brackets and $downfloater ) {
+        if ( $n == $#$brackets and $downfloater ) {
             push @bracketMatches, Games::Tournament::Card->new(
                 round       => $self->round,
                 result      => undef,
@@ -112,10 +110,9 @@ sub matchPlayers {
                 # floats => \%floats
             );
         }
-        $allMatches{$score} = \@bracketMatches;
-	$number++;
+        push @allMatches, \@bracketMatches;
     }
-    $self->matches( \%allMatches );
+    $self->matches( \@allMatches );
 }
 
 

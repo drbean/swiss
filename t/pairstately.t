@@ -9,17 +9,9 @@ use warnings;
 use Test::More;
 use YAML qw/Load LoadFile DumpFile/;
 
-use Config;
-my $secure_perl_path = $Config{perlpath};
-if ($^O ne 'VMS')
-{
-	$secure_perl_path .= $Config{_exe}
-		unless $secure_perl_path =~ m/$Config{_exe}$/i;
-}
-
 BEGIN {
     $Games::Tournament::Swiss::Config::firstround = 1;
-    @Games::Tournament::Swiss::Config::roles      = qw/White Black/;
+    @Games::Tournament::Swiss::Config::roles      = qw/Black White/;
     %Games::Tournament::Swiss::Config::scores      = (
     Win => 1, Draw => 0.5, Loss => 0, Absence => 0, Bye => 1 );
     $Games::Tournament::Swiss::Config::algorithm  =
@@ -55,23 +47,23 @@ title: Unknown
 DumpFile './league.yaml', {member => \@members};
 mkdir '1';
 chdir '1';
-system "$secure_perl_path ../script_files/pairstately";
+system 'perl ../script_files/pairstately';
 
 my $round = LoadFile './round.yaml';
 my @tests = (
 [ $round->{round} == 1, 'round 1'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{1}->{Black} eq 'Jose Capablanca' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{1}->{White} eq 'Jose Capablanca'), '$m1 is Nicks&Jose'],
-[ ($round->{group}->{2}->{White} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{Black} eq 'LaLa Lakers' or
-  $round->{group}->{2}->{Black} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{White} eq 'LaLa Lakers'), '$m2 is LaLa&Alex'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{2}->{Black} eq 'LaLa Lakers' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{2}->{White} eq 'LaLa Lakers'), 'S1 players different roles']
+[ ($round->{group}->{0}->{White} eq 'Your New Nicks' and
+  $round->{group}->{0}->{Black} eq 'Jose Capablanca' or
+  $round->{group}->{0}->{Black} eq 'Your New Nicks' and
+  $round->{group}->{0}->{White} eq 'Jose Capablanca'), '$m1 is Nicks&Jose'],
+[ ($round->{group}->{1}->{White} eq 'Alexander Alekhine' and
+  $round->{group}->{1}->{Black} eq 'LaLa Lakers' or
+  $round->{group}->{1}->{Black} eq 'Alexander Alekhine' and
+  $round->{group}->{1}->{White} eq 'LaLa Lakers'), '$m2 is LaLa&Alex'],
+[ ($round->{group}->{0}->{White} eq 'Your New Nicks' and
+  $round->{group}->{1}->{Black} eq 'LaLa Lakers' or
+  $round->{group}->{0}->{Black} eq 'Your New Nicks' and
+  $round->{group}->{1}->{White} eq 'LaLa Lakers'), 'S1 players different roles']
 );
 
 my $round1 = Load(<<'...');
@@ -89,23 +81,23 @@ mkdir './scores';
 DumpFile './scores/1.yaml', $round1;
 mkdir '2';
 chdir '2';
-system "$secure_perl_path ../script_files/pairstately";
+system 'perl ../script_files/pairstately';
 
 $round = LoadFile './round.yaml';
 push @tests, (
 [ $round->{round} == 2, 'round 2'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{1}->{Black} eq 'LaLa Lakers' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{1}->{White} eq 'LaLa Lakers'), '$m1 is LaLa&Nicks'],
-[ ($round->{group}->{2}->{White} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{Black} eq 'Jose Capablanca' or
-  $round->{group}->{2}->{Black} eq 'Alexander Alekhine' and
-  $round->{group}->{2}->{White} eq 'Jose Capablanca'), '$m2 is Alex&Jose'],
-[ ($round->{group}->{1}->{White} eq 'Your New Nicks' and
-  $round->{group}->{2}->{White} eq 'Alexander Alekhine' or
-  $round->{group}->{1}->{Black} eq 'Your New Nicks' and
-  $round->{group}->{2}->{Black} eq 'Alexander Alekhine'), 'S1,2 same roles']
+[ ($round->{group}->{0}->{White} eq 'Your New Nicks' and
+  $round->{group}->{0}->{Black} eq 'LaLa Lakers' or
+  $round->{group}->{0}->{Black} eq 'Your New Nicks' and
+  $round->{group}->{0}->{White} eq 'LaLa Lakers'), '$m1 is LaLa&Nicks'],
+[ ($round->{group}->{1}->{White} eq 'Alexander Alekhine' and
+  $round->{group}->{1}->{Black} eq 'Jose Capablanca' or
+  $round->{group}->{1}->{Black} eq 'Alexander Alekhine' and
+  $round->{group}->{1}->{White} eq 'Jose Capablanca'), '$m2 is Alex&Jose'],
+[ ($round->{group}->{0}->{White} eq 'Your New Nicks' and
+  $round->{group}->{1}->{White} eq 'Alexander Alekhine' or
+  $round->{group}->{0}->{Black} eq 'Your New Nicks' and
+  $round->{group}->{1}->{Black} eq 'Alexander Alekhine'), 'S1,2 same roles']
 );
 
 chdir '..';
