@@ -27,7 +27,7 @@ sub permute {
 
 my $it = permute(qw/1.5 1.5Remainder 1 1Remainder 1Bye/);
 
-my $groupsort = sub {
+my $sort = sub {
        if ( $a =~ /Bye$/ ) {
 	   return -1;
        }
@@ -69,14 +69,20 @@ while (my @order = &$it )
 {
 	local $, = ' ';
 	local $\ = "\n";
-	print sort($groupsort @order);
+	print sort $sort @order;
 }
 
-my $it = permute(qw/1.5 1.5Remainder 1 1Remainder 1Bye/);
+$it = permute(qw/1.5 1.5Remainder 1 1Remainder 1Bye/);
 
 while (my @order = &$it )
 {
+	my %index;
+	@index{@order} = map {	m/^(\d*\.?\d+)(\D.*)?$/;
+				{score => $1, tag => $2||'' }
+				} @order;
+	my $sort = sub { $index{$b}->{score} <=> $index{$a}->{score} ||
+			$index{$a}->{tag} cmp $index{$b}->{tag} };
 	local $, = ' ';
 	local $\ = "\n";
-	print reverse sort($groupsort @order);
+	print sort $sort @order;
 }
