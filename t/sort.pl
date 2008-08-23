@@ -67,5 +67,16 @@ my $groupsort = sub {
 
 while (my @order = &$it )
 {
-	print sort $groupsort @order , "\n";
+	local $, = ' ';
+	local $\ = "\n";
+	print sort($groupsort @order);
+}
+
+my $it = permute(qw/1.5 1.5Remainder 1 1Remainder 1Bye/);
+
+while (my @order = &$it )
+{
+	local $, = ' ';
+	local $\ = "\n";
+	print reverse sort($groupsort @order);
 }
