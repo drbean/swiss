@@ -69,8 +69,10 @@ while (my @order = &$it )
 {
 	local $, = ' ';
 	local $\ = "\n";
-	print sort $sort @order;
+	print reverse sort $sort @order;
 }
+
+print "\n";
 
 $it = permute(qw/1.5 1.5Remainder 1 1Remainder 1Bye/);
 
