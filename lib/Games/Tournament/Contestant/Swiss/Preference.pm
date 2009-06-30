@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss::Preference;
 
-# Last Edit: 2007 Nov 28, 05:53:00 PM
+# Last Edit: 2009  6月 30, 12時58分25秒
 # $Id: $
 
 use warnings;
@@ -201,7 +201,7 @@ sub strength {
 
 	$pref->role
 
-Gets the role which the preference entitles/requires the player to take in the next round.
+Gets the role which the preference entitles/requires the player to take in the next round. Not defined if sign is ''.
 
 =cut
 
