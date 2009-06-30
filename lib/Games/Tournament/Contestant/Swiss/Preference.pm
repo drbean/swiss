@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss::Preference;
 
-# Last Edit: 2009  6月 30, 12時58分25秒
+# Last Edit: 2009  6月 30, 13時38分13秒
 # $Id: $
 
 use warnings;
@@ -30,7 +30,7 @@ Version 0.04
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
