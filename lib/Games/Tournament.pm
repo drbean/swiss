@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 05, 12時43分19秒
+# Last Edit: 2009  7月 05, 18時10分18秒
 # $Id: $
 
 use warnings;
@@ -53,7 +53,11 @@ Creates a competition for entrants, over a number of rounds. entrants is a list 
 sub new {
     my $self = shift;
     my %args = @_;
-    return bless \%args, $self;
+    my $entrants = $args{entrants};
+    delete $args{entrants};
+    my $object = bless \%args, $self;
+    for my $entrant ( @$entrants ) { $object->enter( $entrant ); }
+    return $object;
 }
 
 
@@ -71,16 +75,17 @@ sub enter {
     my $entrants = $self->entrants;
     for my $required ( qw/id name/ ) {
 	unless ( $player->$required ) {
-	    die "No $required for player " . $player->id;
+	    croak "No $required for player " . $player->id;
 	}
     }
     for my $recommended ( qw/rating title/ ) {
 	unless ( $player->$recommended ) {
-	    warn "No $recommended for player " . $player->id;
+	    carp "No $recommended for player " . $player->id;
 	    $player->$recommended( 'None' );
 	}
     }
     push @$entrants, $player;
+    $self->entrants( $entrants );
 }
 
 =head2 rank
