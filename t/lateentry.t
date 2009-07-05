@@ -38,7 +38,7 @@ my $n = 20;
 my @lineup = map { Games::Tournament::Contestant::Swiss->new(
 	id => $_, name => chr($_+64), rating => 2000-2*$_, title => 'Nom') }
 	    (1..$n);
-my @lateones = map  { Games::Tournament::Contestant::Swiss->new(
+my @late = map  { Games::Tournament::Contestant::Swiss->new(
 	id => $n+$_, name => chr($_+96), rating => 2001-2*$_, title => 'Nom') }
 	    (1..$n);
 my $tourney = Games::Tournament::Swiss->new( rounds => 2, entrants => \@lineup);
@@ -50,13 +50,8 @@ $tourney->initializePreferences until $lineup[0]->preference->role eq
 		$Games::Tournament::Swiss::Config::roles[0];
 
 sub runRound {
-	my $tourney = shift;
-	my $numberlate = shift;
-	my $entries = $tourney->entrants;
-	my @lateones = map { Games::Tournament::Contestant::Swiss->new(id => $_
-		, name => chr($_+64), rating => 2000-$_, title => 'Nom') }
-	    ( @$entries .. @$entries+$numberlate );
-	$tourney->enter(@lateones);
+	my $one = shift;
+	$tourney->enter($late[$one]);
 	$tourney->assignPairingNumbers;
 	my %brackets = $tourney->formBrackets;
 	my $pairing  = $tourney->pairing( \%brackets )->matchPlayers;
@@ -78,33 +73,27 @@ sub runRound {
 };
 
 sub entrycheck {
-	my $tourney = shift;
-	my $extranumber = shift;
+	my $latecomer = shift;
 	my $entries = $tourney->entrants;
-	my @latecomer = map { $entries->[-$_] } 1 .. $extranumber;
 }
-
-filters { input => [ qw/chomp entrcheck/ ], expected => [ qw/lines chomp array / ] };
 
 plan tests => 1 * blocks;
 
 sub runAndCheck {
-	my $tourney = shift;
-	my $numberlate = shift;
-	runRound($tourney, $numberlate);
+	my $lateentry = shift;
+	runRound($lateentry);
 	my $block = next_block;
 	is_deeply( $block->input, $block->expected, $block->name );
 }
-runAndCheck($tourney, 2);
-runAndCheck($tourney, 3);
-runAndCheck($tourney, 1);
+runAndCheck(1);
+runAndCheck(2);
+runAndCheck(3);
 
 __DATA__
 
 === Tourney 1 Round 1
---- input lines chomp entrycheck
-1
-1
+--- input chomp entrycheck
+0
 --- expected yaml
 0:
  -
