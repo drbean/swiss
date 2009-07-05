@@ -1,0 +1,36 @@
+I'm glad I asked. This is not the answer I was expecting.
+
+[QUOTE=gletsos]
+   Late entrants need to be seeded into the player list based on their
+   rating.
+[/QUOTE]
+
+Presumably the score they have at the moment is NOT considered in determining the pairing number, even though the way the Rules talk about determining order might suggest otherwise.
+
+[QUOTE=FIDE]
+A.2 Order
+For pairing purposes only, the players are ranked in order of,
+respectively
+ a. score
+ b. rating
+ c. FIDE-title (IGM-WGM-IM-WIM-FM-WFM-no title)
+ d. alphabetically (unless it has been previously stated that this
+    criterion has been replaced by another one)
+
+The order made before the first round (when all scores are obviously
+zero) is used to determine the pairing numbers: the highest one gets
+#1 etc.
+[/QUOTE]
+
+But, a. score should NOT be used in the renumbering. Is that correct?
+
+[QHOTE=gletsos]
+   If this means renumbering the player pairing numbers when players are
+   added then so be it.
+[/QUOTE]
+
+Are the players able to make sense of the pairing table with the changes in their pairing numbers and those of the people they played?
+
+Incidentally, the rules talk about making an estimation of players' ratings, if
+they are unknown, before the start of the tournament. How do arbiters do this?
+If they do not know the players at all, do they ask them about their chess experience? Or do they just give them a 0 rating?
