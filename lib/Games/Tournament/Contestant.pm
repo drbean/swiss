@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009  6月 30, 13時39分46秒
+# Last Edit: 2009  7月 05, 12時30分13秒
 # $Id: $
 
 use warnings;
@@ -262,7 +262,7 @@ sub name {
     my $self = shift;
     my $name = shift;
     if ( defined $name ) { $self->{name} = $name; }
-    elsif ( $self->{name} ) { return $self->{name}; }
+    elsif ( exists $self->{name} ) { return $self->{name}; }
 }
 
 
@@ -278,7 +278,7 @@ sub title {
     my $self  = shift;
     my $title = shift;
     if ( defined $title ) { $self->{title} = $title; }
-    elsif ( $self->{title} ) { return $self->{title}; }
+    elsif ( exists $self->{title} ) { return $self->{title}; }
 }
 
 
@@ -310,7 +310,7 @@ sub rating {
     my $self   = shift;
     my $rating = shift;
     if ( defined $rating and $rating =~ m/^\d$/ ) { $self->{rating} = $rating; }
-    elsif ( $self->{rating} ) { return $self->{rating}; }
+    elsif ( exists $self->{rating} ) { return $self->{rating}; }
     else { return 0; }
 }
 
