@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2007 Nov 28, 07:32:56 AM
+# Last Edit: 2009  7月 05, 12時43分19秒
 # $Id: $
 
 use warnings;
@@ -56,6 +56,32 @@ sub new {
     return bless \%args, $self;
 }
 
+
+=head2 enter
+
+ $tourney->enter($player)
+
+Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title.
+
+=cut
+
+sub enter {
+    my $self    = shift;
+    my $player = shift;
+    my $entrants = $self->entrants;
+    for my $required ( qw/id name/ ) {
+	unless ( $player->$required ) {
+	    die "No $required for player " . $player->id;
+	}
+    }
+    for my $recommended ( qw/rating title/ ) {
+	unless ( $player->$recommended ) {
+	    warn "No $recommended for player " . $player->id;
+	    $player->$recommended( 'None' );
+	}
+    }
+    push @$entrants, $player;
+}
 
 =head2 rank
 
