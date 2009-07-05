@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  6月 30, 13時39分10秒
+# Last Edit: 2009  7月 05, 12時15分10秒
 # $Id: $
 
 use warnings;
@@ -64,24 +64,16 @@ In a Swiss tournament, there is a pre-declared number of rounds, each contestant
 
  @rankings = $tourney->assignPairingNumbers;
 
-Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The old id is saved as oldId.) If a pairingNumber attribute already exists for all @players, however, this is used instead, and the old id isn't saved. This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. But if they *do* have scores, they are not used to rank. A2
+Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The old id is saved as oldId.) This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. A2
 
 =cut
 
 sub assignPairingNumbers {
     my $self    = shift;
-    my @players = @{ $self->{entrants} };
-    if ( @players == grep { $_->{pairingNumber} } @players ) {
-        for (@players) { $_->{id} ||= $_->{pairingNumber}; }
-        return @players;
-    }
-    my @realScores;
-    my $n = 0;
-    for (@players) { $realScores[$n] = $_->scores if defined $_->scores; $n++ }
-    $_->{scores} = undef foreach @players;
+    my @players = @{ $self->entrants };
     my @rankings = $self->rank(@players);
     foreach my $n ( 0 .. $#players ) {
-        $players[$n]->scores( $realScores[$n] );
+	next if defined $rankings[$n]->pairingNumber;
         $rankings[$n]->pairingNumber( $n + 1 );
         $rankings[$n]->oldId( $rankings[$n]->id ) unless $rankings[$n]->oldId;
         $rankings[$n]->id( $rankings[$n]->pairingNumber );
