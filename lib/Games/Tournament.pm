@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 06, 11時11分34秒
+# Last Edit: 2009  7月 06, 16時12分59秒
 # $Id: $
 
 use warnings;
@@ -65,7 +65,7 @@ sub new {
 
  $tourney->enter($player)
 
-Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title.
+Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title. TODO Check for duplicate ids.
 
 =cut
 
