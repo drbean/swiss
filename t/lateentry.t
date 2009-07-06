@@ -36,11 +36,11 @@ use Games::Tournament::Card;
 
 my $n = 20;
 my @lineup = map { Games::Tournament::Contestant::Swiss->new(
-	id => $_, name => chr($_+64), rating => 2002-2*$_, title => 'Nom') }
-	    (1..$n);
+	id => $_+1, name => chr($_+65), rating => 2000-2*$_, title => 'Nom') }
+	    (0..$n-1);
 my @late = map  { Games::Tournament::Contestant::Swiss->new(
-	id => $n+$_, name => chr($_+96), rating => 2001-2*$_, title => 'Nom') }
-	    (1..$n);
+	id => $_+1+$n, name => chr($_+97), rating => 1999-2*$_, title => 'Nom') }
+	    (0..$n-1);
 my $tourney = Games::Tournament::Swiss->new( rounds => 2, entrants => \@lineup);
 my $round = 0;
 $tourney->round($round);
@@ -152,21 +152,23 @@ T: 22
 A: 1
 a: 2
 B: 3
-C: 4
-D: 5
-E: 6
-F: 7
-G: 8
-H: 9
-I: 10
-J: 11
-K: 12
-L: 13
-M: 14
-N: 15
-O: 16
-P: 17
-Q: 18
-R: 19
-S: 20
-T: 21
+b: 4
+C: 5
+c: 6
+D: 7
+E: 8
+F: 9
+G: 10
+H: 11
+I: 12
+J: 13
+K: 14
+L: 15
+M: 16
+N: 17
+O: 18
+P: 19
+Q: 20
+R: 21
+S: 22
+T: 23
