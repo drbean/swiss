@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009  7月 06, 16時21分01秒
+# Last Edit: 2009  7月 06, 18時39分52秒
 # $Id: $
 
 use warnings;
@@ -119,7 +119,8 @@ sub naturalize {
     my $self      = shift;
     my $foreigner = shift;
     my $members   = $self->residents;
-    return unless any { $_->id == $foreigner->id } @$members;
+    return unless any
+	{ $_->pairingNumber == $foreigner->pairingNumber } @$members;
     my $direction = $foreigner->floating;
     return unless $direction eq 'Up' or $direction eq 'Down';
     $foreigner->floating('');
@@ -200,7 +201,7 @@ sub residents {
     my $floated = $self->emigrants;
     for my $member (@members) {
         push @residents, $member
-          unless any { $member->{id} == $_->{id} } @$floated;
+          unless any { $member->pairingNumber == $_->pairingNumber } @$floated;
     }
     return \@residents;
 }
@@ -235,8 +236,8 @@ sub exit {
     my $self       = shift;
     my $members    = $self->members;
     my $exiter     = shift;
-    my $myId = $exiter->id;
-    my @stayers = grep { $_->id != $myId } @$members;
+    my $myId = $exiter->pairingNumber;
+    my @stayers = grep { $_->pairingNumber != $myId } @$members;
     my $number = $self->number;
     croak "Player $myId did not exit Bracket $number" if @stayers == @$members;
     $self->members(\@stayers);
@@ -264,8 +265,8 @@ sub entry {
     my $self   = shift;
     my $members = $self->members;
     my $enterer = shift;
-    my $myId = $enterer->id;
-    my @residents = grep { $_->id != $myId } @$members;
+    my $myId = $enterer->pairingNumber;
+    my @residents = grep { $_->pairingNumber != $myId } @$members;
     my $number = $self->number;
     croak "Player $myId cannot enter Bracket $number. Is already there." unless
 	    @residents == @$members;
@@ -304,8 +305,9 @@ sub reentry {
     my $self      = shift;
     my $returnee  = shift;
     my $emigrants = $self->emigrants;
-    if ( grep { $_->id == $returnee->id } @$emigrants ) {
-        my @nonreturnees = grep { $_->id != $returnee->id } @$emigrants;
+    if ( any { $_->pairingNumber == $returnee->pairingNumber } @$emigrants ) {
+        my @nonreturnees = grep {
+	    $_->pairingNumber != $returnee->pairingNumber } @$emigrants;
 	# @{ $self->{gone} } = @nonreturnees;
         $self->{gone} = \@nonreturnees;
         return @nonreturnees;
@@ -778,7 +780,7 @@ sub c7shuffler {
     my @copy = @players;
     for my $i ( 0 .. $#$s2 ) {
         my $j = 0;
-        $j++ until $s2->[$i]->{pairingNumber} == $copy[$j]->{pairingNumber};
+        $j++ until $s2->[$i]->pairingNumber == $copy[$j]->pairingNumber;
         $pattern[$i] = $j;
         splice @copy, $j, 1;
     }
