@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2007 Nov 28, 07:36:32 AM
+# Last Edit: 2009  7月 06, 11時21分04秒
 # $Id: $
 
 use warnings;
@@ -42,7 +42,7 @@ Games::Tournament::Swiss will use this class when constructing a 'Bye' contestan
 	    floats => [qw/Not Down Not Not],
 	    roles => [qw/Black White Black White/] );
 
-Actually, you don't want to assign pairing numbers this way. Let the assignPairingNumbers method in Games::Tournament::Swiss do it.
+Actually, you don't want to assign pairing numbers this way. Let the assignPairingNumbers method in Games::Tournament::Swiss do it. The player gets a default mild preference for neither role.
 
 =cut
 
@@ -50,7 +50,10 @@ sub new() {
     my $self = shift;
     my %args = @_;
     # $args{roles} = [] unless $args{roles};
-    return bless \%args, $self;
+    my $object = bless \%args, $self;
+    $object->preference(
+	Games::Tournament::Contestant::Swiss::Preference->new );
+    return $object;
 }
 
 

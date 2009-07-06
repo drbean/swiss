@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 05, 18時10分18秒
+# Last Edit: 2009  7月 06, 11時11分34秒
 # $Id: $
 
 use warnings;
@@ -46,7 +46,7 @@ In a tournament, there are contestants, and matches over rounds between the cont
 
  Games::Tournament->new( rounds => 2, entrants => [ $a, $b, $c ] )
 
-Creates a competition for entrants, over a number of rounds. entrants is a list of player objects.
+Creates a competition for entrants, over a number of rounds. entrants is a list of player objects. Enters (see enter method) each of the entrants in the tournament.
 
 =cut 
 
