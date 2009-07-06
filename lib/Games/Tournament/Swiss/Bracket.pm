@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009  7月 06, 15時47分18秒
+# Last Edit: 2009  7月 06, 16時21分01秒
 # $Id: $
 
 use warnings;
@@ -1096,7 +1096,8 @@ sub _floatCheck {
 		for my $player ( @pair) {
 		    my $test = ( not defined $player or
 			    ($player->floats(-$round) ne "Down") );
-		    $idCheck ||= $player->id if $player and not $test;
+		    $idCheck ||= $player->pairingNumber if $player and
+							    not $test;
 		    $tableTest++ if $test;
 		}
 		if ( $tableTest >= 2 ) { $nopairlevelpasser[$pos] = \@pair; }

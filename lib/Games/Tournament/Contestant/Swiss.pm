@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009  7月 06, 11時21分04秒
+# Last Edit: 2009  7月 06, 16時20分43秒
 # $Id: $
 
 use warnings;
@@ -92,7 +92,7 @@ sub pairingNumber {
 
 	$member->oldId
 
-Sets/gets an original, possibly unreliable id of the contestant, supplied before the Games::Tournament::Swiss::assignPairingNumbers function/method is applied, and the result substituted for it.
+Sets/gets an original, possibly unreliable id of the contestant, supplied by the user.
 
 =cut
 
