@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 06, 14時36分22秒
+# Last Edit: 2009  7月 06, 14時54分15秒
 # $Id: $
 
 use warnings;
@@ -64,7 +64,7 @@ In a Swiss tournament, there is a pre-declared number of rounds, each contestant
 
  @rankings = $tourney->assignPairingNumbers;
 
-Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The old id is saved as oldId.) This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. A2
+Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The old id is saved as oldId. But don't change id to pairingNumber. It will change with late entries.) This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. A2
 
 =cut
 
@@ -76,7 +76,6 @@ sub assignPairingNumbers {
     foreach my $n ( 0 .. $#rankings ) {
         $rankings[$n]->pairingNumber( $n+1 );
         $rankings[$n]->oldId( $rankings[$n]->id ) unless $rankings[$n]->oldId;
-        $rankings[$n]->id( $rankings[$n]->pairingNumber );
     }
     $self->entrants( \@rankings );
 }
@@ -196,7 +195,7 @@ sub prepareCards {
  $play = $tourney->collectCards( @games );
   next if $htable->{$player1->id}->{$player2->id};
 
-Records @games after they have been played. Stored as $tourney's play field, keyed on round and ids of players.  Returns the new play field. Updates player scores, preferences. TODO This has non-Swiss subclass elements I could factor out into a method in Games::Tournament. TODO What if player is matched more than one time in the round, filling in for someone? XXX It looks like all the games have to be the same round, or you have to collect all cards in one round before collecting cards in following rounds. XXX I'm having problems with recording roles. I want to be lazy about it, and trust the card I get back before the next round. The problem with this is, I may be getting the role from the wrong place. It should come from the card, and is a role which was assigned in the previous round, and is only now being recorded, at this point between the previous round and the next round. Or is the problem copying by value rather than reference of the entrants? Now I also need to record floats. It would be good to do this at the same time as I record roles. The card is the appropriate place to get this info according to A4.
+Records @games after they have been played. Stored as $tourney's play field, keyed on round and ids of players.  Returns the new play field. Updates player scores, preferences. TODO Roll back the color preference change for Absences  TODO This has non-Swiss subclass elements I could factor out into a method in Games::Tournament. TODO What if player is matched more than one time in the round, filling in for someone? XXX It looks like all the games have to be the same round, or you have to collect all cards in one round before collecting cards in following rounds. XXX I'm having problems with recording roles. I want to be lazy about it, and trust the card I get back before the next round. The problem with this is, I may be getting the role from the wrong place. It should come from the card, and is a role which was assigned in the previous round, and is only now being recorded, at this point between the previous round and the next round. Or is the problem copying by value rather than reference of the entrants? Now I also need to record floats. It would be good to do this at the same time as I record roles. The card is the appropriate place to get this info according to A4.
 
 =cut
 
