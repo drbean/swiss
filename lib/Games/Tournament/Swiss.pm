@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 06, 11時22分54秒
+# Last Edit: 2009  7月 06, 11時41分51秒
 # $Id: $
 
 use warnings;
@@ -86,7 +86,7 @@ sub assignPairingNumbers {
 
  @rankings = $tourney->initializePreferences;
 
-Before the first round, the color (role) preference of the highest ranked player and the other odd-numbered players in the top half of the rankings is determined by lot. The preference of the even-numbered players in the top half is given to the other color. If there is only one player in the tournament, the preference is not defined. E5
+Before the first round, the color (role) preference of the highest ranked player and the other odd-numbered players in the top half of the rankings is determined by lot. The preference of the even-numbered players in the top half is given to the other color. If there is only one player in the tournament, the preference is not initialized. The method assumes all entrants have a preference attribute. This accessor is given the player by the Games::Tournament::Contestant::Swiss constructor. E5
 
 =cut
 
