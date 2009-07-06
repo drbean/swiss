@@ -36,10 +36,10 @@ use Games::Tournament::Card;
 
 my $n = 20;
 my @lineup = map { Games::Tournament::Contestant::Swiss->new(
-	id => $_+1, name => chr($_+65), rating => 2000-2*$_, title => 'Nom') }
+	id => $_+1, name => chr($_+65), rating => 2000-2*$_, title => 'M.') }
 	    (0..$n-1);
 my @late = map  { Games::Tournament::Contestant::Swiss->new(
-	id => $_+1+$n, name => chr($_+97), rating => 1999-2*$_, title => 'Nom') }
+	id => $_+1+$n, name => chr($_+97), rating => 1999-2*$_, title => 'M.') }
 	    (0..$n-1);
 my $tourney = Games::Tournament::Swiss->new( rounds => 2, entrants => \@lineup);
 my $round = 0;
@@ -50,8 +50,7 @@ $tourney->initializePreferences until $lineup[0]->preference->role eq
 		$Games::Tournament::Swiss::Config::roles[0];
 
 sub runRound {
-	my $one = shift;
-	$tourney->enter($late[$one]);
+	$tourney->enter($late[ shift ]);
 	$tourney->assignPairingNumbers;
 	my %brackets = $tourney->formBrackets;
 	my $pairing  = $tourney->pairing( \%brackets )->matchPlayers;
@@ -81,8 +80,7 @@ sub entrycheck {
 plan tests => 1 * blocks;
 
 sub runAndCheck {
-	my $lateentry = shift;
-	runRound($lateentry);
+	runRound( shift );
 	my $block = next_block;
 	is_deeply( $block->input, $block->expected, $block->name );
 }
