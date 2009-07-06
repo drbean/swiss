@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 06, 14時54分15秒
+# Last Edit: 2009  7月 06, 16時05分55秒
 # $Id: $
 
 use warnings;
@@ -120,7 +120,7 @@ sub initializePreferences {
      floats => { 1 => 'U', 2=> 'D' }
  } )
 
-From hashes of the opponents, roles and floats for each player in a round, draws up game cards for each of the matches of the round. NOTE: It's all wrapped up in a big anonymous hash. Returned is a list of Games::Tournament::Card objects, with undefined result fields.
+From hashes of the opponents, roles and floats for each player in a round, draws up game cards for each of the matches of the round. NOTE: It's all wrapped up in a big anonymous hash. Returned is a list of Games::Tournament::Card objects, with undefined result fields. Pairing numbers are not used, but could be. Ids are used instead. Note: This method prepareCards doesn't seem much used.
 
 =cut
 
@@ -363,7 +363,7 @@ sub pairing {
 	$games = $tourney->compatible
 	next if $games->{$alekhine->pairingNumber}->{$capablanca->pairingNumber}
 
-Returns an anonymous hash, keyed on the pairing numbers (ids) of @grandmasters, indicating whether or not the individual @grandmasters could play each other in the next round. But what is the next round? This method uses the whoPlayedWho and colorClashes methods to remove incompatible players.
+Returns an anonymous hash, keyed on the ids of @grandmasters, indicating whether or not the individual @grandmasters could play each other in the next round. But what is the next round? This method uses the whoPlayedWho and colorClashes methods to remove incompatible players.
 
 =cut
 
@@ -393,7 +393,7 @@ sub compatible {
 	next if $games->{$alekhine->pairingNumber}->
 	    {$capablanca->pairingNumber}
 
-Returns an anonymous hash, keyed on the pairing numbers (ids) of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1
+Returns an anonymous hash, keyed on the ids of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1
 
 =cut
 
@@ -434,7 +434,7 @@ sub whoPlayedWho {
 	$nomatch = $tourney->colorClashes
 	next if $nomatch->{$alekhine->id}->{$capablanca->id}
 
-Returns an anonymous hash, keyed on the ids/pairing numbers of the tourney's entrants, of a color (role) if 2 of the individual @grandmasters both have an absolute preference for it in the next round and so can't play each other (themselves). Don't forget to collect scorecards in the appropriate games first! B2
+Returns an anonymous hash, keyed on the ids of the tourney's entrants, of a color (role) if 2 of the individual @grandmasters both have an absolute preference for it in the next round and so can't play each other (themselves). Don't forget to collect scorecards in the appropriate games first! B2
 
 =cut
 
@@ -499,7 +499,7 @@ sub byesGone {
 	$nomatch = $tourney->incompatibles(@grandmasters)
 	next if $nomatch->{$alekhine->id}->{$capablanca->id}
 
-Collates information from the whoPlayedWho and colorClashes methods to show who cannot be matched or given a bye in the next round, returning an anonymous hash keyed on the ids/pairing numbers of @grandmasters. B1,2 C1,6
+Collates information from the whoPlayedWho and colorClashes methods to show who cannot be matched or given a bye in the next round, returning an anonymous hash keyed on the ids of @grandmasters. B1,2 C1,6
 
 =cut
 

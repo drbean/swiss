@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2007 Nov 28, 05:55:03 PM
+# Last Edit: 2009  7月 06, 15時35分47秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -86,7 +86,7 @@ sub new {
     for my $bracket ( reverse sort keys %$brackets ) {
         my $members = $brackets->{$bracket}->members;
         my $score   = $brackets->{$bracket}->score;
-        $banner .= "@{[map { $_->id } @$members]} ($score), ";
+        $banner .= "@{[map { $_->pairingNumber } @$members]} ($score), ";
     }
     print $banner . "\n";
     return bless {
@@ -199,7 +199,7 @@ sub next {
     die "Next bracket is: $next Bracket?" unless defined $nextBracket
 		    and $nextBracket->isa('Games::Tournament::Swiss::Bracket');
     my $members = $nextBracket->members;
-    my @ids = map {$_->id} @$members;
+    my @ids = map {$_->pairingNumber} @$members;
     my $number = $nextBracket->number;
     $self->thisBracket($next);
     $self->log( "$next-Bracket [$number]: @ids" );
@@ -226,7 +226,7 @@ sub prev {
     my $members = $prevBracket->members;
     my $number = $prevBracket->number;
     $self->thisBracket($prevIndex);
-    my @ids = map {$_->id} @$members;
+    my @ids = map {$_->pairingNumber} @$members;
     $self->log( "Previous, Bracket $number ($prevIndex): @ids");
     return C1;
 }
@@ -254,33 +254,33 @@ sub c1 {
     if ( @$members == 1 ) {
 	my $member = $members->[0];
         push @unpairables, $member;
-	my $id = $member->id;
+	my $id = $member->pairingNumber;
 	$nokmessage .= " $id";
 	$self->log( $nokmessage . " only member in $index-Bracket [$number]" );
     }
     else {
-	  for my $player (@$members) {
-	  my $id = $player->id;
-            my $rejections  = 0;
+        for my $player (@$members) {
+            my $id         = $player->id;
+	    my $pairingNumber = $player->pairingNumber;
+            my $rejections = 0;
             my @candidates = grep { $_ != $player } @$members;
-            my @ids       = map { $_->pairingNumber } @candidates;;
-            foreach my $candidate ( @ids ) {
-		if ( $alreadyPlayed->{$id}->{$candidate} ) { $rejections++; }
-		elsif ( $colorClashes->{$id}->{$candidate} ) { $rejections++; }
+            my @ids        = map { $_->id } @candidates;
+            foreach my $candidate (@ids) {
+                if    ( $alreadyPlayed->{$id}->{$candidate} ) { $rejections++; }
+                elsif ( $colorClashes->{$id}->{$candidate} )  { $rejections++; }
             }
             if ( $rejections >= @candidates or @candidates == 0 ) {
-		$nokmessage .= " $id";
+                $nokmessage .= " $pairingNumber";
                 push @unpairables, $player;
             }
         }
-	if ( @unpairables )
-	{
-	    my @ids = map { $_->id } @unpairables;
-	    $self->log(
-		"$nokmessage @ids B1a/B2a incompatible in $number ($index)" );
-	}
+        if (@unpairables) {
+            my @ids = map { $_->pairingNumber } @unpairables;
+            $self->log(
+                "$nokmessage @ids B1a/B2a incompatible in $number ($index)");
+        }
     }
-    my @unpairableIds = map {$_->id} @unpairables;
+    my @unpairableIds = map {$_->pairingNumber} @unpairables;
     my ($previousIndex, $previousBracket, $previousMembers, $previousNumber);
     $previousIndex = $self->previousBracket;
     $previousBracket = $groups->{$previousIndex} if $previousIndex;
@@ -310,8 +310,8 @@ sub c1 {
 	    $group->exit($_) for @unpairables;
 	    $_->floating('Down') for @unpairables;
 	    $nextBracket->entry($_) for @unpairables;
-	    my @originals = map {$_->id} @{$group->members};
-	    my @new = map {$_->id} @{$nextBracket->members};
+	    my @originals = map {$_->pairingNumber} @{$group->members};
+	    my @new = map {$_->pairingNumber} @{$nextBracket->members};
             $self->log( "[$number] @originals & [$nextNumber] @new" );
             if ( @unpairables == @$members ) {
 		my $previous = $self->previousBracket;
@@ -354,7 +354,7 @@ sub rejectionTest {
     if ( @members == 1 ) {
 	my $member = $members[0];
         push @unpairables, $member;
-	my $id = $member->id;
+	my $id = $member->pairingNumber;
 	$nokmessage .= " $id only member";
     }
     else {
@@ -362,7 +362,7 @@ sub rejectionTest {
 	  my $id = $player->id;
             my $rejections  = 0;
             my @candidates = grep { $_ != $player } @members;
-            my @ids       = map { $_->pairingNumber } @candidates;;
+            my @ids       = map { $_->id } @candidates;;
             foreach my $candidate ( @ids ) {
 		if ( $alreadyPlayed->{$id}->{$candidate} ) { $rejections++; }
 		elsif ( $colorClashes->{$id}->{$candidate} ) { $rejections++; }
@@ -373,7 +373,7 @@ sub rejectionTest {
         }
 	if ( @unpairables )
 	{
-	    my @ids = map { $_->id } @unpairables;
+	    my @ids = map { $_->pairingNumber } @unpairables;
 	    $nokmessage .= " @ids B1a/B2a incompatible";
 	}
     }
@@ -443,8 +443,8 @@ sub c4 {
     $group->resetS12;
     my $s1      = $group->s1;
     my $s2      = $group->s2;
-    my @s1ids = map {$_->id} @$s1;
-    my @s2ids = map {$_->id} @$s2;
+    my @s1ids = map {$_->pairingNumber} @$s1;
+    my @s2ids = map {$_->pairingNumber} @$s2;
     $self->log( "S1: @s1ids & S2: @s2ids" );
     die "Empty S1 in Bracket $number with S2: @s2ids." unless @$s1;
     die "Empty Bracket $number with  S1: @s1ids." unless @$s2;
@@ -471,8 +471,8 @@ sub c5 {
     my $s2      = $group->s2;
     my @s1      = $self->rank(@$s1);
     my @s2      = $self->rank(@$s2);
-    my @s1ids = map {$_->id} @s1;
-    my @s2ids = map {$_->id} @s2;
+    my @s1ids = map {$_->pairingNumber} @s1;
+    my @s2ids = map {$_->pairingNumber} @s2;
     $self->log( "ordered: @s1ids\n\t       & @s2ids" );
     $group->s1( \@s1 );
     $group->s2( \@s2 );
@@ -663,9 +663,9 @@ sub c6others {
             $evacuee->floating('Down');
             $nextBracket->entry($evacuee);
         }
-	my @floaters = map {$_->id} @$nonpaired;
-	my @pairIds = map {$_->id} @{$group->members};
-	my @next = map {$_->id} @{$nextBracket->members};
+	my @floaters = map {$_->pairingNumber} @$nonpaired;
+	my @pairIds = map {$_->pairingNumber} @{$group->members};
+	my @next = map {$_->pairingNumber} @{$nextBracket->members};
         $self->log(
 "Floating remaining @floaters Down. [$number] @pairIds & [$nextNumber] @next" );
         return NEXT;
@@ -690,10 +690,10 @@ sub c6others {
 	    # $remainder->entry($remainer);
 	    $remainderGroup->entry($remainer);
         }
-	my @remains = map {$_->id} @$nonpaired;
+	my @remains = map {$_->pairingNumber} @$nonpaired;
 	my $members = $group->members;
-	my @memberIds = map {$_->id} @$members;
-	my @next = map {$_->id} @{$remainderGroup->members};
+	my @memberIds = map {$_->pairingNumber} @$members;
+	my @next = map {$_->pairingNumber} @{$remainderGroup->members};
         $self->log( "Remaindering @remains.
     [$number] @memberIds & [$remainderNumber] @next" );
 	$remainderGroup->{c10repaired} = 1 if $group->{c10repaired};
@@ -758,7 +758,7 @@ sub c7 {
     }
     $group->s2( \@newS2 );
     $group->members( [ @$s1, @newS2 ] );
-    my @newOrder = map { $_->id } @newS2;
+    my @newOrder = map { $_->pairingNumber } @newS2;
     $self->log( "         @newOrder");
     my $lastC10shuffle = $group->{lastC10Alternate};
     if ( $lastC10shuffle and ref $lastC10shuffle eq 'ARRAY' and @$lastC10shuffle
@@ -809,7 +809,8 @@ sub c8 {
     my @s2 = @newMembers[ $p .. $#newMembers ];
     $group->s1( \@s1 );
     $group->s2( \@s2 );
-    $self->log( "@{[map { $_->id } @s1]}, @{[map { $_->id } @s2]}" );
+    $self->log(
+    "@{[map { $_->pairingNumber } @s1]}, @{[map { $_->pairingNumber } @s2]}" );
     $groups->{$this} = $group;
     $self->{brackets} = $groups;
     return C5;
@@ -882,7 +883,7 @@ sub c10 {
     my $index = $self->thisBracket;
     my $group  = $brackets->{ $index };
     my $groupNumber = $group->number;
-    my $lowFloat = $group->s1->[0]->id;
+    my $lowFloat = $group->s1->[0]->pairingNumber;
     if ( $group->{c10repaired} and $group->{lowfloaterlastshuffle})
     {
 	my ($heteroBracket, $heteroNumber, $heteroIndex);
@@ -893,9 +894,9 @@ sub c10 {
 	    $heteroIndex = $self->index($heteroBracket);
 	    my $repairgroupRemainder = $group;
 	    my $lowest = $heteroBracket->s1->[0];
-	    my $lowFloat = $lowest->id;
+	    my $lowFloat = $lowest->pairingNumber;
 	    my $inadequateS2member = $heteroBracket->s2->[0];
-	    my $partnerId = $inadequateS2member->id;
+	    my $partnerId = $inadequateS2member->pairingNumber;
 	    my $unpaired = $repairgroupRemainder->members;
 	    $repairgroupRemainder->exit($_) for @$unpaired;
 	    $_->floating('')            for @$unpaired;
@@ -944,11 +945,11 @@ sub c10 {
 	    return C11;
 	}
 	my $remaindered = $group->members;
-	my @remaindered = map {$_->id} @$remaindered;
+	my @remaindered = map {$_->pairingNumber} @$remaindered;
 	my $heteroBracket = $group->{remainderof};
 	my $index = $self->index($heteroBracket);
 	my $number  = $heteroBracket->number;
-	my @ids = map { $_->id } @{ $heteroBracket->members };
+	my @ids = map { $_->pairingNumber } @{ $heteroBracket->members };
 	$self->log(
 "Pairing of @ids in $index-Bracket [$number] failed pairing @remaindered in remainder group." );
 	my $matches = delete $self->matches->{$index};
@@ -966,13 +967,14 @@ sub c10 {
 	    my @wellpairedS2 = map { $s2->[$_] } 0..$#$s1-1;
 	    my @unpairedS2 = map { $s2->[$_] } $#$s1+1..$#$s2;
 	    my $lastShufflePossibility = ( $self->rank(@unpairedS2) )[-1];
-	    my @lastIds = map { $_->id } @wellpairedS2, $lastShufflePossibility;
+	    my @lastIds = map { $_->pairingNumber }
+			    @wellpairedS2, $lastShufflePossibility;
 	    $heteroBracket->{lastC10Alternate} = \@lastIds;
 	    my $lowest = $s1->[-1];
 	    my $id = $lowest->id;
 	    my $match = $matches->[-1];
 	    my $partner = first { $_->id != $id } $match->myPlayers;
-	    my $partnerId = $partner->id;
+	    my $partnerId = $partner->pairingNumber;
 	    $self->log(
 "Unpairing lowest downfloater, $id and $partnerId in $index-Bracket [$number]
 	Returning @remaindered to $index-Bracket [$number]
@@ -1039,7 +1041,7 @@ sub c11 {
 	if ( $heteroBracket = $group->{remainderof} )
 	{
 	    my $remaindered = $group->members;
-	    @remaindered = map { $_->id } @$remaindered;
+	    @remaindered = map { $_->pairingNumber } @$remaindered;
 	    $group->exit($_) for @$remaindered;
 	    $_->floating('')            for @$remaindered;
 	    $heteroBracket->entry($_)   for @$remaindered;
@@ -1051,7 +1053,7 @@ sub c11 {
 	$self->thisBracket( $heteroIndex );
 	my $heteroNumber = $heteroBracket->number;
 	my $heteroMembers = $heteroBracket->members;
-	my @heteroIds = map { $_->id } @$heteroMembers;
+	my @heteroIds = map { $_->pairingNumber } @$heteroMembers;
 	$heteroIndex = $self->index($heteroBracket);
 	$self->log(
 "Repairing of $heteroIndex-Bracket [$heteroNumber] failed. No more pairings with X=$bigGroupXprime" );
@@ -1076,7 +1078,7 @@ sub c11 {
 	    delete $self->matches->{$index} if $matches;
 	    $self->log( "Deleting all matches in $index-Bracket [$number]");
 	    my $members = $group->members;
-	    my @ids = map {$_->id} @$members;
+	    my @ids = map {$_->pairingNumber} @$members;
 	    $group->bigGroupXprime(++$bigGroupXprime);
 	    $group->xprime(++$xprime);
 	    $group->{c10repaired} = 0;
@@ -1101,11 +1103,11 @@ sub c11 {
 	{
 	    $heteroBracket = $group->{remainderof};
 	    my $remaindered = $group->members;
-	    my @remaindered = map { $_->id } @$remaindered;
+	    my @remaindered = map { $_->pairingNumber } @$remaindered;
 	    my $heteroNumber = $heteroBracket->number;
 	    my $heteroIndex = $self->previousBracket;
 	    my $heteroMembers = $heteroBracket->members;
-	    my @heteroIds = map { $_->id } @$heteroMembers;
+	    my @heteroIds = map { $_->pairingNumber } @$heteroMembers;
 	    # $heteroBracket->bigGroupXprime(++$bigGroupXprime);
 	    $self->log(
 "Repairing of @heteroIds in $heteroIndex-Bracket [$heteroNumber] failed pairing @remaindered. Trying next pairing with X=$bigGroupXprime" );
@@ -1180,14 +1182,14 @@ sub c12 {
     {
         if (not $previous->{c12repaired}) {
 	    my @downfloaters = $group->downFloaters;
-	    my @floatIds = map { $_->id } @downfloaters;
+	    my @floatIds = map { $_->pairingNumber } @downfloaters;
 	    my $score = $previous->score;
 	    my $matches = $self->matches->{$prevIndex};
 	    delete $self->matches->{$prevIndex} if $matches;
 	    $self->log(
 "Deleting matches in $prevIndex-Bracket [$prevNumber], home of @floatIds");
 	    my $paired = $previous->members;
-	    my @ids = map {$_->id} @downfloaters, @$paired;
+	    my @ids = map {$_->pairingNumber} @downfloaters, @$paired;
 	    $self->log(
 		"$prevIndex-Bracket [$prevNumber] C12 Repairing: @ids");
 	    $group->exit($_) for @downfloaters;
@@ -1219,7 +1221,7 @@ sub c12 {
 	my $c11RepairNumber = $prevNumber;
 	my $paired = $previousMembers;
 	my $score = $c11RepairGroup->score;
-	my @ids = map {$_->id} @$paired;
+	my @ids = map {$_->pairingNumber} @$paired;
 	my $matches = $self->matches;
 	delete $matches->{ $c11RepairIndex };
 	delete $matches->{$c11Remainder} if $matches->{$c11Remainder};
@@ -1249,9 +1251,9 @@ sub c12 {
 	    $_->floating('')            for @downfloaters;
 	    $c12RepairGroup->entry($_) for @downfloaters;
 	    $c11RepairGroup->{c12up} = $c12RepairGroup;
-	    my @floatIds = map {$_->id} @downfloaters;
-	    my @prevIds = map {$_->id} @{$c12RepairGroup->members};
-	    my @thisIds = map {$_->id} @{$group->members};
+	    my @floatIds = map {$_->pairingNumber} @downfloaters;
+	    my @prevIds = map {$_->pairingNumber} @{$c12RepairGroup->members};
+	    my @thisIds = map {$_->pairingNumber} @{$group->members};
 	    $self->log("C12 Repairing of previous $newPrevIndex-Bracket");
 	    $self->log(qq/Unfloating @floatIds back from $number ($index). /);
 	    $self->log(
@@ -1278,7 +1280,7 @@ sub c12 {
 	my $floaterSourceNumber = $prevNumber;
 	my $paired = $floaterSource->members;
 	my $score = $floaterSource->score;
-	my @ids = map {$_->id} @$paired;
+	my @ids = map {$_->pairingNumber} @$paired;
 	my $matches = $self->matches;
 	delete $matches->{ $prevIndex };
 	$self->log(
@@ -1296,9 +1298,9 @@ sub c12 {
 	$c12RepairGroup->entry($_) for @downfloaters, @$paired;
 	$floaterSource->{c12repair} = $c12RepairGroup;
 	$group->{c12up} = $c12RepairGroup;
-	my @floatIds = map {$_->id} @downfloaters;
-	my @prevIds = map {$_->id} @{$c12RepairGroup->members};
-	my @thisIds = map {$_->id} @{$group->members};
+	my @floatIds = map {$_->pairingNumber} @downfloaters;
+	my @prevIds = map {$_->pairingNumber} @{$c12RepairGroup->members};
+	my @thisIds = map {$_->pairingNumber} @{$group->members};
 	$self->log(qq/Unfloating @floatIds back from $number ($index). /);
 	$self->log("[$number]: @thisIds & [$prevNumber]: @prevIds");
 	$floaterSource->dissolved(1);
@@ -1342,7 +1344,7 @@ sub c13 {
 	$self->log("$index-Bracket [$number] not last group. Passing to C14" ) ;
 	return C14;
     }
-    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
+    if ( @$members == 1 and not $self->byes->{$members->[0]->pairingNumber} ) {
 	$self->byer($members->[0]);
 	return BYE;
     }
@@ -1351,7 +1353,7 @@ sub c13 {
     my $penultimateNumber = $penultimateBracket->number;
     my $penultScore = $penultimateBracket->score;
     # $penultimateBracket->floatCheckWaive('None');
-    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
+    if ( @$members == 1 and not $self->byes->{$members->[0]->pairingNumber} ) {
 	$self->byer($members->[0]);
 	return BYE;
     }
@@ -1367,7 +1369,7 @@ sub c13 {
     my @returnees = grep { $_->score == $penultScore } @immigrants;
     if ( @returnees )
     {   
-	my @floaterIds = map { $_->id } @returnees;
+	my @floaterIds = map { $_->pairingNumber } @returnees;
 	$self->log( "Unfloating @floaterIds back from $number." );
 	$group->exit($_) for @returnees;
 	$_->floating('')            for @returnees;
@@ -1388,21 +1390,23 @@ sub c13 {
     $self->log( "penultimate p=$penultpPrime." );
     if ( $penultpPrime == 0 ) {
 	my $evacuees = $penultimateBracket->members;
-	my @evacuIds = map { $_->id } @$evacuees;
+	my @evacuIds = map { $_->pairingNumber } @$evacuees;
 	$penultimateBracket->exit($_) for @$evacuees;
 	$_->floating('Down') for @$evacuees;
 	$group->entry($_) for @$evacuees;
 	$penultimateBracket->dissolved(1);
-	my @finalIds = map { $_->id } @$members;
-	my @penultimateIds = map { $_->id } @{$penultimateBracket->members};
+	my @finalIds = map { $_->pairingNumber } @$members;
+	my @penultimateIds = map { $_->pairingNumber }
+			    @{$penultimateBracket->members};
         $self->log( "Joining Bracket $penultimateNumber, $number." );
         $self->log( "[$penultimateNumber] @evacuIds => [$number] @finalIds" );
 	$group->resetShuffler;
         return C1;
     }
     if ( $penultpPrime > 0 ) {
-	my @penultids = map {$_->id} @{$penultimateBracket->members};
-	my @finalids = map {$_->id} @{$group->members};
+	    my @penultids = map {$_->pairingNumber}
+				    @{$penultimateBracket->members};
+	my @finalids = map {$_->pairingNumber} @{$group->members};
         $self->log( "Re-pairing Bracket $penultimateNumber." );
         $self->log( "[$penultimateNumber]: @penultids & [$number]: @finalids" );
 	my $s2 = $penultimateBracket->s2;
@@ -1501,8 +1505,8 @@ sub c14 {
         $group->entry($_)      for @$returners;
 	$group->naturalize($_) for @$returners;
 	my $remainderNumber = $nextgroup->number;
-	my @remainderIds = map { $_->id } @$returners;
-	my @heteroIds = map { $_->id } @{$group->members};
+	my @remainderIds = map { $_->pairingNumber } @$returners;
+	my @heteroIds = map { $_->pairingNumber } @{$group->members};
         $self->log( "Moving all Group $remainderNumber members back to $number." );
         $self->log( "@remainderIds => Bracket $number: @heteroIds" );
 	$self->thisBracket($index);
@@ -1517,8 +1521,8 @@ sub c14 {
         $nextgroup->entry($_)      for @evacuees;
 	$nextgroup->naturalize($_) for @evacuees;
 	my $nextNumber = $nextgroup->number;
-	my @thisMemberIds = map { $_->id } @evacuees;
-	my @nextMemberIds = map { $_->id } @{$nextgroup->members};
+	my @thisMemberIds = map { $_->pairingNumber } @evacuees;
+	my @nextMemberIds = map { $_->pairingNumber } @{$nextgroup->members};
         $self->log( "Moving down all Bracket $number($next), to $nextNumber." );
         $self->log( "@thisMemberIds => Bracket $nextNumber: @nextMemberIds" );
 	$self->thisBracket($next);
@@ -1560,7 +1564,7 @@ sub colors {
 	{
 	    my $s1role = $rolehistory[0]->[-$round];
 	    my $s2role = $rolehistory[1]->[-$round];
-	    my @ids = map {$_->id} @pair;
+	    my @ids = map {$_->pairingNumber} @pair;
 	    carp "Roles for Players @ids, $round rounds ago?" unless
 						    $s1role and $s2role;
 	    next if $s1role eq $s2role;
@@ -1649,7 +1653,9 @@ sub colors {
             $contestants = { $rankerRole => $pair[0], $otherRole => $pair[1] };
             $rule = 'E4';
         }
-        $message .=  $rule . ' ' . $contestants->{ (ROLES)[0] }->id . "&" . $contestants->{ (ROLES)[1] }->id . ' ';
+        $message .=  $rule . ' ' .
+	    $contestants->{ (ROLES)[0] }->pairingNumber . "&" .
+	    $contestants->{ (ROLES)[1] }->pairingNumber . ' ';
         my %floats =
           map { (ROLES)[$_] => $contestants->{ (ROLES)[$_] }->floating } 0 .. 1;
         push @bracketMatches,
@@ -1972,7 +1978,7 @@ sub incompatibles {
 	$group->byes
 	return BYE unless $group->byes->{$id}
 
-Gets/sets a anonymous hash, keyed on pairing numbers of players, of a previous round in which these players had a bye. This has probably been calculated by Games::Tournament::Swiss::byes. B1
+Gets/sets a anonymous hash, keyed on ids, not pairing numbers of players, of a previous round in which these players had a bye. This has probably been calculated by Games::Tournament::Swiss::byes. B1
 
 =cut
 

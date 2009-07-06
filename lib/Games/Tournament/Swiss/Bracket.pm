@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2007 Nov 28, 05:53:55 PM
+# Last Edit: 2009  7月 06, 15時47分18秒
 # $Id: $
 
 use warnings;
@@ -79,9 +79,9 @@ sub natives {
     my $members    = $self->members;
     my $foreigners = $self->immigrants;
     my @natives    = grep {
-        my $member = $_->{id};
-        not grep { $member == $_->{id} } @$foreigners
-    } @$members;
+        my $member = $_->pairingNumber;
+        not grep { $member == $_->pairingNumber } @$foreigners
+	    } @$members;
     return \@natives;
 }
 
@@ -100,8 +100,8 @@ sub citizens {
     my $members    = $self->members;
     my $foreigners = $self->immigrants;
     my @natives    = grep {
-        my $member = $_->{id};
-        not grep { $member == $_->{id} } @$foreigners
+        my $member = $_->pairingNumber;
+        not grep { $member == $_->pairingNumber } @$foreigners
     } @$members;
     return \@natives;
 }
@@ -119,7 +119,7 @@ sub naturalize {
     my $self      = shift;
     my $foreigner = shift;
     my $members   = $self->residents;
-    return unless grep { $_->id == $foreigner->id } @$members;
+    return unless any { $_->id == $foreigner->id } @$members;
     my $direction = $foreigner->floating;
     return unless $direction eq 'Up' or $direction eq 'Down';
     $foreigner->floating('');
@@ -200,7 +200,7 @@ sub residents {
     my $floated = $self->emigrants;
     for my $member (@members) {
         push @residents, $member
-          unless grep { $member->{id} == $_->{id} } @$floated;
+          unless any { $member->{id} == $_->{id} } @$floated;
     }
     return \@residents;
 }
@@ -410,8 +410,8 @@ sub resetS12 {
 	#carp @scores . " different scores in Hetero Bracket $number"
 	#	if @scores > 2;
         @s2 = @{$scorers{$scores[-1]}};
-	my %s2 = map { $_->id => $_ } @s2;
-	@s1 = grep { not exists $s2{$_->id} } $self->rank(@$members);
+	my %s2 = map { $_->pairingNumber => $_ } @s2;
+	@s1 = grep { not exists $s2{$_->pairingNumber} } $self->rank(@$members);
     }
     else {
         my $p       = $self->p;
@@ -420,7 +420,7 @@ sub resetS12 {
     }
     $self->{s1} = \@s1;
     $self->{s2} = \@s2;
-    my @lastS2ids = reverse map { $_->id } @s2;
+    my @lastS2ids = reverse map { $_->pairingNumber } @s2;
     $self->{lastS2ids} = \@lastS2ids;
     return;
 }
@@ -441,9 +441,9 @@ sub resetShuffler {
     my $members = $self->members;
     my $s1      = $self->s1;
     my $s2      = $self->s2;
-    my %s1 = map { $_->id => $_ } @$s1;
-    my %s2 = map { $_->id => $_ } @$s2;
-    my %members = map { $_->id => $_ } @$members;
+    my %s1 = map { $_->pairingNumber => $_ } @$s1;
+    my %s2 = map { $_->pairingNumber => $_ } @$s2;
+    my %members = map { $_->pairingNumber => $_ } @$members;
     # my %tally; @tally{keys %members} = (0) x keys %members;
     my $memberChangeTest = ( (notall { exists $members{$_} } keys %s1) or
     (notall { exists $members{$_} } keys %s2) or (@$s1 + @$s2 != @$members));
@@ -775,12 +775,12 @@ sub c7shuffler {
     # my @players  = @$s2;
     my $p        = $self->p;
     my @pattern;
-    my @playerCopy = @players;
+    my @copy = @players;
     for my $i ( 0 .. $#$s2 ) {
         my $j = 0;
-        $j++ until $s2->[$i]->{id} == $playerCopy[$j]->{id};
+        $j++ until $s2->[$i]->{pairingNumber} == $copy[$j]->{pairingNumber};
         $pattern[$i] = $j;
-        splice @playerCopy, $j, 1;
+        splice @copy, $j, 1;
     }
     my $value = $pattern[$position];
     my @nextPattern;
@@ -1079,7 +1079,7 @@ sub _floatCheck {
 	    else {
 		$badpos{$level} = defined $badpos{$level}? $badpos{$level}: $pos;
 		$badpos = defined $badpos? $badpos: $pos;
-		$id ||= $pair[$checkedOne]->id;
+		$id ||= $pair[$checkedOne]->pairingNumber;
 	    }
 	}
 	if ($direction ne 'Up' and @nopairtestee and ( not $self->hetero or
