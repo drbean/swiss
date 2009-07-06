@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 05, 12時15分10秒
+# Last Edit: 2009  7月 06, 11時22分54秒
 # $Id: $
 
 use warnings;
@@ -94,8 +94,6 @@ sub initializePreferences {
     my $self    = shift;
     my @players = @{ $self->{entrants} };
     my ( $evenRole, $oddRole ) = $self->randomRole;
-    $_->preference( Games::Tournament::Contestant::Swiss::Preference->new )
-      for @players;
     my $p = int( @players / 2 );
     if ( $p == 0 ) {
         $players[ 0 ]->preference->sign('');
