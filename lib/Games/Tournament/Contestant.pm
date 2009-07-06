@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009  7月 06, 21時09分03秒
+# Last Edit: 2009  7月 06, 22時04分50秒
 # $Id: $
 
 use warnings;
@@ -193,7 +193,7 @@ sub writeCard {
 	$rounds = $deepblue->score
 	next if $deepblue->score
 
-Gets/sets the total score over the rounds in which $deepblue has a score. Don't forget to tally $deepblue's scorecard with the appropriate games first! We don't check any cards. Internally, this method accumulates the results of all the rounds into a total score, unless no results exist. If they don't exist, a hash key $self->{score} is consulted. You can set the score this way too, but don't do that. It bypasses the elegant code to do it from individual game results stored by the Games::Tournament::Contestant object. It's a hack to allow importing a pairing table.
+Gets/sets the total score over the rounds in which $deepblue has a score. Don't forget to tally $deepblue's scorecard with the appropriate games first! We don't check any cards. Internally, this method accumulates the results of all the rounds into a total score, unless no results exist. If they don't exist, a hash key $self->{score} is consulted. You can set the score this way too, but don't do that. It bypasses the elegant code to do it from individual game results stored by the Games::Tournament::Contestant object. It's a hack to allow importing a pairing table. Finally, if none of the above apply, undef is returned, despite FIDE Rule A2. This means that Bracket and FIDE methods using the score method need to handle undef scores.
 
 =cut
 
