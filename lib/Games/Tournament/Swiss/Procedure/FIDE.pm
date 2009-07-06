@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 06, 15時35分47秒
+# Last Edit: 2009  7月 06, 21時59分45秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -589,12 +589,13 @@ sub c6pairs {
     for my $pos ( 0 .. $#$passer ) {
 	next unless defined $passer->[$pos];
 	my @pair = @{$passer->[$pos]};
-	if ( $pair[0]-> score > $pair[1]->score )
+	my @score = map { defined $_->score? $_->score: 0 } @pair;
+	if ( $score[0] > $score[1] )
 	{
 	    $pair[0]->floating('Down');
 	    $pair[1]->floating('Up');
 	}
-	elsif ( $pair[0]-> score == $pair[1]->score )
+	elsif ( $score[0] == $score[1] )
 	{
 	    map { $_->floating('Not') } @pair;
 	}
