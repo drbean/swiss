@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009  7月 06, 18時39分52秒
+# Last Edit: 2009  7月 06, 22時14分43秒
 # $Id: $
 
 use warnings;
@@ -160,7 +160,7 @@ sub downFloaters {
     my %members;
     for my $member ( @$members )
     {
-	my $score = $member->score;
+	my $score = defined $member->score? $member->score: 0;
 	push @{$members{$score}}, $member;
     }
     my $min = min keys %members;
@@ -405,7 +405,7 @@ sub resetS12 {
 	my $number = $self->number;
 	for my $member (@$members)
 	{
-	    my $score = $member->score;
+	    my $score = defined $member->score? $member->score: 0;
 	    push @{ $scorers{$score} }, $member;
 	}
 	my @scores = reverse sort keys %scorers;
@@ -469,9 +469,12 @@ sub p {
     my $p;
     if ( $self->hetero ) {
 	my %scorers;
-	%scorers = map { $_->score => ++$scorers{$_->score} } @$members;
+	for my $member ( @$members ) {
+	    my $score = defined $member->score? $member->score: 0;
+	    $scorers{$score}++;
+	}
 	my $lowestScore = min keys %scorers;
-    return unless defined $lowestScore;
+	return unless defined $lowestScore;
 	$p = $n - $scorers{$lowestScore};
         $p = int( $n / 2 ) if $p > $n/2;
     }
@@ -723,7 +726,10 @@ sub hetero {
     my $self = shift;
     my @members = @{$self->members};
     my %tally;
-    $tally{$_->score}++ for @members;
+    for my $member ( @members ) {
+	my $score = defined $member->score? $member->score: 0;
+	$tally{$score}++ ;
+    }
     my @range = keys %tally;
     return 0 if @range == 1;
     my $min = min @range;
@@ -746,7 +752,10 @@ sub trueHetero {
     my $self = shift;
     my @members = @{$self->members};
     my %tally;
-    $tally{$_->score}++ for @members;
+    for my $member ( @members ) {
+	my $score = defined $member->score? $member->score: 0;
+	$tally{$score}++;
+    }
     my @range = keys %tally;
     return unless @range;
     return 0 if @range == 1;
@@ -1072,7 +1081,7 @@ sub _floatCheck {
 	for my $pos ( 0 .. $#$s1 ) {
 	    next unless defined $pairtestee[$pos];
 	    my @pair = ( $pairtestee[$pos]->[0], $pairtestee[$pos]->[1] );
-	    my @score = map { $_->score } @pair;
+	    my @score = map { defined $_->score? $_->score: 0 } @pair;
 	    my @float = map { $_->floats( -$round ) } @pair;
 	    my $test = 0;
 	    $test = ( $score[0] == $score[1] or $float[$checkedOne] ne
