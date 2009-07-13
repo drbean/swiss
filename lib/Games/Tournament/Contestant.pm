@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009  7月 06, 22時04分50秒
+# Last Edit: 2009  7月 08, 18時26分05秒
 # $Id: $
 
 use warnings;
@@ -46,6 +46,8 @@ A generic tournament/series player/team contestant object.
 
 	$team = Games::Tournament::Contestant->new( id => '15', name => 'Lala Lakers', rating => 0, score => 1000,  )
 	$grandmaster = Games::Tournament::Contestant->new( name => 'Jose Raul Capablanca', rating => 1000 )
+
+Make sure the ids of all your contestants are unique.
 
 =cut
 
@@ -341,7 +343,7 @@ sub play {
 
 	$member->id
 
-Returns/sets the id of the contestant, a number unique to the member.
+Returns/sets the id of the contestant, a number unique to the member. Users must make sure no two players have the same id. Pairing numbers may change with late entries, so the id is important.
 
 =cut
 
@@ -350,6 +352,21 @@ sub id {
     my $id   = shift;
     if ( defined $id ) { $self->{id} = $id; }
     elsif ( exists $self->{id} ) { return $self->{id}; }
+}
+
+=head2 firstround
+
+	$member->firstround
+
+Returns/sets the firstround of the contestant, the round in which they first played or will play. Necessary for handling late entrants.
+
+=cut
+
+sub firstround {
+    my $self = shift;
+    my $firstround   = shift;
+    if ( defined $firstround ) { $self->{firstround} = $firstround; }
+    elsif ( exists $self->{firstround} ) { return $self->{firstround}; }
 }
 
 =head1 AUTHOR
