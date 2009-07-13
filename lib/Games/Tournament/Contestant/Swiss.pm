@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009  7月 06, 16時20分43秒
+# Last Edit: 2009  7月 09, 15時20分09秒
 # $Id: $
 
 use warnings;
@@ -126,7 +126,7 @@ sub opponents {
 	$member->roles( 'Black' )
 	$rolehistory = $member->roles
 
-If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, pass 'Not'.
+If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, don't touch this accessor, even if the card says they were supposed to take this role. (Really?) F2,3
 
 =cut
 
