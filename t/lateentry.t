@@ -90,7 +90,7 @@ sub prefcheck {
 
 plan tests => 1 * blocks;
 
-sub runAndCheck {
+sub RunCheckEnter {
 	runRound;
 	my $block = next_block;
 	is_deeply( $block->input, $block->expected, $block->name );
@@ -98,9 +98,9 @@ sub runAndCheck {
 	is_deeply( $block->input, $block->expected, $block->name );
 	$tourney->enter($late[ shift ]);
 }
-runAndCheck(1);
-runAndCheck(2);
-runAndCheck(3);
+RunCheckEnter(1);
+RunCheckEnter(2);
+RunCheckEnter(3);
 
 __DATA__
 
