@@ -124,6 +124,8 @@ B: [ White, Strong ]
 C: [ Black, Strong ]
 D: [ ~,     Mild ]
 
+TODO: Check why x=1 in round 2. Could be x definition not robust.
+
 === Round 2 pairingnumbers
 --- input chomp numbercheck
 0
