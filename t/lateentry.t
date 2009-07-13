@@ -82,10 +82,9 @@ sub scorecheck {
 }
 
 sub prefcheck {
-	my $ones = shift;
-	+{ map { $_ => { prefer => $late[$_]->preference->role,
-		degree => $late[$_]->preference->strength } }
-			0 .. $ones
+	my $entries = $tourney->entrants;
+	+{ map {$_->name => [ $_->preference->role, $_->preference->strength ] }
+			@$entries
 	};
 }
 
@@ -115,12 +114,15 @@ B: 3
 C: 4
 D: 5
 
-=== Round 1 prefs
+=== Post-Round 1 prefs
 --- input chomp prefcheck
 0
 --- expected yaml
-prefer: White
-degree: Strong
+A: [ Black, Strong ]
+a: [ White, Strong ]
+B: [ White, Strong ]
+C: [ Black, Strong ]
+D: [ ~,     Mild ]
 
 === Round 2 pairingnumbers
 --- input chomp numbercheck
@@ -133,16 +135,16 @@ b: 4
 C: 5
 D: 6
 
-=== Round 2 prefs
+=== Post-Round 2 prefs
 --- input chomp prefcheck
 1
 --- expected yaml
-0:
-  prefer: Black
-  degree: Mild
-1:
-  prefer: White
-  degree: Strong
+A: [ White, Mild ]
+a: [ Black, Mild ]
+B: [ Black, Mild ]
+b: [ Black, Strong ]
+C: [ White, Mild ]
+D: [ White, Strong ]
 
 === Round 3 pairingnumbers
 --- input chomp numbercheck
@@ -156,10 +158,28 @@ C: 5
 c: 6
 D: 7
 
-=== Round 3 prefs
+=== Post-Round 3 prefs
 --- input chomp prefcheck
 2
 --- expected yaml
+A:
+  prefer: Black
+  degree: Strong
+a:
+  prefer: Black
+  degree: Mild
+B:
+  prefer: Black
+  degree: Mild
+b:
+  prefer: White
+  degree: Strong
+C:
+  prefer: White
+  degree: Mild
+D:
+  prefer: Black
+  degree: Strong
 0:
   prefer: White
   degree: Strong
