@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 07, 18時23分32秒
+# Last Edit: 2009  7月 07, 22時48分41秒
 # $Id: $
 
 use warnings;
@@ -393,7 +393,7 @@ sub compatible {
 	next if $games->{$alekhine->pairingNumber}->
 	    {$capablanca->pairingNumber}
 
-Returns an anonymous hash, keyed on the ids of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1
+Returns an anonymous hash, keyed on the ids of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1 XXX Unplayed pairings are not considered illegal in future rounds?? Or is it colors which are not illegal? F2 
 
 =cut
 
@@ -415,14 +415,15 @@ sub whoPlayedWho {
                 die "Player $id, $player->{name}'s role is $role of " . ROLES
                   . " in round $round?"
                   unless any { $_ eq $role } ROLES, 'Bye';
-                my ( $otherRole, $opponent );
+		next if $game->result and exists $game->result->{$role} and
+			$game->result->{$role} eq 'Absent';
                 if ( any { $role eq $_ } ROLES ) {
-                    $otherRole = first { $role ne $_ } ROLES;
-                    $opponent = $game->contestants->{$otherRole};
+                    my $otherRole = first { $role ne $_ } ROLES;
+                    my $opponent = $game->contestants->{$otherRole};
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
             }
-	    else { warn "Player ${id} game in round $round?"; }
+            else { warn "Player ${id} game in round $round?"; }
         }
     }
     return $dupes;
