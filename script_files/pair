@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 09, 13時20分08秒
+# Last Edit: 2009  7月 13, 21時57分26秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -104,7 +104,10 @@ if ( $round >= $firstround and -e "./pairtable.yaml" )
 
 my %brackets = $tourney->formBrackets;
 my $pairing = $tourney->pairing( \%brackets );
+$pairing->loggingAll;
 my $results = $pairing->matchPlayers;
+use IO::All;
+io('=')->print($pairing->catLog);
 my $matches = $results->{matches};
 my @games;
 
@@ -112,7 +115,7 @@ my %number = map { $_ => $brackets{$_}->number } keys %brackets;
 for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
 {
     my $bracketmatches = $matches->{$bracket};
-    push @games, grep { $_ if ref eq 'Games::Tournament::Card' }
+    push @games, grep { ref eq 'Games::Tournament::Card' }
 	@$bracketmatches;
 }
 $tourney->round($next);
