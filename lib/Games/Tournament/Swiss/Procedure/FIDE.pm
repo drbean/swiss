@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 06, 21時59分45秒
+# Last Edit: 2009  7月 13, 21時39分48秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1561,13 +1561,15 @@ sub colors {
         my @pair = @$pair;
         my @rolehistory = ( map { $pair[$_]->roles } 0, 1 );
 	my @lastdiff;
-	for my $round ( 1 .. $round - FIRSTROUND )
+	for my $lookback ( 1 .. $round - FIRSTROUND )
 	{
-	    my $s1role = $rolehistory[0]->[-$round];
-	    my $s2role = $rolehistory[1]->[-$round];
-	    my @ids = map {$_->pairingNumber} @pair;
-	    carp "Roles for Players @ids, $round rounds ago?" unless
-						    $s1role and $s2role;
+	    last if notall { $_->firstround <= $round-$lookback } @pair;
+	    my $s1role = $rolehistory[0]->[-$lookback];
+	    my $s2role = $rolehistory[1]->[-$lookback];
+	    my @ids = map {$_->id} @pair;
+	    # die "Missing roles for Players @ids in Round " . ($round-$lookback)
+	    last
+	    		    unless $s1role and $s2role;
 	    next if $s1role eq $s2role;
             next unless 2 == grep { $_ eq (ROLES)[0] or $_ eq (ROLES)[1] }
 		    ($s1role, $s2role);
@@ -2030,7 +2032,7 @@ sub clearLog {
 
 	$pairing->catLog(qw/C10 C11/)
 
-Returns the messages logged for the passed procedures, as a hash keyed on the procedures. If no messages were logged, because the procedures were not loggedProcedures, no messages will be returned.
+Returns the messages logged for the passed procedures, or all logged procedures if no procedures are passed, as a hash keyed on the procedures. If no messages were logged, because the procedures were not loggedProcedures, no messages will be returned.
 
 =cut
 
