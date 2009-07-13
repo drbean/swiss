@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 07, 22時48分41秒
+# Last Edit: 2009  7月 08, 10時24分38秒
 # $Id: $
 
 use warnings;
@@ -411,6 +411,7 @@ sub whoPlayedWho {
               unless $player;
             my $game = $play->{$round}->{$id};
             if ( $game and $game->can("myRole") ) {
+		next if $game->result and $game->result eq 'Bye';
                 my $role = $game->myRole($player);
                 die "Player $id, $player->{name}'s role is $role of " . ROLES
                   . " in round $round?"
