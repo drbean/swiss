@@ -41,9 +41,8 @@ my @lineup = map { Games::Tournament::Contestant::Swiss->new(
 my @late = map  { Games::Tournament::Contestant::Swiss->new(
 	id => $_+1+$n, name => chr($_+97), rating => 1999-2*$_, title => 'M.') }
 	    (0..$n-1);
-my $tourney = Games::Tournament::Swiss->new( rounds => 2, entrants => \@lineup);
-my $round = 0;
-$tourney->round($round);
+ my $round = 0;
+my $tourney = Games::Tournament::Swiss->new( rounds => 3, entrants => \@lineup);
 $tourney->assignPairingNumbers;
 $tourney->enter($late[ 0 ]);
 $tourney->assignPairingNumbers;
