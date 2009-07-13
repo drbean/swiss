@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 09, 12時54分21秒
+# Last Edit: 2009  7月 09, 13時20分08秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -131,21 +131,18 @@ for my $game (@games) {
     my %group = map { $_ => $game->{contestants}->{$_}->{name} }
       keys %{ $game->{contestants} };
     $schedule->{group}->{ $n++ } = \%group;
-    %{ $template->{$n++} } = reverse %group;
+    $template->{$n++} = { reverse %group };
 }
 
-if ( $newplayers ) {
+if ( $lateEntries ) {
     DumpFile '../league.yaml.bak', $league;
-    for my $member ( @{$league->{member}} )
-    {
-	next if grep { $_ eq $member->{name} } @absentees;
-	next if $member->{pairingnumber} and
-	    grep { $_->pairingNumber == $member->{pairingnumber} } @$lineup;
-	if ( my @id = grep { $_->oldId == $member->{id} } @$lineup )
-	{
-	    $member->{pairingnumber} = $id[0]->pairingNumber;
-	}
-    }
+    $league->{member} =
+	    [ map { my $member = $_;
+		    +{ map { $_ => $member->$_ }
+			    qw/firstround id name pairingNumber rating title/ };
+		} @{ $tourney->entrants }
+	    ];
+    $league->{late} = undef;
     DumpFile '../league.yaml', $league;
 }
 
