@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 08, 18時05分33秒
+# Last Edit: 2009  7月 09, 21時55分36秒
 # $Id: $
 
 use warnings;
@@ -195,7 +195,7 @@ sub prepareCards {
  $play = $tourney->collectCards( @games );
   next if $htable->{$player1->id}->{$player2->id};
 
-Records @games after they have been played. Stored as $tourney's play field, keyed on round and ids of players.  Returns the new play field. Updates player scores, preferences. TODO Roll back the color preference change for Absences  TODO This has non-Swiss subclass elements I could factor out into a method in Games::Tournament. TODO What if player is matched more than one time in the round, filling in for someone? XXX It looks like all the games have to be the same round, or you have to collect all cards in one round before collecting cards in following rounds. XXX I'm having problems with recording roles. I want to be lazy about it, and trust the card I get back before the next round. The problem with this is, I may be getting the role from the wrong place. It should come from the card, and is a role which was assigned in the previous round, and is only now being recorded, at this point between the previous round and the next round. Or is the problem copying by value rather than reference of the entrants? Now I also need to record floats. It would be good to do this at the same time as I record roles. The card is the appropriate place to get this info according to A4.
+Records @games after they have been played. Stored as $tourney's play field, keyed on round and ids of players.  Returns the new play field. Updates player scores, preferences, unless the player was absent or had a Bye. TODO Die (or warn) if game has no results TODO This has non-Swiss subclass elements I could factor out into a method in Games::Tournament. TODO What if player is matched more than one time in the round, filling in for someone? XXX It looks like all the games have to be the same round, or you have to collect all cards in one round before collecting cards in following rounds. XXX I'm having problems with recording roles. I want to be lazy about it, and trust the card I get back before the next round. The problem with this is, I may be getting the role from the wrong place. It should come from the card, and is a role which was assigned in the previous round, and is only now being recorded, at this point between the previous round and the next round. Or is the problem copying by value rather than reference of the entrants? Now I also need to record floats. It would be good to do this at the same time as I record roles. The card is the appropriate place to get this info according to A4. 
 
 =cut
 
@@ -226,20 +226,24 @@ sub collectCards {
 		# $myGame->canonize;
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
-		$scores->{$round} = $role eq 'Bye'? 'Bye': $game->{result}->{$role};
-  #              carp
-  #  "No result on card for player $id as $role in round $round "
-  #                unless $game->{result}->{$role};
+		$scores->{$round} = $role eq 'Bye'? 'Bye':
+				    $game->{result}->{$role};
+		#carp
+		#  "No result on card for player $id as $role in round $round "
+		#	unless $scores->{$round};
 		$game ||= "No game";
 		$play->{$round}->{$id} = $game;
 		$entrant->play( { $round => $game } );
 		$entrant->scores($scores);
 		carp "No record in round $round for player $id $player->{name}"
 		  unless $play->{$round}->{$id};
-		$entrant->roles($role);
+		$entrant->roles($role) unless $scores->{round} and
+			$scores->{$round} eq 'Bye'||'Absent';
 		$entrant->floats( $round, $float );
 		$entrant->floating('');
-		$entrant->preference->update( $entrant->roles );
+		$entrant->preference->update( $entrant->roles ) unless
+		    $scores->{round} and $scores->{$round} eq 'Bye'||'Absent';
+;
 	    }
 	}
     }
