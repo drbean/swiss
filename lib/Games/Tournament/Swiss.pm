@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 06, 16時05分55秒
+# Last Edit: 2009  7月 07, 18時20分45秒
 # $Id: $
 
 use warnings;
@@ -24,7 +24,7 @@ use Games::Tournament::Swiss::Procedure;
 use Games::Tournament::Contestant::Swiss::Preference;
 
 use List::Util qw/min reduce sum first/;
-use List::MoreUtils qw/all/;
+use List::MoreUtils qw/any all/;
 
 =head1 NAME
 
@@ -414,10 +414,10 @@ sub whoPlayedWho {
                 my $role = $game->myRole($player);
                 die "Player $id, $player->{name}'s role is $role of " . ROLES
                   . " in round $round?"
-                  unless grep { $_ eq $role } ROLES, 'Bye';
+                  unless any { $_ eq $role } ROLES, 'Bye';
                 my ( $otherRole, $opponent );
-                if ( grep { $role eq $_ } ROLES ) {
-                    $otherRole = ( grep { $role ne $_ } ROLES )[0];
+                if ( any { $role eq $_ } ROLES ) {
+                    $otherRole = first { $role ne $_ } ROLES;
                     $opponent = $game->contestants->{$otherRole};
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
