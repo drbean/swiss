@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 07, 18時27分27秒
+# Last Edit: 2009  7月 08, 18時45分19秒
 # $Id: $
 
 use warnings;
@@ -9,6 +9,7 @@ use Carp;
 
 use List::Util qw/first/;
 use List::MoreUtils qw/all/;
+use Scalar::Util qw/looks_like_number/;
 
 use Games::Tournament::Swiss::Config;
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
@@ -72,6 +73,10 @@ Enters a Games::Tournament::Contestant player object with a rating, title id, an
 sub enter {
     my $self    = shift;
     my $player = shift;
+    my $round = $self->round;
+    die "Player " . $player->id . " entering in Round $round + 1?" unless
+			looks_like_number($round);
+    $player->firstround($round+1);
     my $entrants = $self->entrants;
     for my $required ( qw/id name/ ) {
 	unless ( $player->$required ) {
@@ -396,7 +401,7 @@ sub entrants {
 
 	$tourney->round
 
-Gets/sets the round number of a round near you.
+Gets/sets the round number of a round near you. The default round number is 0. That is, the 'round' before round 1. The question is when one round becomes the next round.
 
 =cut
 
@@ -405,6 +410,7 @@ sub round {
     my $round = shift;
     if ( defined $round ) { $self->{round} = $round; }
     elsif ( $self->{round} ) { return $self->{round}; }
+    else { return 0 }
 }
 
 
