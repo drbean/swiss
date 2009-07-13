@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 08, 10時24分38秒
+# Last Edit: 2009  7月 08, 18時05分33秒
 # $Id: $
 
 use warnings;
@@ -424,6 +424,7 @@ sub whoPlayedWho {
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
             }
+	    elsif ( $player->firstround > $round ) { next }
             else { warn "Player ${id} game in round $round?"; }
         }
     }
@@ -490,6 +491,7 @@ sub byesGone {
                     $byes->{$id} = $round;
                 }
             }
+	    elsif ( $player->firstround > $round ) { next }
             else { warn "Player ${id} had Bye in round $round?"; }
         }
     }
