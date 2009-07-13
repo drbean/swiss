@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 07, 18時20分45秒
+# Last Edit: 2009  7月 07, 18時23分32秒
 # $Id: $
 
 use warnings;
@@ -422,7 +422,7 @@ sub whoPlayedWho {
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
             }
-	    else { warn "Who played Player ${id} in round $round?"; }
+	    else { warn "Player ${id} game in round $round?"; }
         }
     }
     return $dupes;
