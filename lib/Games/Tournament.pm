@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 06, 16時12分59秒
+# Last Edit: 2009  7月 07, 13時46分03秒
 # $Id: $
 
 use warnings;
@@ -343,29 +343,6 @@ sub updateScores {
     $self->entrants($players);
     # return @scores;
 }
-
-
-#=head2 round
-#
-# $group = $tourney->round
-#
-#Returns the present round, ie the first round for which one or more players does not have a result, minus 1. The conservative approach.
-#
-#=cut
-#
-#sub round {
-#    # my $self = shift;
-#    my $players = $self->entrants;
-#    my $rounds  = $self->rounds;
-#    my $play    = $self->play;
-#    my $round   = min map {
-#        my $n = 1;
-#        $n++ while exists $play->{$n}
-#          and $play->{$n}->{ $_->id };
-#        $n - 1;
-#    } @$players;
-#    return $round;
-#}
 
 
 =head2 randomRole
