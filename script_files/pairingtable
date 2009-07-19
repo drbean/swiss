@@ -66,73 +66,74 @@ if (($ARGV[0]) and ($ARGV[0] =~ /^\d+$/)) {
 for my $round ( @rounds )
 {
     next unless glob( "./$round/*" );
-	$tourney = LoadFile "./$round/tourney.yaml";
-	$players = LoadFile qq{./$round/player.yaml};
-	$games = LoadFile "./$round/matches.yaml";
-	if ($tourney->unmarkedCards(@$games))
-	{
-		my $results = LoadFile( "./scores/$round.yaml" );
-    my @tables;
-    if ( @tables = (keys %$results) and all {ref} @{$results}{@tables} ) {
-	for my $table ( @tables ) {
-	    for my $player ( keys %{$results->{$table}} ) {
-		my $result = $results->{$table}->{$player};
-		if ( exists $scores->{$result} )
-		{ $results->{$player} = $result; }
-		elsif ( $abbrev->{$result} )
-		{ $results->{$player} = $abbrev->{$result}; }
-		else { die
-"Player $player on table $table in round $round got $result?";
+    $tourney = LoadFile "./$round/tourney.yaml";
+    $players = LoadFile qq{./$round/player.yaml};
+    $games = LoadFile "./$round/matches.yaml";
+    if ($tourney->unmarkedCards(@$games)) {
+	my $results = LoadFile( "./scores/$round.yaml" );
+	my @tables;
+	if ( @tables = ( keys %$results ) and
+		all { ref } @{$results}{@tables} ) {
+	    for my $table (@tables) {
+		for my $player ( keys %{ $results->{$table} } ) {
+		    my $result = $results->{$table}->{$player};
+		    if ( exists $scores->{lc $result} ) {
+			$results->{$player} = $result;
+		    }
+		    elsif ( $abbrev->{$result} ) {
+			$results->{$player} = $abbrev->{$result};
+		    }
+		    else {
+			die
+    "Player $player on table $table in round $round got $result?";
+		    }
 		}
 	    }
 	}
+	for my $game (@$games) {
+	    my ( %score, %result );
+	    my $total;
+	    my @roles = keys %{ $game->contestants };
+	    my @contestants = map { $_->id } values %{ $game->{contestants} };
+	    for my $role (@roles) {
+		my $player = $game->contestants->{$role};
+		my $result = $results->{ $player->name };
+		warn "$player->{name} got $result in round $game->{round}"
+		  unless defined $result;
+		$result{$role} = $result;
+		$score{$role} =
+		    $role   =~ m/Bye/i    ? $scores->{bye}
+		  : $result =~ m/Win/i    ? $scores->{win}
+		  : $result =~ m/Draw/i   ? $scores->{draw}
+		  : $result =~ m/Loss/i   ? $scores->{loss}
+		  : $result =~ m/Absent/i ? $scores->{absent}
+		  :                         "Error";
+		$total += $score{$role};
+	    }
+	    die
+    "total scores in round $round game with players @contestants not $total"
+	      unless $total == $scores->{win} + $scores->{loss}
+		  or $total == 2 * $scores->{draw}
+		  or $total == $scores->{draw} + $scores->{absent}
+		  or $total == 2 * $scores->{absent};
+	    $game->result( \%result );
+	}
     }
-		for my $game ( @$games )
-		{
-			my (%score, %result);
-			my $total;
-			my @roles =  keys %{ $game->contestants }; 
-			my @contestants = map {$_->id} values
-							%{$game->{contestants}};
-			for my $role ( @roles )
-			{
-				my $player = $game->contestants->{$role};
-				my $result = $results->{$player->name};
-				warn "$player->{name} got $result in round $game->{round}"
-							unless defined $result;
-				$result{$role} = $result;
-				$score{$role} =
-				    $role =~ m/Bye/i ? $scores->{bye}
-				  : $result =~ m/Win/i ? $scores->{win}
-				  : $result =~ m/Draw/i ? $scores->{draw}
-				  : $result =~ m/Loss/i ? $scores->{loss}
-				  : $result =~ m/Absent/i ? $scores->{absent}
-				  : "Error";
-				$total += $score{$role};
-			}
-			die "total scores in round $round game with players @contestants not $total"
-			unless $total == $scores->{win} + $scores->{loss} or 
-			$total == 2 * $scores->{draw} or
-			$total == $scores->{draw} + $scores->{absent} or
-			$total == 2 * $scores->{absent};
-			$game->result( \%result );
-		}
-	}
-	$tourney->collectCards(@$games);
-	# $tourney->updateScores($round);
-	for my $player ( @$players )
-	{
-		my $id = $player->id;
-		$table->{$id}->{id} = $id;
-		my $game = $player->findCard( @$games );
-		my $opponent = $player->myOpponent($game) || 
-			Games::Tournament::Contestant->new(name=>"Bye",id=>"-");
-		$table->{$id}->{opponents} .= $opponent->id . ",";
-		my $role = $game->myRole($player);
-		if ( $role eq 'Bye' ) { $role = '-'; }
-		else { $role =~ s/^(.).*$/$1/; }
-		$table->{$id}->{roles} .= $role;
-	}
+$tourney->collectCards(@$games);
+
+# $tourney->updateScores($round);
+    for my $player (@$players) {
+	  my $id = $player->id;
+	  $table->{$id}->{id} = $id;
+	  my $game     = $player->findCard(@$games);
+	  my $opponent = $player->myOpponent($game)
+	    || Games::Tournament::Contestant->new( name => "Bye", id => "-" );
+	  $table->{$id}->{opponents} .= $opponent->id . ",";
+	  my $role = $game->myRole($player);
+	  if ( $role eq 'Bye' ) { $role = '-'; }
+	  else { $role =~ s/^(.).*$/$1/; }
+	  $table->{$id}->{roles} .= $role;
+    }
 }
 
 my %brackets = $tourney->formBrackets;
