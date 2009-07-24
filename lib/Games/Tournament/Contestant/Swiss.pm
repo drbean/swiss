@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009  7月 09, 15時20分09秒
+# Last Edit: 2009  7月 21, 11時20分09秒
 # $Id: $
 
 use warnings;
@@ -108,7 +108,7 @@ sub oldId {
 	$member->opponents( 0, 5, 11 )
 	$rolehistory = $member->opponents
 
-If ids (ie pairing numbers) are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the pairing number of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, pass 0, 'Bye' or 'Absence'.
+If ids are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the id of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, or was unpaired, pass 'Bye' or 'Absence' or 'Unpaired'.
 
 =cut
 
@@ -126,7 +126,7 @@ sub opponents {
 	$member->roles( 'Black' )
 	$rolehistory = $member->roles
 
-If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, don't touch this accessor, even if the card says they were supposed to take this role. (Really?) F2,3
+If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or even if they had a game but didn't play it, that is, if they had a bye, or an absence, or were unpaired, pass 'Bye', or 'Absence', or 'Unpaired.' F2,3
 
 =cut
 
