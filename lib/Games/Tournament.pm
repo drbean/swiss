@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 20, 22時34分35秒
+# Last Edit: 2009  7月 23, 10時15分54秒
 # $Id: $
 
 use warnings;
@@ -66,7 +66,7 @@ sub new {
 
  $tourney->enter($player)
 
-Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title. No check for duplicate ids. Set this round as their first round, unless they already entered in an earlier round (But did they play in that round?)
+Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating defined. No check for duplicate ids. Set this round as their first round, unless they already entered in an earlier round (But did they play in that round?)
 
 =cut
 
@@ -83,8 +83,8 @@ sub enter {
 	    croak "No $required for player " . $player->id;
 	}
     }
-    for my $recommended ( qw/rating title/ ) {
-	unless ( $player->$recommended ) {
+    for my $recommended ( qw/rating/ ) {
+	unless ( defined $player->$recommended ) {
 	    carp "No $recommended for player " . $player->id;
 	    $player->$recommended( 'None' );
 	}
@@ -488,7 +488,9 @@ sub catLog {
     my @states = @_;
     @states = $self->loggedProcedures unless @states;
     my $log = $self->{log};
-    my %report = map { $_ => $log->{$_}->{strings} } @states;
+    my %report = map {	my $report = $log->{$_}->{strings};
+			$_ => join '', @$report if $report and
+			    ref $report eq 'ARRAY' } @states;
     return %report;
 }
 
