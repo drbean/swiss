@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 13, 21時39分48秒
+# Last Edit: 2009  7月 20, 10時13分12秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -80,18 +80,9 @@ Creates a FIDE C 04.1 algorithm object on a reference to a list of scoregroups o
 sub new {
     my $self     = shift;
     my %args     = @_;
-    my $round    = $args{round};
-    my $brackets = $args{brackets};
-    my $banner   = "Round $round:  ";
-    for my $bracket ( reverse sort keys %$brackets ) {
-        my $members = $brackets->{$bracket}->members;
-        my $score   = $brackets->{$bracket}->score;
-        $banner .= "@{[map { $_->pairingNumber } @$members]} ($score), ";
-    }
-    print $banner . "\n";
     return bless {
-        round        => $round,
-        brackets     => $brackets,
+        round        => $args{round},
+        brackets     => $args{brackets},
         whoPlayedWho => $args{whoPlayedWho},
         colorClashes => $args{colorClashes},
         badpair      => undef,
@@ -174,7 +165,15 @@ sub start {
     my $groups = $self->brackets;
     die "Can't start. Already started." if defined $index;
     $self->thisBracket('START');
-    $self->log( "Go" );
+    my $round    = $self->round;
+    my $brackets = $self->brackets;
+    my $banner   = "Round $round:  ";
+    for my $bracket ( reverse sort keys %$brackets ) {
+        my $members = $brackets->{$bracket}->members;
+        my $score   = $brackets->{$bracket}->score;
+        $banner .= "@{[map { $_->pairingNumber } @$members]} ($score), ";
+    }
+    $self->log( $banner );
     return NEXT;
 }
 
@@ -2007,172 +2006,6 @@ sub penultpPrime {
     my $penultpPrime = shift;
     if ( defined $penultpPrime ) { $self->{penultpPrime} = $penultpPrime; }
     elsif ( $self->{penultpPrime} ) { return $self->{penultpPrime}; }
-    return;
-}
-
-
-=head2 clearLog
-
-	$pairing->clearLog(qw/C10 C11/)
-
-Discards the logged messages for the passed procedures.
-
-=cut
-
-sub clearLog {
-    my $self = shift;
-    my @states = @_;
-    my $log = $self->{log};
-    delete $log->{$_} for @states;
-    return;
-}
-
-
-=head2 catLog
-
-	$pairing->catLog(qw/C10 C11/)
-
-Returns the messages logged for the passed procedures, or all logged procedures if no procedures are passed, as a hash keyed on the procedures. If no messages were logged, because the procedures were not loggedProcedures, no messages will be returned.
-
-=cut
-
-sub catLog {
-    my $self = shift;
-    my @states = @_;
-    @states = $self->loggedProcedures unless @states;
-    my $log = $self->{log};
-    my %report = map { $_ => $log->{$_}->{strings} } @states;
-    return %report;
-}
-
-
-=head2 tailLog
-
-	$pairing->tailLog(qw/C10 C11/)
-
-Returns the new messages logged for the passed procedures since they were last tailed, as a hash keyed on the procedures. If no messages were logged, because the procedures were not loggedProcedures, no messages will be returned.
-
-=cut
-
-sub tailLog {
-    my $self = shift;
-    my @states = @_;
-    @states = $self->loggedProcedures unless @states;
-    my $log = $self->{log};
-    my %report = map { $_ => $log->{$_}->{strings} } @states;
-    my %tailpos = map { $_ => $log->{$_}->{tailpos} } @states;
-    my (%newpos, %lastpos, %tailedReport);
-    for my $state ( @states )
-    {
-	if ( defined $tailpos{$state} )
-	{
-	    $newpos{$state} = $tailpos{$state} + 1;
-	    $lastpos{$state} = $#{ $report{$state} };
-	    $tailedReport{$state} = join '',
-		@{$report{$state}}[ $newpos{$state}..$lastpos{$state} ];
-	    $log->{$_}->{tailpos} = $lastpos{$_} for @states;
-	}
-	elsif ( $report{$state} ) {
-	    $newpos{$state} = 0;
-	    $lastpos{$state} = $#{ $report{$state} };
-	    $tailedReport{$state} = join '',
-		@{$report{$state}}[ $newpos{$state}..$lastpos{$state} ];
-	    $log->{$_}->{tailpos} = $lastpos{$_} for @states;
-	}
-    }
-    return %tailedReport;
-}
-
-
-=head2 log
-
-	$pairing->log('x=p=1, no more x increases in Bracket 4 (2).')
-
-Saves the message in a log iff this procedure is logged.
-
-=cut
-
-sub log {
-    my $self = shift;
-    my $message = shift;
-    return unless $message;
-    (my $method = uc((caller 1)[3])) =~ s/^.*::(\w+)$/$1/;
-    my $loggable = $self->loggedProcedures;
-    push @{ $self->{log}->{$method}->{strings} }, "\t$message\n" if $loggable->{$method};
-    return;
-}
-
-
-=head2 loggedProcedures
-
-	$group->loggedProcedures(qw/C10 C11 C12/)
-	$group->loggedProcedures(qw/C5 C6PAIRS C7 C8/)
-
-Adds messages generated in the procedures named in the argument list to a reportable log. Without an argument returns the logged procedures as the keys of an anon hash.
-
-=cut
-
-sub loggedProcedures {
-    my $self = shift;
-    my @states = @_;
-    unless ( @states ) { return $self->{logged}; }
-    my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 17;
-    for my $state (@states)
-    {   
-	carp "$state is unloggable procedure" if not exists $logged{$state};
-	$self->{logged}->{$state} = 1;
-	# push @{ $self->{log}->{$state}->{strings} }, $state . ",";
-    }
-    return;
-}
-
-
-=head2 loggingAll
-
-	$group->loggingAll
-
-Adds messages generated in all the procedures to a reportable log
-
-=cut
-
-sub loggingAll {
-    my $self = shift;
-    my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 18;
-    for my $state ( keys %logged )
-    {   
-	# carp "$state is unloggable procedure" if not exists $logged{$state};
-	$self->{logged}->{$state} = 1;
-    }
-    return;
-}
-
-
-=head2 disloggedProcedures
-
-	$group->disloggedProcedures
-	$group->disloggedProcedures(qw/C6PAIRS C7 C8/)
-
-Stops messages generated in the procedures named in the argument list being added to a reportable log. Without an argument stops logging of all procedures.
-
-=cut
-
-sub disloggedProcedures {
-    my $self = shift;
-    my @states = @_;
-    unless ( @states )
-    {
-	my @methods = keys %{ $self->{logged} };
-	@{$self->{logged}}{@methods} = (0) x @methods;
-    }
-    my %logged;
-    @logged{qw/C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C13 C14/} = (1) x 14;
-    for my $state (@states)
-    {   
-	carp "$state is unloggable procedure" if not defined $logged{$state};
-	$self->{logged}->{$state} = 0;
-    }
     return;
 }
 
