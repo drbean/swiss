@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009  7月 08, 18時26分05秒
+# Last Edit: 2009  7月 23, 10時43分21秒
 # $Id: $
 
 use warnings;
@@ -226,7 +226,7 @@ sub score {
 	$rounds = $deepblue->met(@grandmasters)
 	next if $deepblue->met($capablanca)
 
-Returns an anonymous hash, keyed on @grandmasters' ids, either of the gamecards in which $deepblue remembers meeting the members of @grandmasters or of the empty string '' if there is no record of such a meeting. Don't forget to tally $deepblue's scorecard with the appropriate games first (using collectCards?)! We don't check $deepblue's partners' cards. (Assumes players do not meet more than once!) Don't confuse this with Games::Tournament::met!
+Returns an anonymous hash, keyed on @grandmasters' ids, either of the gamecards in which $deepblue remembers meeting the members of @grandmasters or of the empty string '' if there is no record of such a meeting. Don't forget to tally $deepblue's scorecard with the appropriate games first (using $deepblue->play?)! We don't check $deepblue's partners' cards. (Assumes players do not meet more than once!) Don't confuse this with Games::Tournament::met!
 
 =cut
 
@@ -322,7 +322,7 @@ sub rating {
 	$games = $member->play;
 	$games = $member->play( { $lastround => $game } );
 
-Sets/gets a hash reference to the result of the pairings in each of the rounds played so far. Don't use this to enter a player's match result. Use $tourney->collectCards. Implementation: The keys of the hash are the round numbers and the values are the gamecard of the player in that round. Very similar to the play accessor for tournaments, so this is not good repetition?
+Sets/gets a hash reference to the result of the pairings in each of the rounds played so far. Don't use this to record a player's match result. Use $tourney->collectCards. Implementation: The keys of the hash are the round numbers and the values are the gamecard of the player in that round. Very similar to the play accessor for tournaments, which is what collectCards uses.
 
 =cut
 
