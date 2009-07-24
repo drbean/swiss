@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009  7月 06, 22時14分43秒
+# Last Edit: 2009  7月 21, 18時03分57秒
 # $Id: $
 
 use warnings;
@@ -587,13 +587,17 @@ Sets the number, ranging from zero to p, of matches in the score bracket in whic
 sub x {
     my $self    = shift;
     my $players = $self->residents;
-    my $w       =
-      grep { $_->preference->role and $_->preference->role eq (ROLES)[0] }
-      @$players;
-    my $b = @$players - $w;
+    my $numbers = sub {
+	my $n = shift;
+	return scalar grep {
+	    $_->preference->role and $_->preference->role eq (ROLES)[$n] }
+	    @$players;
+    };
+    my $w = $numbers->(0);
+    my $b = $numbers->(1);
     my $q = $self->q;
     my $x = $w >= $b ? $w - $q : $b - $q;
-    $self->{x} = $x;
+    $self->{x} = $x < 0? 0: $x;
 }
 
 
