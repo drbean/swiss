@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 13, 21時57分26秒
+# Last Edit: 2009  7月 20, 22時16分22秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -65,7 +65,7 @@ for my $member ( @{ $league->{member} } ) {
 }
 
 my $tourney = Games::Tournament::Swiss->new(
-		round => $round,
+		round => 0,
 		entrants => $lineup );
 
 my $lateEntries = $league->{late};
@@ -76,7 +76,8 @@ for my $late ( @$lateEntries ) {
 $tourney->assignPairingNumbers;
 $tourney->initializePreferences;
 
-my @ids = map { $_->{pairingNumber} } @$lineup;
+$lineup = $tourney->entrants;
+my @ids = map { $_->{id} } @$lineup;
 my $pairingtable;
 if ( $round >= $firstround and -e "./pairtable.yaml" )
 {
