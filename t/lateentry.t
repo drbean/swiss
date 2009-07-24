@@ -1,19 +1,15 @@
-#
-#===============================================================================
-#
-#         FILE:  lateentry.t
-#
-#  DESCRIPTION:  Check that late entering players get assimilated
-#
-#        FILES:  ---
-#         BUGS:  ---
-#        NOTES:  ---
-#       AUTHOR:  Dr Bean (), <drbean at (yes, an @>, cpan dot (a ., of course) org>
-#      COMPANY:  
-#      VERSION:  0.1
-#      CREATED:  西元2009年07月03日 12時18分05秒
-#     REVISION:  ---
-#===============================================================================
+# DESCRIPTION:  Check that late entering players get assimilated
+# Created:  西元2009年07月03日 12時18分05秒
+# Last Edit: 2009  7月 23, 07時58分16秒
+
+=head 3 TODO
+
+After round 2, the pairings of the script differ from those of pair. So stop after round 2. It's not the purpose of the test to see if pairing is taking place correctly, but only to assimilate late entries.
+
+=cut
+
+
+our $VERSION =  0.1;
 
 use lib qw/t lib/;
 
@@ -76,11 +72,6 @@ sub numbercheck {
 	+{ map { $_->name => $_->pairingNumber } @$entries }
 }
 
-sub scorecheck {
-	my $latecomer = shift;
-	my $score = $late[$latecomer]->score;
-}
-
 sub prefcheck {
 	my $entries = $tourney->entrants;
 	+{ map {$_->name => [ $_->preference->role, $_->preference->strength ] }
@@ -101,6 +92,7 @@ sub RunCheckEnter {
 RunCheckEnter(1);
 RunCheckEnter(2);
 RunCheckEnter(3);
+RunCheckEnter(4);
 
 __DATA__
 
@@ -124,11 +116,9 @@ B: [ White, Strong ]
 C: [ Black, Strong ]
 D: [ ~,     Mild ]
 
-TODO: Check why x=1 in round 2. Could be x definition not robust.
-
 === Round 2 pairingnumbers
 --- input chomp numbercheck
-0
+1
 --- expected yaml
 A: 1
 a: 2
@@ -144,13 +134,14 @@ D: 6
 A: [ White, Mild ]
 a: [ Black, Mild ]
 B: [ Black, Mild ]
-b: [ Black, Strong ]
+b: [ White, Strong ]
 C: [ White, Mild ]
-D: [ White, Strong ]
+D: [ Black, Strong ]
 
 === Round 3 pairingnumbers
+--- LAST
 --- input chomp numbercheck
-0
+2
 --- expected yaml
 A: 1
 a: 2
@@ -164,109 +155,17 @@ D: 7
 --- input chomp prefcheck
 2
 --- expected yaml
-A:
-  prefer: Black
-  degree: Strong
-a:
-  prefer: Black
-  degree: Mild
-B:
-  prefer: Black
-  degree: Mild
-b:
-  prefer: White
-  degree: Strong
-C:
-  prefer: White
-  degree: Mild
-D:
-  prefer: Black
-  degree: Strong
-0:
-  prefer: White
-  degree: Strong
-1:
-  prefer: White
-  degree: Strong
-2:
-  prefer: White
-  degree: Strong
+A: [ Black, Strong ]
+a: [ White, Strong ]
+B: [ Black, Mild ]
+b: [ Black, Mild ]
+C: [ White, Absolute ]
+c: [ Black, Strong ]
+D: [ White, Mild ]
 
-
-=== Round 1 pairingnumbers
+=== Round 4 pairingnumbers
 --- input chomp numbercheck
-0
---- expected yaml
-A: 1
-a: 2
-B: 3
-C: 4
-D: 5
-E: 6
-F: 7
-G: 8
-H: 9
-I: 10
-J: 11
-K: 12
-L: 13
-M: 14
-N: 15
-O: 16
-P: 17
-Q: 18
-R: 19
-S: 20
-T: 21
-
-=== Round 1 prefs
---- input chomp prefcheck
-0
---- expected yaml
-prefer: White
-degree: Strong
-
-=== Round 2 pairingnumbers
---- input chomp numbercheck
-0
---- expected yaml
-A: 1
-a: 2
-B: 3
-b: 4
-C: 5
-D: 6
-E: 7
-F: 8
-G: 9
-H: 10
-I: 11
-J: 12
-K: 13
-L: 14
-M: 15
-N: 16
-O: 17
-P: 18
-Q: 19
-R: 20
-S: 21
-T: 22
-
-=== Round 2 prefs
---- input chomp prefcheck
-1
---- expected yaml
-0:
-  prefer: Black
-  degree: Mild
-1:
-  prefer: White
-  degree: Strong
-
-=== Round 3 pairingnumbers
---- input chomp numbercheck
-0
+3
 --- expected yaml
 A: 1
 a: 2
@@ -275,34 +174,17 @@ b: 4
 C: 5
 c: 6
 D: 7
-E: 8
-F: 9
-G: 10
-H: 11
-I: 12
-J: 13
-K: 14
-L: 15
-M: 16
-N: 17
-O: 18
-P: 19
-Q: 20
-R: 21
-S: 22
-T: 23
+d: 8
 
-=== Round 3 prefs
+=== Post-Round 4 prefs
 --- input chomp prefcheck
-2
+3
 --- expected yaml
-0:
-  prefer: White
-  degree: Strong
-1:
-  prefer: White
-  degree: Strong
-2:
-  prefer: White
-  degree: Strong
-
+A: [ Black, Strong ]
+a: [ Black, Mild ]
+B: [ Black, Mild ]
+b: [ White, Strong ]
+C: [ White, Mild ]
+c: [ Black, Strong ]
+D: [ Black, Strong ]
+d: [ Black, Strong ]
