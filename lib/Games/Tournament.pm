@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 20, 11時54分41秒
+# Last Edit: 2009  7月 20, 22時34分35秒
 # $Id: $
 
 use warnings;
@@ -66,7 +66,7 @@ sub new {
 
  $tourney->enter($player)
 
-Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title. No check for duplicate ids.
+Enters a Games::Tournament::Contestant player object with a rating, title id, and name in the entrants of the tournament. Die if no name or id. We are authoritarians. Warn if no rating or title. No check for duplicate ids. Set this round as their first round, unless they already entered in an earlier round (But did they play in that round?)
 
 =cut
 
@@ -76,7 +76,7 @@ sub enter {
     my $round = $self->round;
     die "Player " . $player->id . " entering in Round $round + 1?" unless
 			looks_like_number($round);
-    $player->firstround($round+1);
+    $player->firstround($round+1) unless $player->firstround;
     my $entrants = $self->entrants;
     for my $required ( qw/id name/ ) {
 	unless ( $player->$required ) {
