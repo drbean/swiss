@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 20, 22時16分22秒
+# Last Edit: 2009  7月 24, 10時51分26秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -65,7 +65,7 @@ for my $member ( @{ $league->{member} } ) {
 }
 
 my $tourney = Games::Tournament::Swiss->new(
-		round => 0,
+		round => $round,
 		entrants => $lineup );
 
 my $lateEntries = $league->{late};
@@ -73,8 +73,11 @@ for my $late ( @$lateEntries ) {
     my $player = Games::Tournament::Contestant::Swiss->new( %$late );
     $tourney->enter($player);
 }
+# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 $tourney->assignPairingNumbers;
 $tourney->initializePreferences;
+# use IO::All;
+# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 
 $lineup = $tourney->entrants;
 my @ids = map { $_->{id} } @$lineup;
@@ -96,7 +99,7 @@ if ( $round >= $firstround and -e "./pairtable.yaml" )
        my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
        my %floats =
 	   map { $_ => $floats->{$_}->[$round-$lastround-1]||undef } @ids;
-       my @games = $tourney->prepareCards( {
+       my @games = $tourney->recreateCards( {
 	   round => $round, opponents => \%opponents,
 	    roles => \%roles, floats => \%floats } );
        $tourney->collectCards( @games );
@@ -107,8 +110,6 @@ my %brackets = $tourney->formBrackets;
 my $pairing = $tourney->pairing( \%brackets );
 $pairing->loggingAll;
 my $results = $pairing->matchPlayers;
-use IO::All;
-io('=')->print($pairing->catLog);
 my $matches = $results->{matches};
 my @games;
 
@@ -150,19 +151,9 @@ if ( $lateEntries ) {
     DumpFile '../league.yaml', $league;
 }
 
-
-$schedule->{firstround} = $swiss->firstround($firstround);
-$schedule->{scores} = $swiss->scores($scores);
-$schedule->{roles} = $swiss->roles($roles);
-$schedule->{algorithm} = $swiss->algorithm($algorithm);
 $schedule->{round} = $next;
-$schedule->{week}  = $next . ' perhaps. Change if wrong.';
 
-DumpFile 'player.yaml', $tourney->entrants;
-DumpFile 'tourney.yaml', $tourney;
-DumpFile 'pairing.yaml', $pairing;
 DumpFile 'matches.yaml', \@games;
-DumpFile 'brackets.yaml', \%brackets;
 
 my @keys = sort {$a<=>$b} keys %{$schedule->{group}};
 Bless($schedule->{group})->keys( \@keys );
