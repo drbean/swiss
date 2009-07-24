@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 09, 21時55分36秒
+# Last Edit: 2009  7月 20, 06時44分50秒
 # $Id: $
 
 use warnings;
@@ -77,6 +77,7 @@ sub assignPairingNumbers {
         $rankings[$n]->pairingNumber( $n+1 );
         $rankings[$n]->oldId( $rankings[$n]->id ) unless $rankings[$n]->oldId;
     }
+    $self->log( "New pairing numbers" );
     $self->entrants( \@rankings );
 }
 
@@ -138,53 +139,59 @@ sub prepareCards {
 	$count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
 	return all { $count{$_} == 4 } keys %count;
 	    };
-    croak "Players in games different than those in lineup" unless &$test;
+    croak "Not all players have a complete game card in round $round"
+		    unless &$test;
     my (%games, @games);
     for my $id ( @ids )
     {
-       next if $games{$id};
-       my $player = $self->ided($id);
-       my $opponentId = $opponents->{$id};
-       croak "No opponent for Player $id in round $round" unless $opponentId;
-       my $opponent = $self->ided($opponentId);
-       my $opponentsOpponent = $opponents->{$opponentId};
-       croak
-    "Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
-	   unless $opponentId eq 'Bye' or $opponentsOpponent == $id;
-       my $role = $roles->{$id};
-       my $opponentRole = $roles->{$opponentId};
-       if ( $opponentId eq 'Bye' )
-       {
-	   croak "Player $id has $role, in round $round?"
-		unless $player and $role eq 'Bye';
-       }
-       else {
-	   croak
-"Player $id is $role, and opponent $opponentId is $opponentRole, in round $round?"
-		unless $player and $opponent and $role and $opponentRole;
+        next if $games{$id};
+        my $player     = $self->ided($id);
+        next if $round < $player->firstround;
+     my $opponentId = $opponents->{$id};
+        croak "No opponent for Player $id in round $round" unless $opponentId;
+        my $opponent          = $self->ided($opponentId);
+        my $opponentsOpponent = $opponents->{$opponentId};
+        croak
+"Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
+          unless $opponentId eq 'Bye'
+              or $opponentsOpponent == $id;
+        my $role         = $roles->{$id};
+        my $opponentRole = $roles->{$opponentId};
 
-       }
-       croak
-"Player $id has same $role role as opponent $opponentId in round $round?" if 
-	    $role eq $opponentRole;
-       my $contestants;
-       if ( $opponentId eq 'Bye' ) { $contestants = { Bye => $player } }
-       else { $contestants = { $role=>$player, $opponentRole=>$opponent } }
-	my $game = Games::Tournament::Card->new(
-		    round => $round,
-		    contestants =>  $contestants,
-		    result => undef );
-	my $float = $floats->{$id};
-	$game->float($player, $float);
-	unless ($opponentId eq 'Bye')
-	{
-	    my $opponentFloat =
-			$floats->{$opponentId};
-	    $game->float($opponent, $opponentFloat);
-	}
-	$games{$id} = $game;
-	$games{$opponentId} = $game;
-	push @games, $game;
+        if ( $opponentId eq 'Bye' ) {
+            croak "Player $id has $role, in round $round?"
+              unless $player and $role eq 'Bye';
+        }
+        else {
+            croak
+"Player $id is $role, and opponent $opponentId is $opponentRole, in round $round?"
+              unless $player
+                  and $opponent
+                  and $role
+                  and $opponentRole;
+
+        }
+        croak
+"Player $id has same $role role as opponent $opponentId in round $round?"
+          if $role eq $opponentRole;
+        my $contestants;
+        if ( $opponentId eq 'Bye' ) { $contestants = { Bye => $player } }
+        else { $contestants = { $role => $player, $opponentRole => $opponent } }
+        my $game = Games::Tournament::Card->new(
+            round       => $round,
+            contestants => $contestants,
+            result      => undef
+        );
+        my $float = $floats->{$id};
+        $game->float( $player, $float );
+
+        unless ( $opponentId eq 'Bye' ) {
+            my $opponentFloat = $floats->{$opponentId};
+            $game->float( $opponent, $opponentFloat );
+        }
+        $games{$id}         = $game;
+        $games{$opponentId} = $game;
+        push @games, $game;
     }
     return @games;
 }
