@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 20, 23時14分33秒
+# Last Edit: 2009  7月 22, 13時50分40秒
 # $Id: $
 
 use warnings;
@@ -77,7 +77,7 @@ sub assignPairingNumbers {
         $rankings[$n]->pairingNumber( $n+1 );
         $rankings[$n]->oldId( $rankings[$n]->id ) unless $rankings[$n]->oldId;
     }
-    $self->log( "New pairing numbers" );
+    $self->log( join ', ', map { $_->pairingNumber . ": " . $_->id } @rankings);
     $self->entrants( \@rankings );
 }
 
@@ -125,7 +125,7 @@ From hashes of the opponents, roles and floats for each player in a round (as pr
 
 =cut
 
-sub prepareCards {
+sub recreateCards {
     my $self  = shift;
     my $args    = shift;
     my $round = $args->{round};
@@ -147,8 +147,9 @@ sub prepareCards {
         next if $games{$id};
         my $player     = $self->ided($id);
         next if $round < $player->firstround;
-     my $opponentId = $opponents->{$id};
+	my $opponentId = $opponents->{$id};
         croak "No opponent for Player $id in round $round" unless $opponentId;
+$DB::single=1 if $id eq 102;
         my $opponent          = $self->ided($opponentId);
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
@@ -225,12 +226,10 @@ sub collectCards {
 	    my @players = $game->myPlayers;
 	    for my $player ( @players ) {
 		my $id       = $player->id;
-		# my $entrant = first { $_->id eq $id } @entrants;
 		my $entrant = $self->ided($id);
 		my $oldroles = $player->roles;
 		my $scores   = $player->scores;
 		my ( $role, $float );
-		# $myGame->canonize;
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
 		$scores->{$round} = $role eq 'Bye'? 'Bye':
