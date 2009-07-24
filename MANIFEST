@@ -48,4 +48,5 @@ t/preference.t
 t/seven.t
 t/tally.t
 t/three.t
+t/x.t
 Makefile.PL
