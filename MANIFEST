@@ -34,6 +34,7 @@ t/dummy10.t
 t/initializePreferences.t
 t/four.t
 t/foura.t
+t/lateentry.t
 t/median.t
 t/met.t
 t/pair.t
