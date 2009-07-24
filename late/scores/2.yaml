@@ -1,10 +1,10 @@
 ---
 2:
-  A: Loss
-  b: Win
+  Al: Loss
+  Don: Win
 4:
-  C: Loss
-  a: Win
+  Bert: Win
+  Carl: Loss
 6:
-  B: Loss
-  D: Win
+  Ally: Win
+  Bertha: Loss
