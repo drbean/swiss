@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 20, 11時56分31秒
+# Last Edit: 2009  7月 21, 18時07分12秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -650,7 +650,8 @@ sub c6others {
     die "Unpaired players are: $nonpaired?" unless defined $nonpaired and
 							    @$nonpaired;
     if ( @$nonpaired == 1 and $index eq $self->lastBracket ) {
-	$self->log( "One unpaired player in last $number bracket." );
+	my $id = $nonpaired->[0]->pairingNumber;
+	$self->log( "One unpaired player, $id in last bracket $number." );
 	$self->byer($nonpaired->[0]);
 	return BYE;
     }
