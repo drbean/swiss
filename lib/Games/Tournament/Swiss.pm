@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 20, 06時44分50秒
+# Last Edit: 2009  7月 20, 23時14分33秒
 # $Id: $
 
 use warnings;
@@ -112,16 +112,16 @@ sub initializePreferences {
 }
 
 
-=head2 prepareCards
+=head2 recreateCards
 
- $tourney->prepareCards( {
+ $tourney->recreateCards( {
      round => $round,
      opponents => { 1 => 2, 2 => 1},
      roles => { 1 => 'W', 2 => 'B' },
      floats => { 1 => 'U', 2=> 'D' }
  } )
 
-From hashes of the opponents, roles and floats for each player in a round, draws up game cards for each of the matches of the round. NOTE: It's all wrapped up in a big anonymous hash. Returned is a list of Games::Tournament::Card objects, with undefined result fields. Pairing numbers are not used, but could be. Ids are used instead. Note: This method prepareCards doesn't seem much used.
+From hashes of the opponents, roles and floats for each player in a round (as provided by a pairing table), draws up the original game cards for each of the matches of the round. Returned is a list of Games::Tournament::Card objects, with undefined result fields. Pairing numbers are not used. Ids are used. Pairing numbers change with late entries.
 
 =cut
 
@@ -154,7 +154,7 @@ sub prepareCards {
         croak
 "Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
           unless $opponentId eq 'Bye'
-              or $opponentsOpponent == $id;
+              or $opponentsOpponent eq $id;
         my $role         = $roles->{$id};
         my $opponentRole = $roles->{$opponentId};
 
