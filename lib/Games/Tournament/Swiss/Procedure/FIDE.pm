@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 20, 10時13分12秒
+# Last Edit: 2009  7月 20, 11時56分31秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -8,7 +8,7 @@ use strict;
 use Carp;
 
 use List::Util qw/first/;
-use List::MoreUtils qw/all notall/;
+use List::MoreUtils qw/any all notall/;
 
 use constant ROLES      => @Games::Tournament::Swiss::Config::roles;
 use constant FIRSTROUND => $Games::Tournament::Swiss::Config::firstround;
@@ -135,7 +135,7 @@ sub matchPlayers {
         my ( $action, @alterStates ) = @$transitions;
         $oldState = $state;
         ( $state, %args ) = $action->( $self, %args ) if $action;
-	if ( $self->loggedProcedures->{$oldState} )
+	if ( any { $_ eq $oldState } $self->loggedProcedures )
 	{
 	    my %log = $self->tailLog($oldState);
 	    print $oldState . "," . $log{$oldState} if %log;

@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 20, 10時12分08秒
+# Last Edit: 2009  7月 20, 11時54分41秒
 # $Id: $
 
 use warnings;
@@ -8,7 +8,7 @@ use strict;
 use Carp;
 
 use List::Util qw/first/;
-use List::MoreUtils qw/all/;
+use List::MoreUtils qw/any all/;
 use Scalar::Util qw/looks_like_number/;
 
 use Games::Tournament::Swiss::Config;
@@ -544,8 +544,9 @@ sub log {
     my $message = shift;
     return unless $message;
     (my $method = uc((caller 1)[3])) =~ s/^.*::(\w+)$/$1/;
-    my $loggable = $self->loggedProcedures;
-    push @{ $self->{log}->{$method}->{strings} }, "\t$message\n" if $loggable->{$method};
+    my @loggable = $self->loggedProcedures;
+    push @{ $self->{log}->{$method}->{strings} }, "\t$message\n" if
+		    any { $_ eq $method } @loggable;
     return;
 }
 
@@ -555,14 +556,14 @@ sub log {
 	$group->loggedProcedures(qw/C10 C11 C12/)
 	$group->loggedProcedures(qw/C5 C6PAIRS C7 C8/)
 
-Adds messages generated in the procedures named in the argument list to a reportable log. Without an argument returns the logged procedures as the keys of an anon hash.
+Adds messages generated in the procedures named in the argument list to a reportable log. Without an argument returns the logged procedures as an array.
 
 =cut
 
 sub loggedProcedures {
     my $self = shift;
     my @states = @_;
-    unless ( @states ) { return $self->{logged}; }
+    unless ( @states ) { return keys %{ $self->{logged} }; }
     my %logged;
     @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 20;
     for my $state (@states)
