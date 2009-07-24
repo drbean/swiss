@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 22, 13時50分40秒
+# Last Edit: 2009  7月 24, 11時59分32秒
 # $Id: $
 
 use warnings;
@@ -148,8 +148,7 @@ sub recreateCards {
         my $player     = $self->ided($id);
         next if $round < $player->firstround;
 	my $opponentId = $opponents->{$id};
-        croak "No opponent for Player $id in round $round" unless $opponentId;
-$DB::single=1 if $id eq 102;
+        croak "Round $round: opponent info for Player $id?" unless $opponentId;
         my $opponent          = $self->ided($opponentId);
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
@@ -174,7 +173,7 @@ $DB::single=1 if $id eq 102;
         }
         croak
 "Player $id has same $role role as opponent $opponentId in round $round?"
-          if $role eq $opponentRole;
+          if $opponentId and defined $opponentRole and $role eq $opponentRole;
         my $contestants;
         if ( $opponentId eq 'Bye' ) { $contestants = { Bye => $player } }
         else { $contestants = { $role => $player, $opponentRole => $opponent } }
@@ -239,7 +238,6 @@ sub collectCards {
 		#	unless $scores->{$round};
 		$game ||= "No game";
 		$play->{$round}->{$id} = $game;
-		$entrant->play( { $round => $game } );
 		$entrant->scores($scores);
 		carp "No record in round $round for player $id $player->{name}"
 		  unless $play->{$round}->{$id};
@@ -403,7 +401,7 @@ sub compatible {
 	next if $games->{$alekhine->pairingNumber}->
 	    {$capablanca->pairingNumber}
 
-Returns an anonymous hash, keyed on the ids of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1 XXX Unplayed pairings are not considered illegal in future rounds?? Or is it colors which are not illegal? F2 
+Returns an anonymous hash, keyed on the ids of the tourney's entrants, of the round in which individual entrants met. Don't forget to collect scorecards in the appropriate games first! (No tracking of how many times players have met if they have met more than once!) Do you know what round it is? B1 XXX Unplayed pairings are not considered illegal in future rounds. F2 
 
 =cut
 
