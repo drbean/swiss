@@ -1,36 +1,36 @@
 ---
 late: ~
 member:
-  - id: 001
+  - id: 101
     name: A
     rating: 2000
     title: M.
-  - id: 002
+  - id: 102
     name: B
     rating: 1980
     title: M.
-  - id: 003
+  - id: 103
     name: C
     rating: 1960
     title: M.
-  - id: 004
+  - id: 104
     name: D
     rating: 1940
     title: M.
 others:
-  - id: 005
+  - id: 105
     name: a
     rating: 1990
     title: M.
-  - id: 006
+  - id: 106
     name: b
     rating: 1970
     title: M.
-  - id: 007
+  - id: 107
     name: c
     rating: 1950
     title: M.
-  - id: 008
+  - id: 108
     name: d
     rating: 1930
     title: M.
