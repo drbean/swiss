@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009  7月 03, 13時20分49秒
+# Last Edit: 2009  7月 25, 13時54分01秒
 # $Id: $
 
 use warnings;
@@ -147,14 +147,18 @@ sub myResult {
 
     $game->myPlayers
 
-Returns an array of the players from $game, eg ($alekhine, $yourNewNicks).
+Returns an array of the players from $game, eg ($alekhine, $yourNewNicks) in ROLES order.
 
 =cut 
 
 sub myPlayers {
     my $self        = shift;
     my $contestants = $self->contestants;
-    my @players     = values %$contestants;
+    my @players;
+    for my $role ( ROLES ) {
+	push @players, $contestants->{$role} if exists $contestants->{$role};
+    }
+    push @players, $contestants->{Bye} if exists $contestants->{Bye};
     return @players;
 }
 
