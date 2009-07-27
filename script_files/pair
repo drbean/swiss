@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 24, 10時51分26秒
+# Last Edit: 2009  7月 26, 23時20分00秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -9,16 +9,18 @@ pair - Pair players for the next round of a swiss tournament
 
 =head1 VERSION
 
-Version 0.09
+Version 0.10
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use strict;
 use warnings;
 
 use YAML qw/LoadFile DumpFile Bless/;
+use IO::All;
+use IO::Handle;
 
 use Games::Tournament::Swiss::Config;
 
@@ -76,14 +78,12 @@ for my $late ( @$lateEntries ) {
 # $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 $tourney->assignPairingNumbers;
 $tourney->initializePreferences;
-# use IO::All;
 # io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 
 $lineup = $tourney->entrants;
-my @ids = map { $_->{id} } @$lineup;
-my $pairingtable;
 if ( $round >= $firstround and -e "./pairtable.yaml" )
 {
+    my @ids = map { $_->{id} } @$lineup;
     my $pairingtable = LoadFile "./pairtable.yaml";
     my ( $opponents, $roles, $floats, $score ) =
         @$pairingtable{qw/opponents roles floats score/};
@@ -121,7 +121,7 @@ for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
 	@$bracketmatches;
 }
 $tourney->round($next);
-$tourney->publishCards(@games);
+my @tables = $tourney->publishCards(@games);
 
 my ($schedule, $template);
 $schedule->{Warning} =
@@ -131,12 +131,26 @@ if ( -e '../assistants.yaml' ) {
     my $assistantFile = LoadFile '../assistants.yaml';
     $schedule->{assistant} = $assistantFile->{$next};
 }
-$n = 1;
-for my $game (@games) {
-    my %group = map { $_ => $game->{contestants}->{$_}->{name} }
-      keys %{ $game->{contestants} };
-    $schedule->{group}->{ $n++ } = \%group;
-    $template->{$n++} = { reverse %group };
+
+our (@names, @ids, @scores);
+open REP, '>-' or die 'STDOUT? $!';
+REP->format_top_name('TOP');
+REP->format_name('PAIRS');
+for my $table (@tables) {
+    my $players = $table->contestants;
+    $schedule->{group}->{ ++$n } = $players;
+    $template->{$n} = { reverse %$players };
+    if ( $table->isBye ) {
+	@names = ( $table->contestants->{Bye}->name, 'bye' );
+	@ids = ( $table->contestants->{Bye}->id, '-' );
+	@scores = ( $table->contestants->{Bye}->score || 0, '-' );
+    }
+    else {
+	@names = map { $table->contestants->{$_}->name } @$roles;
+	@ids = map { $table->contestants->{$_}->id } @$roles;
+	@scores = map { $table->contestants->{$_}->score || 0 } @$roles;
+    }
+    write REP;
 }
 
 if ( $lateEntries ) {
@@ -160,6 +174,20 @@ Bless($schedule->{group})->keys( \@keys );
 
 DumpFile 'round.yaml', $schedule;
 DumpFile "$next.yaml", $template;
+
+format TOP =
+		  @<<<<<<<< @<<<<<<<< @<<<<< @<< @<<<<<< @<<
+$league->{name}, 'Pairings', 'Round', $schedule->{round}, 'in Week', $schedule->{week}
+              @<<<<<                              @<<<<<
+$roles->[0],                               $roles->[1]  
+@<<<<   @<<     @<<<<    @<<<<  @<<<<<<    @<<     @<<<<    @<<<< 
+'Table', 'ID', 'Name', 'Score', 'Result', 'ID', 'Name', 'Score'
+-------------------------------------------------------------------------
+.
+format PAIRS =
+@<<   @<<<<<<< @<<<<<<<<<< @<<   @<<<<<<  @<<<<<<< @<<<<<<<<<< @<<
+$n,  $ids[0], $names[0], $scores[0], ' - ', $ids[1], $names[1], $scores[1] 
+.
 
 __END__
 
