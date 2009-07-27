@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 25, 21時11分59秒
+# Last Edit: 2009  7月 25, 15時42分04秒
 # $Id: $
 
 use warnings;
@@ -23,7 +23,7 @@ use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss::Procedure;
 use Games::Tournament::Contestant::Swiss::Preference;
 
-use List::Util qw/min reduce sum first/;
+use List::Util qw/max min reduce sum first/;
 use List::MoreUtils qw/any all/;
 
 =head1 NAME
@@ -255,11 +255,45 @@ sub collectCards {
 }
 
 
+=head2 orderPairings
+
+ $schedule = $tourney->orderPairings( @games );
+
+Tables are ordered by scores of the player with the higher score at the table, then the total scores of the players (in other words, the scores of the other player), then the A2 ranking of the higher-ranked player, in that order. F1
+
+=cut
+
+sub orderPairings {
+    my $self     = shift;
+    my @games     = @_;
+    my $entrants = $self->entrants;
+    my @rankedentrants = $self->rank(@$entrants);
+    my %ranking = map { $rankedentrants[$_]->id => $_ } 0 .. $#rankedentrants;
+    my @orderings = map { 
+		    my @players = $_->myPlayers;
+		    my @scores = map { $_->score || 0 } @players;
+		    my $higherscore = max @scores;
+		    my $totalscore = sum @scores;
+		    my @rankedplayers = $self->rank( @players );
+		    {	higherscore => $higherscore,
+			totalscore => $totalscore,
+			higherranking => $ranking{$rankedplayers[0]->id} };
+		} @games;
+    my @neworder = map { $games[$_] } sort {
+	    $orderings[$b]->{higherscore} <=> $orderings[$a]->{higherscore} ||
+	    $orderings[$b]->{totalscore} <=> $orderings[$a]->{totalscore} ||
+	    $orderings[$a]->{higherranking} <=> $orderings[$b]->{higherranking}
+		    } 0 .. $#orderings;
+$DB::single=1;
+    return @neworder;
+}
+
+
 =head2 publishCards
 
  $schedule = $tourney->publishCards( @games );
 
-Announces @games before they have been played, and stores them as $tourney's play field, keyed on round and ids of players.  Returns the new play field. TODO This has non-Swiss subclass elements I could factor out into a method in Games::Tournament.
+Stores @games, perhaps before they have been played, as $tourney's play field, keyed on round and ids of players.  Returns the games in F1 ordering.
 
 =cut
 
@@ -281,7 +315,7 @@ sub publishCards {
             $play->{$round}->{$id} = $game;
         }
     }
-    $self->play($play);
+    $self->orderPairings( @games );
 }
 
 
