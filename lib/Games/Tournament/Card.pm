@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009  7月 25, 13時54分01秒
+# Last Edit: 2009  7月 26, 17時31分15秒
 # $Id: $
 
 use warnings;
@@ -8,6 +8,7 @@ use strict;
 use Carp;
 
 use List::Util qw/min reduce sum/;
+use List::MoreUtils qw/any all/;
 
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
 			@Games::Tournament::Swiss::Config::roles:
@@ -19,11 +20,11 @@ Games::Tournament::Card - A record of the results of a match
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -284,6 +285,23 @@ sub float {
     elsif ( $self->{floats}->{$role} ) { return $self->{floats}->{$role}; }
     elsif ( $role eq 'Bye' ) { return 'Down'; }
     else { return 'Not'; }
+}
+
+=head2 isBye
+
+	$card->isBye
+
+Returns whether the card is for a bye rather than a game between two oppponents.
+
+=cut
+
+sub isBye {
+    my $self   = shift;
+    my $contestants = $self->contestants;
+    my @status = keys %$contestants;
+    return 1 if @status == 1 and any { $_ eq 'Bye' } @status;
+    return 0 if @status == 2 and all { $_ eq (ROLES)[0] or $_ eq (ROLES)[1] } @status;
+    return;
 }
 
 =head1 AUTHOR
