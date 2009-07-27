@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 26, 23時20分00秒
+# Last Edit: 2009  7月 27, 12時24分14秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -58,7 +58,6 @@ my $previous = $next-1;
 my $round = $previous;
 my $n = 0;
 
-my $oldlist;
 my $lineup;
 my @absentees = @{ $league->{absent} } if $league->{absent};
 for my $member ( @{ $league->{member} } ) {
@@ -75,12 +74,28 @@ for my $late ( @$lateEntries ) {
     my $player = Games::Tournament::Contestant::Swiss->new( %$late );
     $tourney->enter($player);
 }
+
+$lineup = $tourney->entrants;
+my (%idcheck, %namecheck);
+for my $player ( @$lineup, @absentees ) {
+    my $id = $player->id;
+    my $name = $player->name;
+    if ( defined $idcheck{$id} ) {
+	die $name . " and $idcheck{$id} have the same id: $id";
+    }
+    if ( defined $namecheck{$name} ) {
+	warn $id . " and $namecheck{$name} have the same name: " .
+	    $name . ". Proceeding, but there may be problems later.";
+    }
+    $idcheck{$id} = $name;
+    $namecheck{$name} = $id;
+}
+
 # $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 $tourney->assignPairingNumbers;
 $tourney->initializePreferences;
 # io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 
-$lineup = $tourney->entrants;
 if ( $round >= $firstround and -e "./pairtable.yaml" )
 {
     my @ids = map { $_->{id} } @$lineup;
@@ -169,6 +184,7 @@ $schedule->{round} = $next;
 
 DumpFile 'matches.yaml', \@games;
 
+# my %groups = map { $_ => $tables{
 my @keys = sort {$a<=>$b} keys %{$schedule->{group}};
 Bless($schedule->{group})->keys( \@keys );
 
@@ -176,8 +192,8 @@ DumpFile 'round.yaml', $schedule;
 DumpFile "$next.yaml", $template;
 
 format TOP =
-		  @<<<<<<<< @<<<<<<<< @<<<<< @<< @<<<<<< @<<
-$league->{name}, 'Pairings', 'Round', $schedule->{round}, 'in Week', $schedule->{week}
+		  @<<<<<<<< @<<<<<<<<< @<<<<< @<< @<<<<<<<<<<<
+$league->{name}, 'Pairings,', 'Round', $tourney->round . ',', $schedule->{date}
               @<<<<<                              @<<<<<
 $roles->[0],                               $roles->[1]  
 @<<<<   @<<     @<<<<    @<<<<  @<<<<<<    @<<     @<<<<    @<<<< 
