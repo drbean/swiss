@@ -1,10 +1,9 @@
 Games-Tournament-Swiss
 
-Version 0.15
+Version 0.17
 
-The complexity of the C11 code slowed this release down. C12 code wasn't touched, so I'm sure bugs remain. Cross your fingers that your tournament does not exercise the C12 code!
 
-This is a major revision. In addition, we have a nicer interface to writing pairing tests. Look at three.t in the t/ directory.
+This is a major revision. Late entries are now possible. Next is handling absentees.
 
 Warning!
 
@@ -136,7 +135,7 @@ You can also look for information at:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007 Dr Bean
+Copyright (C) 2007-9 Dr Bean
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
