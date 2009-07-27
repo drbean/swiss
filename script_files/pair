@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 27, 12時24分14秒
+# Last Edit: 2009  7月 27, 14時06分50秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -84,8 +84,8 @@ for my $player ( @$lineup, @absentees ) {
 	die $name . " and $idcheck{$id} have the same id: $id";
     }
     if ( defined $namecheck{$name} ) {
-	warn $id . " and $namecheck{$name} have the same name: " .
-	    $name . ". Proceeding, but there may be problems later.";
+	warn "WARNING: $id and $namecheck{$name} have the same name: " .
+	    $name . ". Proceeding, but BEWARE there may be problems later,";
     }
     $idcheck{$id} = $name;
     $namecheck{$name} = $id;
@@ -154,7 +154,6 @@ REP->format_name('PAIRS');
 for my $table (@tables) {
     my $players = $table->contestants;
     $schedule->{group}->{ ++$n } = $players;
-    $template->{$n} = { reverse %$players };
     if ( $table->isBye ) {
 	@names = ( $table->contestants->{Bye}->name, 'bye' );
 	@ids = ( $table->contestants->{Bye}->id, '-' );
@@ -184,8 +183,16 @@ $schedule->{round} = $next;
 
 DumpFile 'matches.yaml', \@games;
 
-# my %groups = map { $_ => $tables{
-my @keys = sort {$a<=>$b} keys %{$schedule->{group}};
+my %groups;
+for my $n ( 0 .. $#tables ) {
+    my $table = $tables[$n];
+    my $contestants = $table->contestants;
+    my %members = map { $_ => $contestants->{$_}->name } keys %$contestants;
+    $template->{$n} = { reverse %members };
+    $groups{$n} = \%members;
+}
+$schedule->{group} = \%groups;
+my @keys = sort {$a<=>$b} keys %groups;
 Bless($schedule->{group})->keys( \@keys );
 
 DumpFile 'round.yaml', $schedule;
