@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 23, 10時15分54秒
+# Last Edit: 2009  7月 28, 11時09分49秒
 # $Id: $
 
 use warnings;
@@ -152,15 +152,15 @@ sub reverseRank {
 
     $tourney->named($name)
 
-Returns the contestant whose name is $name. Entrants are grepped for the first one with a name with stringwise equality.
+Returns a contestant whose name is $name, the first entrant with a name with stringwise equality. So beware same-named contestants.
 
 =cut 
 
 sub named {
     my $self        = shift;
     my $name        = shift;
-    my @contestants = @{ $self->entrants };
-    return ( grep { $_->name eq $name } @contestants )[0];
+    my @contestants = $self->entrants;
+    return ( first { $_->name eq $name } @$contestants );
 }
 
 
@@ -441,6 +441,78 @@ Gets the number of entrants
 sub size {
     my $self = shift;
     return scalar @{ $self->entrants };
+}
+
+
+=head2 idNameCheck
+
+$tourney->idNameCheck # WARNING: 13301616 and 13300849 both, Petrosian, Tigran
+
+Dies if 2 entrants have the same id, warns if they have the same name.
+
+=cut
+
+sub idNameCheck {
+    my $self = shift;
+    my $lineup = $self->entrants;
+    my (%idcheck, %namecheck);
+    for my $player ( @$lineup ) {
+	my $id = $player->id;
+	my $name = $player->name;
+	if ( defined $idcheck{$id} ) {
+	    croak $name . " and $idcheck{$id} have the same id: $id";
+	}
+	if ( defined $namecheck{$name} ) {
+	    carp "WARNING: $id and $namecheck{$name} have the same name: " .
+		$name . ". Proceeding, but BEWARE there may be problems later,";
+	}
+	$idcheck{$id} = $name;
+	$namecheck{$name} = $id;
+    }
+}
+
+
+=head2 idCheck
+
+$tourney->idCheck # Petrosian, Tigran, and Tigran Petrosian both 13301616
+
+Dies if 2 entrants have the same id
+
+=cut
+
+sub idCheck {
+    my $self = shift;
+    my $lineup = $self->entrants;
+    my %idcheck;
+    for my $player ( @$lineup ) {
+	my $id = $player->id;
+	my $name = $player->name;
+	if ( defined $idcheck{$id} ) {
+	    croak $name . " and $idcheck{$id} have the same id: $id";
+	}
+    }
+}
+
+=head2 nameCheck
+
+$tourney->idNameCheck # WARNING: 13301616 and 13300849 both, Petrosian, Tigran
+
+Warn if 2 entrants have the same name
+
+=cut
+
+sub nameCheck {
+    my $self = shift;
+    my $lineup = $self->entrants;
+    my %namecheck;
+    for my $player ( @$lineup ) {
+	my $id = $player->id;
+	my $name = $player->name;
+	if ( defined $namecheck{$name} ) {
+	    carp "WARNING: $id and $namecheck{$name} have the same name: " .
+		$name . ". Proceeding, but BEWARE there may be problems later,";
+	}
+    }
 }
 
 =head2 odd
