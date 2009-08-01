@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 29, 07時28分33秒
+# Last Edit: 2009  7月 30, 13時22分21秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -110,8 +110,8 @@ my $pairing = $tourney->pairing( \%brackets );
 $pairing->loggingAll;
 my $results = $pairing->matchPlayers;
 my $matches = $results->{matches};
-my @games;
 
+my @games;
 my %number = map { $_ => $brackets{$_}->number } keys %brackets;
 for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
 {
