@@ -121,7 +121,7 @@ sub roundFilter
 		for my $game ( @$bracket )
 		{
 			my $contestants = $game->contestants;
-			my @ids = map { $contestants->{$_}->id } keys %$contestants;
+			my @ids = map { $contestants->{$_}->id } sort keys %$contestants;
 			push @{$tables{$key}}, \@ids;
 		}
 	}
@@ -353,18 +353,19 @@ __DATA__
  -
   - 2
 
-#=== Tourney 6 Round 3
-#--- input lines chomp roundFilter
-#6
-#3
-#--- expected yaml
-#1:
-# -
-#  - 2
-#  - 3
-#1Bye:
-# -
-#  - 1
+=== Tourney 6 Round 3
+--- input lines chomp roundFilter
+6
+3
+--- expected yaml
+1:
+ -
+  - 2
+  - 3
+1Bye:
+ -
+  - 1
+--- SKIP
 
 === Tourney 7 Round 1
 --- input lines chomp roundFilter
