@@ -52,7 +52,7 @@ rating: 2
 title: Unknown
 ...
 
-DumpFile './league.yaml', {member => \@members};
+DumpFile './league.yaml', {name => 'Test', member => \@members};
 mkdir '1';
 chdir '1';
 system "$secure_perl_path ../script_files/pair";
