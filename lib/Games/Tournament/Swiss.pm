@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 28, 12時34分04秒
+# Last Edit: 2009  7月 30, 22時14分13秒
 # $Id: $
 
 use warnings;
@@ -137,10 +137,9 @@ sub recreateCards {
     my $test = sub {
 	my %count = ();
 	$count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
-	return all { $count{$_} == 4 } keys %count;
+	return grep { $count{$_} != 4 } keys %count;
 	    };
-    croak "Not all players have a complete game card in round $round"
-		    unless &$test;
+    carp "Game card not constructable for player $_ in round $round" for &$test;
     my (%games, @games);
     for my $id ( @ids )
     {
