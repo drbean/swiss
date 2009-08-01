@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 28, 11時09分49秒
+# Last Edit: 2009  7月 28, 12時44分22秒
 # $Id: $
 
 use warnings;
@@ -159,7 +159,7 @@ Returns a contestant whose name is $name, the first entrant with a name with str
 sub named {
     my $self        = shift;
     my $name        = shift;
-    my @contestants = $self->entrants;
+    my $contestants = $self->entrants;
     return ( first { $_->name eq $name } @$contestants );
 }
 

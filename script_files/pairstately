@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 05, 18時55分08秒
+# Last Edit: 2009  7月 28, 12時42分48秒
 # $Id: /swiss/trunk/script_files/pairstately 1472 2007-10-13T02:03:22.823448Z greg  $
 
 use strict;
@@ -17,7 +17,7 @@ die 'round.yaml already exists' if -e 'round.yaml';
 
 my $roles = $league->{roles} || [$swiss->roles];
 my $scores = $league->{scores} ||
-	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
+	{ win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = $league->{firstround} || $swiss->firstround;
 my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
 my $abbrev = $league->{abbreviation} ||
@@ -129,7 +129,7 @@ if ( -e "../$previous/matches.yaml" and $round >= $firstround ) {
                   : $result =~ m/Win/i ? $scores->{win}
                   : $result =~ m/Draw/i ? $scores->{draw}
                   : $result =~ m/Loss/i ? $scores->{loss}
-                  : $result =~ m/Absent/i ? $scores->{absent}
+                  : $result =~ m/Forfeit/i ? $scores->{forfeit}
                   : "Error";
 		die "Error: $player->{name} $player->{id}'s result in round $round is $result?" if $score{$role} eq 'Error';
 		$total += $score{$role};
@@ -137,8 +137,8 @@ if ( -e "../$previous/matches.yaml" and $round >= $firstround ) {
 	    warn "total scores in round $round with players @contestants = $total?"
 	    unless $total == $scores->{win} + $scores->{loss} or 
 	    $total == 2 * $scores->{draw} or
-	    $total == $scores->{draw} + $scores->{absent} or
-	    $total == 2 * $scores->{absent};
+	    $total == $scores->{draw} + $scores->{forfeit} or
+	    $total == 2 * $scores->{forfeit};
             $game->result( \%result );
 	    # $game->canonize;
         }

@@ -26,7 +26,7 @@ my $swiss = Games::Tournament::Swiss::Config->new;
 my $league = LoadFile "./league.yaml";
 my $roles = $league->{roles} || [qw/White Black/];
 my $scores = $league->{scores} ||
-	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
+	{ win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = $league->{firstround} || 1;
 my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
 my $abbrev = $league->{abbreviation} ||

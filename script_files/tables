@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2006 Dec 31, 04:31:41 PM
+# Last Edit: 2009  7月 28, 12時43分21秒
 # $Id$
 
 use strict;
@@ -15,7 +15,7 @@ use YAML qw/LoadFile DumpFile/;
 use FileHandle;
 
 my $firstRound = 1;
-my %scores = ( win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 );
+my %scores = ( win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 );
 my @roles = qw/Black White/;
 
 
@@ -52,7 +52,7 @@ for my $round (@rounds) {
                   : $result == $scores{win}    ? 'Win'
                   : $result == $scores{draw}   ? "Draw"
                   : $result == $scores{loss}   ? "Loss"
-                  : $result == $scores{absent} ? 'Absent'
+                  : $result == $scores{forfeit} ? 'Forfeit'
                   : "Error";
             }
             die
