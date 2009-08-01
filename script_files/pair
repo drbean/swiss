@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 27, 14時06分50秒
+# Last Edit: 2009  7月 28, 14時17分36秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -56,7 +56,6 @@ die "round $next directory name not a round number" unless
 						    $next =~ m/^\d+$/;
 my $previous = $next-1;
 my $round = $previous;
-my $n = 0;
 
 my $lineup;
 my @absentees = @{ $league->{absent} } if $league->{absent};
@@ -75,21 +74,7 @@ for my $late ( @$lateEntries ) {
     $tourney->enter($player);
 }
 
-$lineup = $tourney->entrants;
-my (%idcheck, %namecheck);
-for my $player ( @$lineup, @absentees ) {
-    my $id = $player->id;
-    my $name = $player->name;
-    if ( defined $idcheck{$id} ) {
-	die $name . " and $idcheck{$id} have the same id: $id";
-    }
-    if ( defined $namecheck{$name} ) {
-	warn "WARNING: $id and $namecheck{$name} have the same name: " .
-	    $name . ". Proceeding, but BEWARE there may be problems later,";
-    }
-    $idcheck{$id} = $name;
-    $namecheck{$name} = $id;
-}
+$tourney->idNameCheck;
 
 # $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 $tourney->assignPairingNumbers;
@@ -151,6 +136,7 @@ our (@names, @ids, @scores);
 open REP, '>-' or die 'STDOUT? $!';
 REP->format_top_name('TOP');
 REP->format_name('PAIRS');
+my $n = 0;
 for my $table (@tables) {
     my $players = $table->contestants;
     $schedule->{group}->{ ++$n } = $players;
@@ -188,7 +174,7 @@ for my $n ( 0 .. $#tables ) {
     my $table = $tables[$n];
     my $contestants = $table->contestants;
     my %members = map { $_ => $contestants->{$_}->name } keys %$contestants;
-    $template->{$n} = { reverse %members };
+    $template->{++$n} = { reverse %members };
     $groups{$n} = \%members;
 }
 $schedule->{group} = \%groups;
