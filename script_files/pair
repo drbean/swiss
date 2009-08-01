@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 28, 14時21分55秒
+# Last Edit: 2009  7月 29, 07時28分33秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -46,7 +46,6 @@ $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
 require Games::Tournament::Swiss;
 require Games::Tournament::Contestant::Swiss;
-require Games::Tournament::Card;
 
 use File::Spec;
 use File::Basename;
@@ -127,6 +126,9 @@ my ($schedule, $template);
 $schedule->{Warning} =
   "# This file, $directory/round.yaml, was created for round $next by pair on "
   . localtime() . '.';
+$schedule->{round} = $next;
+$schedule->{date} = localtime;
+
 if ( -e '../assistants.yaml' ) {
     my $assistantFile = LoadFile '../assistants.yaml';
     $schedule->{assistant} = $assistantFile->{$next};
@@ -165,10 +167,6 @@ if ( $lateEntries ) {
     DumpFile '../league.yaml', $league;
 }
 
-$schedule->{round} = $next;
-
-DumpFile 'matches.yaml', \@games;
-
 my %groups;
 for my $n ( 0 .. $#tables ) {
     my $table = $tables[$n];
@@ -185,7 +183,7 @@ DumpFile 'round.yaml', $schedule;
 DumpFile "$next.yaml", $template;
 
 format TOP =
-		  @<<<<<<<< @<<<<<<<<< @<<<<< @<< @<<<<<<<<<<<
+		  @<<<<<<<< @<<<<<<<< @<<<< @<< @<<<<<<<<<<<<<<<
 $league->{name}, 'Pairings,', 'Round', $tourney->round . ',', $schedule->{date}
               @<<<<<                              @<<<<<
 $roles->[0],                               $roles->[1]  
