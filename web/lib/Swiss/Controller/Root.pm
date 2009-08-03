@@ -39,14 +39,65 @@ sub default :Path {
     $c->response->status(404);
 }
 
-=head2 first
+
+=head2 swiss
+
+Request a pairing of a tournament
+
+=cut 
+
+sub swiss : Local {
+	my ($self, $c) = @_;
+}
+
+
+=head2 name
+
+Tournament name
+
+=cut
+
+sub name : Local {
+        my ($self, $c) = @_;
+	my $tournament = $c->request->params->{tournament};
+	$c->stash->{tournament} = $tournament;
+	$c->response->cookies->{tournament} = { value => $tournament };
+	$c->stash->{template} = 'players.tt2';
+}
+
+
+=head2 players
 
 First round, players, number of rounds
 
 =cut
 
-sub first : Local {
+sub players : Local {
         my ($self, $c) = @_;
+	$c->stash->{tournament} = $c->request->cookie('tournament')->value;
+	my %cookies = ( id => undef, name => undef, rating => undef );
+	for my $key ( qw/id name rating/ ) {
+		if ( defined $c->request->cookie($key) ) {
+			my @cookies = $c->request->cookie($key)->value;
+			$cookies{$key} = \@cookies;
+		}
+	}
+	my $playerN = ref $cookies{id} eq 'ARRAY'? @{ $cookies{id} }: 0;
+	my @playerlist = map { { id => $cookies{id}->[$_],
+				name => $cookies{name}->[$_],
+				rating => $cookies{rating}->[$_] } }
+				0 .. $playerN-1;
+	my %entrant = map { $_ => $c->request->params->{$_} }
+							qw/id name rating/;
+
+	for my $key ( qw/id name rating/ ) {
+		my $cookie = $cookies{$key};
+		push @$cookie, $entrant{$key};
+		$c->response->cookies->{$key} = { value => $cookie };
+	}
+	push @playerlist, \%entrant;
+$DB::single=1;
+	$c->stash->{playerlist} = \@playerlist;
 }
 
 
