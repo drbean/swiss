@@ -1,291 +1,187 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 ## TODO: Sicherheitschecks, damit Skript nicht in endloser Schleife landet?
 ## TODO: Sicherheitschecks, damit Skript nicht endlos in 'tmpfile' loggt!
-## TODO: Sicherung einbauen, damit nicht nach Turnierstart noch
-##       Teilnehmer hinzugefügt werden.
-## TODO: Paarungen für Runden aufheben
+## TODO: I have to add some code to prevent that the list of players
+##       couldn't be changed (perhaps accidentally) once the tournament is
+##       started. An exception would be to remove a player from the
+##       tournament.
+## TODO: Paarungen fuer Runden aufheben
+## TODO: Paarungen manuell aendern
 ## TODO: Sicherheitschecks beim Lesen und Schreiben der Datei
-## TODO: use perldoc
+## TODO: Doppelten Code mit select_tournament.pl abgleichen 
+##       eventuell in ein Skript integrieren?
+## TODO: complete and structure perldoc
+## TODO: Disable CGI::Carp for productive use.
+## TODO: PBP anwenden
+##       * 3 argument form of open()
+## TODO: kampflose Punkte! (Gewinner und Verlierer)
 
 use strict;
 use warnings;
 
-=head1 NAME
+## TODO: PBP anwenden: Versionsnummerierung
+my $VERSION = '0.0.10';
 
-tournament.pl
+## adjust this settings for your site
 
-=head1 VERSION
+## CGI script resides here
+my $CGIDIR = '/home/greg/bin/pairing';
+# my $CGIDIR = '/home/pacs/mih01/users/cb02/doms/aglaz.de/cgi/swiss-pairing';
 
-Version 0.04
+## directory for tournaments
+my $TOURNAMENTBASEDIR = '/home/greg/public_html/pairing/';
+# my $TOURNAMENTBASEDIR = '/home/pacs/mih01/users/cb02/doms/aglaz.de/subs/www/swiss-pairing/tournaments';
 
-=head1 DESCRIPTION
+## perl modules in non-standard places
+# use lib qw(/home/pacs/mih01/users/cb02/lib);
 
-This small CGI script is part of a project to create a perl-based web
-interface for management of swiss chess tournaments. It is used for adding and
-removing participants, creating pairings and displaying crosstables. That is,
-it allows to do the basic things of tournament management.
+## we use the following modules 
 
-=head1 DOCUMENTATION
-
-=head2 Setup
-
-=over 8
-
-Adjust the following settings for your site.
-
-=item C<$CGIDIR>
-
-Directory where CGI scripts reside.
-
-=item C<$TOURNAMENTBASEDIR>
-
-Directory where tournaments are stored.
-
-=item C<$PAIRSCRIPTDIR>
-
-Directory where pair scripts from Games::Tournament::Swiss reside.
-
-=cut
-
-my $CGIDIR = '/home/pacs/mih01/users/cb02/doms/aglaz.de/cgi/swiss-pairing';
-# my $CGIDIR = '/home/christian/bin/pairing';
-my $TOURNAMENTBASEDIR = '/home/pacs/mih01/users/cb02/doms/aglaz.de/subs/www/swiss-pairing/tournaments';
-# my $TOURNAMENTBASEDIR = '/home/christian/public_html/pairing/';
-my $PAIRSCRIPTDIR = '/home/pacs/mih01/users/cb02/lib/bin';
-# my $PAIRSCRIPTDIR = '/opt/perl_modules/Games-Tournament-Swiss-0.08/script_files';
-
-=item C<Local Modules>
-
-Set the directory where perl modules are installed. Only needed if you
-installed modules in non standard directories (e.g. because you didn't have
-permissions to installed them system wide).
-
-use lib qw(/path/to/modules/directory);
-
-=back
-
-=cut
-
-use lib qw(/home/pacs/mih01/users/cb02/lib);
-
-=head2 Modules
-
-=over 8
-
-The script depends on the following modules.
-
-=item C<CGI>
-
-Needed because the script is used via a web frontend.
-
-=item C<YAML>
-
-Needed because Games::Tournament::Swiss uses YAML files.
-
-=item C<Locale::Maketext::Simple>
-
-Used for internationalization. (See I18n below.)
-
-=item C<Games::Tournament::Swiss::Config>
-
-Module by Dr Bean for Swiss Tournaments. See http://search.cpan.org/dist/Games-Tournament-Swiss/
-
-=back
-
-=cut
-
-use CGI;
-use YAML qw(LoadFile DumpFile);
-use Locale::Maketext::Simple (   ## i18n, 'perldoc Locale::Maketext::Simple'
+## the script is based on CGI.pm
+use CGI qw(:standard *table *Tr *th *td);
+## TODO: disable this for productive use
+use CGI::Carp qw(fatalsToBrowser); 
+## i18n, 'perldoc Locale::Maketext::Simple'
+use Locale::Maketext::Simple (   
     Path => './language_files',
     Style => 'gettext'
 );
+
+## the following is related to Games::Tournament::Swiss
 use Games::Tournament::Swiss::Config;
 
-=head2 I18n
+## we need this to load Games::Tournament::Swiss
+my $roles = [qw/Black White/];
+my $scores = { win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
+my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
+@Games::Tournament::Swiss::Config::roles = @$roles;
+%Games::Tournament::Swiss::Config::scores = %$scores;
+$Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
-=over 8
+require Games::Tournament::Contestant::Swiss;
+require Games::Tournament::Swiss;
 
-The script uses Locale::Maketext::Simple for internationalization. 
-
-Language files like 'en.po' or 'de.po' are in the subdirectory
-'./language_files'. For more informations see
-http://search.cpan.org/~audreyt/Locale-Maketext-Simple-0.18/
-
-=back
-
-=cut
-
+## TODO: PBP -- constants?
 my $DATAFILE = 'tournament_data';        ## contains tournament data
-my $PARTICIPANTS = 'league.yaml';        ## file with participants
-my $SCORES = 'scores';                   ## directory to enter scores
 my $CGISCRIPT = 'tournament.pl';         ## CGI script to manage tournament
 my $CGISELECT = 'select_tournament.pl';  ## CGI script to select tournaments
 
-## An Version 0.08 angepasst (pairingtable -> pairtable2yaml, pair)
-## compare README for Games::Tournament::Swiss
-my $PAIRSCRIPT = "$PAIRSCRIPTDIR/pair";
-my $PAIRTABLE2YAMLSCRIPT = "$PAIRSCRIPTDIR/pairtable2yaml";
-my $PAIRINGTABLESCRIPT = "$PAIRSCRIPTDIR/pairingtable";
-my $CROSSTABLESCRIPT = "$PAIRSCRIPTDIR/crosstable";
-my $PAIRINGTABLE = "pairingtable.txt";
-my $PAIRTABLEYAML = "pairtable.yaml";
 my @LANGUAGES = qw(en de);              ## defined languages
-
-my $t_dir;            ## directory, CGI param (hidden) to identify tournament
-my $t_name;           ## tournament name
-my $rounds;           ## number of rounds
 
 my $q = new CGI;      ## new CGI object
 
 my $language = set_language();
 my $action = get_action();
 
-## checking which tournament we want to work on
-unless ($q->param('t_dir')) {    ## no tournament selected
-    print_error_no_tournament_selected();
-    die;
-} else {
-    unless ($q->param('t_dir') =~ /(\w+)$/) { ## got strange dir via CGI
-        print_error_no_tournament_selected();
-        die;
-    } else {   ## everything seems okay
-        ## untainting $t_dir (securing user input)
-        $t_dir = $1;
-    }
-}
-
-
-## tournament directory we work on
-my $TOURNAMENTDIR = "$TOURNAMENTBASEDIR/$t_dir";
-
-## TODO: error handling
-open (TDATA, "$TOURNAMENTDIR/$DATAFILE") || die "Couldn't open file $TOURNAMENTDIR/$DATAFILE";
-while (<TDATA>) {
-    if (/^tournament name: (.*)$/) {
-        $t_name = $1;
-    }
-    if ((/^rounds: (\d+)$/) and ($1 > 2) and ($1 < 10)) {
-        $rounds = $1;
-    }
-}
-close(TDATA);
-
 ## some other variables
-my $title;
-my $league;     ## all players in YAML data structure
 my $lineup;     ## list of all players
 my $member;     ## index variable for several players within YAML data
-my $message;
 my $round;
-my $prevround;
 my %Black;
 my %ResBlack;
 my %White;
 my %ResWhite;
 my $board;
-my @results;
+my @Bye;
 my @scores;
-my $Player;
 
-print $q->header;            ## print HTML headers
+my $t_dir = get_tournament_dir();
+my $TOURNAMENTDIR = "$TOURNAMENTBASEDIR/$t_dir";
 
-## Read participants from .yaml-file $PARTICIPANTS
-## TODO: error handling
-$league = LoadFile "$TOURNAMENTDIR/$PARTICIPANTS";
+my ($t_name, $rounds, $status) =  get_tournament_data();
 
+my @all_players = read_players_from_data_file();
+
+## print HTML headers
+print $q->header;            
+
+## manage participants
 if ($action eq 'manage_participants') { 
+    print $q->start_html( -title => loc("(Participants)") ), "\n",
+          $q->h1( loc("(Manage participants for tournament %1)", $t_name) ),
+          "\n", $q->hr, "\n";
     show_page_for_managing_participants();
-} elsif ($action eq 'add_participant') {
-    add_participant();
+} 
+## add participants
+elsif ($action eq 'add_participant') {
+    print $q->start_html( -title => loc("(Participants)") ), "\n",
+          $q->h1( loc("(Manage participants for tournament %1)", $t_name) ),
+          "\n", $q->hr, "\n";
+    add_participant(@all_players);
     show_page_for_managing_participants();
-} elsif ($action eq 'delete_participant') {
-    delete_participant();
+} 
+## delete participants
+elsif ($action eq 'delete_participant') {
+    print $q->start_html( -title => loc("(Participants)") ), "\n",
+          $q->h1( loc("(Manage participants for tournament %1)", $t_name) ),
+          "\n", $q->hr, "\n";
+    delete_participant(@all_players);
     show_page_for_managing_participants();
-} elsif ($action eq 'pairings_or_results') {
+} 
+## we've got new results
+elsif ($action eq 'new_results') {
     print $q->start_html( -title => loc( "(Pairings and Results)" ) ), "\n",
           $q->h1( loc( "(Pairings and Results)" ) ), "\n";
-    get_round_number();
-    ## get results via CGI data
-    ## each result is one of "1 : 0", "= : =", "0 : 1"
-    $board = 1;
-    while ($q->param("Board$board")) {
-        $results[$board] = $q->param("Board$board");
-        $board++;
-    }
-    if ($q->param("Board1")) {      ## are there new results?
-        read_pairings();              ## read pairings from file
-        open(RESULTS, ">$TOURNAMENTDIR/$SCORES/$round.yaml");
-        ## write results to file
-        foreach $board (sort {$a <=> $b} keys(%White)) {
-            if ($results[$board] =~ /^1 : 0$/) {
-                print RESULTS "\'$White{$board}\': Win\n";
-                print RESULTS "\'$Black{$board}\': Loss\n";
-            } elsif ($results[$board] =~ /^= : =$/) {
-                print RESULTS "\'$White{$board}\': Draw\n";
-                print RESULTS "\'$Black{$board}\': Draw\n";
-            } elsif ($results[$board] =~ /^0 : 1$/) {
-                print RESULTS "\'$White{$board}\': Loss\n";
-                print RESULTS "\'$Black{$board}\': Win\n";
-            }
-        }
-     close(RESULTS);
-    }
-    if (! -e "$TOURNAMENTDIR/$round/round.yaml") {
-        if ((-e "$TOURNAMENTDIR/$SCORES/$prevround.yaml") or ($round == 1)) {
-            print $q->p( loc("(There are no pairings for round %1. Trying to generate them.)", $round) );
-            generate_pairings();
-        } else {
-            print $q->p( loc("(Round %1 cannot be paired yet. Please check results of previous rounds.)", $round) );
-        }
-    }
-    if (-e "$TOURNAMENTDIR/$round/round.yaml") {
-        if (-e "$TOURNAMENTDIR/$SCORES/$round.yaml") {
-            print $q->p( loc("(Results of round %1:)", $round) );
-            print_results();
-        } else {
-            read_pairings();
-            print $q->p( loc("(Please enter results of round %1:)", $round) ),
-                  $q->start_form( -action => "./$CGISCRIPT",
-                                  -method => 'post' );
-            ## print results
-            foreach $board (sort {$a <=> $b} keys(%White)) {
-                print $q->p,
-                      "Brett $board: $White{$board} -- $Black{$board} \n",
-                      $q->popup_menu( -name => "Board$board", 
-                          -values => [('1 : 0', '= : =', '0 : 1')]), "\n";
-            }
-            print_button_save_results();
-        }
-    }
-    print_link_to_main_page();
+    $round = get_round_number();
+    read_pairings_from_file($round);
+    my @results = get_new_results_from_cgi_params();
+    write_new_results_to_file($round,@results);
+    read_results_from_file_and_display_them($round);
+    print_button_main_page();
     print $q->end_html;
-} elsif ($action eq 'standings') {
-    get_round_number();
-    print $q->start_html( -title => loc("(Standings)") ), "\n",
-          $q->h1( loc("(Standings)") ), "\n"; 
-    run_crosstablescript();
-    print_link_to_main_page();
-    print $q->end_html;
-} elsif ($action eq 'pairing_table') {
-    get_round_number();
-    print $q->start_html( -title => loc("(Pairing Table)") ), "\n",
-          $q->h1( loc("(Pairing Table)") ), "\n"; 
-    run_pairingtablescript();
-    print_link_to_main_page();
-    print $q->end_html;
-} elsif ($action eq 'debug') {
-    get_round_number();
-    ## TODO: error handling
-    open(TMPFILE, "$TOURNAMENTDIR/$round/tmpfile");
-    while (<TMPFILE>) {
-        print $_, $q->br;
+} 
+## pairings or results are requested
+elsif ($action eq 'pairings_or_results') {
+    print $q->start_html( -title => loc( "(Pairings and Results)" ) ), "\n",
+          $q->h1( loc( "(Pairings and Results)" ) ), "\n";
+    $round = get_round_number();
+    my $prevround = $round-1;
+
+    ## there are results for this round
+    if (-e "$TOURNAMENTDIR/rd_${round}_results") {
+        ## read results from file and print them
+        read_results_from_file_and_display_them($round);
     }
-    close(TMPFILE);
-    print_link_to_main_page();
+    ## there are no results, but pairings for this rounds
+    elsif (-e "$TOURNAMENTDIR/rd_${round}_pairings") {
+        ## read pairings and print form to input results
+        read_pairings_from_file($round);
+        print_form_save_results($round);
+    }
+    ## no results, no pairings for this round, but results for prev. round
+    elsif ((-e "$TOURNAMENTDIR/rd_${prevround}_results") or ($round == 1)) {
+        ## generate pairings, and print form to input results
+        print $q->p( loc("(There are no pairings for round %1. Trying to generate them.)", $round) );
+        generate_pairings($round,$rounds);
+        read_pairings_from_file($round);
+        print_form_save_results($round);
+    }
+    ## no results, no pairings for this round, no results for prev. round
+    else {
+        ## print error message
+        print $q->p( loc("(Round %1 cannot be paired yet. Please check results of previous rounds.)", $round) );
+    }
+    print_button_main_page();
     print $q->end_html;
-} else {
+} 
+## current standing
+elsif ($action eq 'standings') {
+    $round = get_round_number();
+    print_crosstable($round,$rounds);
+} 
+## pairing table after current round
+elsif ($action eq 'pairing_table') {
+    $round = get_round_number();
+    compute_and_print_pairingtable($round,$rounds);
+} 
+## debug (view log of pairing procedure)
+elsif ($action eq 'debug') {
+    $round = get_round_number();
+    read_and_display_log_file($round);
+} 
+## main page for tournament management
+else {
     print $q->start_html( -title => loc("(Management of tournament)") ), "\n";
     print_language_menu();
     print $q->h1( loc("(Management for tournament %1)", $t_name) ), 
@@ -299,18 +195,6 @@ if ($action eq 'manage_participants') {
     print $q->end_html;
 }
 
-=head2 Functions
-
-=head3 Program Functions (for executing "real" program code)
-
-=item C<set_language>
-
-Sets language for internationalization (see above) according to CGI parameter
-'lang' and returns the language. If no value is specified via CGI param, the
-default value 'en' is used. 'lang' is one of ('en', 'de').
-
-=cut
-
 sub set_language {
     my $lang;
     if ($q->param('lang')) {
@@ -322,14 +206,6 @@ sub set_language {
     return $lang;
 }
 
-=item C<get_action>
-
-Returns the 'action' parameter defined via CGI-form. 'action' is one of
-('manage_participants', 'pairings_or_results', 'standings', 'pairing_table',
-'debug', 'add_participant', 'delete_participant', '').
-
-=cut
-
 sub get_action {
     if ( $q->param('action') ) {
         return $q->param('action');
@@ -338,83 +214,372 @@ sub get_action {
     }
 }
 
-=item C<run_pairingtablescript>
-
-Print the pairing table after a given round. An external script
-('pairingtable') is executed and its output is printed as preformatted text.
-
-=cut
-
-sub run_pairingtablescript {
-    print "<pre>\n";
-    ## TODO: chdir ersetzen?
-    ## TODO: error handling
-    chdir("$TOURNAMENTDIR");
-    print `perl $PAIRINGTABLESCRIPT $round`;
-    chdir("$CGIDIR");
-    print "</pre>\n";
+sub get_tournament_dir {
+    unless ($q->param('t_dir')) {
+        print_error_no_tournament_selected();
+        die;
+    } else {
+        unless ($q->param('t_dir') =~ /(\w+)$/) {
+            print_error_no_tournament_selected();
+            die;
+        } else {
+            return $1;
+        }
+    }
 }
 
-=item C<run_crosstablescript>
-
-Print the crosstable after a given round. An external script ('crosstable') is
-executed and its output is printed as preformatted text.
-
-=cut
-
-sub run_crosstablescript {
-    print "<pre>\n";
-    ## TODO: chdir ersetzen?
+sub get_tournament_data {
+    my @t_data;
     ## TODO: error handling
-    chdir("$TOURNAMENTDIR");
-    print `perl $CROSSTABLESCRIPT $round`;
-    chdir("$CGIDIR");
-    print "</pre>\n";
+    open (TDATA, "$TOURNAMENTDIR/$DATAFILE") || die "Couldn't open file $TOURNAMENTDIR/$DATAFILE";
+    while (<TDATA>) {
+        if (/^tournament name: (.*)$/) {
+            $t_data[0] = $1;
+        }
+        if ((/^rounds: (\d+)$/) and ($1 > 2) and ($1 < 10)) {
+            $t_data[1] = $1;
+        }
+        if (/^status: (.*)$/) {
+            $t_data[2] = $1;
+        }
+    }
+    close(TDATA);
+    return @t_data;
 }
 
-=item C<get_round_number>
+sub compute_and_print_pairingtable {
+    my $round = shift;
+    my $rounds_total = shift;
+    my $table;
 
-Sets round number $round according to CGI param 'round'. Value of $round is
-untainted. Also sets $prevround = $round-1.
+    print $q->start_html( -title => loc("(Pairing Table)") ), "\n",
+          $q->h1( loc("(Pairing Table)") ), "\n"; 
 
-=cut
+    ## TODO: check whether we have results for this round
+    ## TODO: try to factor out duplicate code from crosstable,
+    ##       generate_pairing and pairingtable 
+
+    ## map actual results and numerical results for internal use
+    my %map = ('Win','1','Bye','1','Draw','0.5','Loss','0','Absent','0');
+
+    ## get players
+    my @players = read_players_from_data_file();
+
+    ## create tournament object
+    my $tourney = Games::Tournament::Swiss->new( rounds => $rounds_total, 
+                                                 entrants => \@players );
+
+    ## IMPORTANT: assing pairing numbers and initialize preferences
+    ## otherwise $tourney->formBrackets doesn't work (see below)
+    $tourney->assignPairingNumbers( @players );
+    $tourney->initializePreferences;
+    $tourney->round(0);
+
+    ## if there are earlier rounds: add games to our tournament
+    foreach my $round_number (1..$round) {
+        ## get games (list of hash references) 
+        my @games = read_games_from_file($tourney,$round_number);
+
+        ## taken from t/three.t of Games::Tournament::Swiss
+        ## not sure what it does exactly
+        $tourney->collectCards(@games);
+
+        ## get colors and floats from game data
+        foreach my $game ( @games ) {
+            if ( $game->{contestants}->{Bye} ) { 
+                my $bye = $game->{contestants}->{Bye};
+                my $id = $bye->id;
+                $table->{$id}->{id} = $id;
+                my $opponent = 
+                   Games::Tournament::Contestant->new(name=>"Bye",id=>"-");
+                $table->{$id}->{opponents} .= $opponent->id . ",";
+                my $role = '-';
+                $table->{$id}->{roles} .= $role;
+            }
+            else {
+                ## get players for this game
+                my $white = $game->{contestants}->{White};
+                my $black = $game->{contestants}->{Black};
+    
+                ## get colors (roles) and add them to player objects
+                $white->roles( $game->myRole($white) );
+                $black->roles( $game->myRole($black) );
+    
+                ## check for floats and add them to player objects
+                my $result_white = $map{$game->{result}->{White}};
+                my $result_black = $map{$game->{result}->{Black}};
+    
+                ## white had higher score before game 
+                if ( ( $white->score - $result_white ) 
+                       > ( $black->score - $result_black ) ) {
+                    ## white floats down, black floats up
+                    $white->floats( $round_number, 'Down' );
+                    $black->floats( $round_number, 'Up' );
+                }
+                ## white had lower score before game 
+                elsif ( ( $white->score - $result_white ) 
+                       < ( $black->score - $result_black ) ) {
+                    ## white floats down, black floats up
+                    $white->floats( $round_number, 'Up' );
+                    $black->floats( $round_number, 'Down' );
+                }
+    
+                ## taken from 'pairtable' script
+                my $id_white = $white->id;
+                my $id_black = $black->id;
+                $table->{$id_white}->{id} = $id_white;
+                $table->{$id_black}->{id} = $id_black;
+                my $opponent_black = $black->myOpponent($game);
+                my $opponent_white = $white->myOpponent($game);
+                $table->{$id_white}->{opponents} .= $opponent_white->id . ",";
+                $table->{$id_black}->{opponents} .= $opponent_black->id . ",";
+                my $role_white = $game->myRole($white);
+                my $role_black = $game->myRole($black);
+                $role_white =~ s/^(.).*$/$1/;
+                $role_black =~ s/^(.).*$/$1/;
+                $table->{$id_white}->{roles} .= $role_white;
+                $table->{$id_black}->{roles} .= $role_black;
+            }
+        }
+
+        ## taken from t/three.t of Games::Tournament::Swiss
+        ## not sure what it does exactly
+        $tourney->round($round_number);
+    }
+
+    ## form brackets with equal total scores
+    my %brackets = $tourney->formBrackets;
+
+    ## taken from 'pairtable' script
+    my $playerN = 0;
+
+    my @rounds = (1..$round);
+    print "<pre>\n";
+
+    print "
+                Round @{[$#rounds+2]} Pairing Groups
+-------------------------------------------------------------------------
+Place  No  Opponents     Roles     Float Score
+";
+    for my $index ( reverse sort keys %brackets )
+    {
+            $playerN++;
+            my $place = $playerN;
+            my @members = @{$brackets{$index}->members};
+            $place .= '-' . ($playerN+$#members) if $#members;
+            $playerN += $#members;
+            print "$place\n";
+            foreach my $member ( @members )
+            {
+                    my $id = $member->id;
+                    chop $table->{$id}->{opponents};
+                    my $floats = $member->floats;
+                    my $float = '';
+                    $float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
+                    $float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
+                    $float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+                    $float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
+    
+            format STDOUT =
+@<<<<< @<< @<<<<<<<<<<<<< @<<<<<<<< @<< @<<<
+"", $id,  $table->{$id}->{opponents}, $table->{$id}->{roles}, $float, $member->score
+.
+            write;
+            }
+    }
+    print "</pre>\n";
+    print_button_main_page();
+    print $q->end_html;
+}
+
+sub print_crosstable {
+    my $round = shift;
+    my $rounds_total = shift;
+
+    print $q->start_html( -title => loc("(Standings)") ), "\n",
+          $q->h1( loc("(Standings)") ), "\n"; 
+
+    ## map actual results and symbols for use in table
+    my %map = ('Win','+','Bye','+','Draw','=','Loss','-','Absent','-');
+
+    ## TODO: check whether we have results for this round
+    my @players = read_players_from_data_file();
+    my $tourney = Games::Tournament::Swiss->new( entrants => \@players );
+    ## get games
+    foreach my $round_number (1..$round) {
+        my @games = read_games_from_file($tourney,$round_number);
+        $tourney->collectCards(@games);
+    }
+
+    ## rank players 
+    my @players_ranked = $tourney->rank(@{$tourney->{entrants}});
+
+    ## create hash with names of players (keys) and ranks (values)
+    my $number_of_players = @players_ranked;
+    my %players_rank;
+    foreach my $rank (1..$number_of_players) {
+        $players_rank{$players_ranked[$rank-1]->{name}} = $rank;
+    }
+
+    ## start output
+    print $q->start_table( { -class => 'standings' } ), "\n";
+
+    ## table header
+    print $q->start_Tr(), "\n";
+    print $q->start_th(), loc("(Rank)"), $q->end_th, "\n";
+    print $q->start_th(), loc("(No)"), $q->end_th, "\n";
+    print $q->start_th(), loc("(Name)"), $q->end_th, "\n";
+    print $q->start_th(), loc("(Rating)"), $q->end_th, "\n";
+    ## columns for all rounds (played an coming)
+    foreach my $round_number (1..$rounds_total) { 
+        print $q->start_th(), $round_number, $q->end_th, "\n";
+    }
+    print $q->start_th(), loc("(Points)"), $q->end_th, "\n";
+    print $q->end_Tr(), "\n";
+
+    ## rows for players and results
+    my $rank = 1;
+    foreach my $player (@players_ranked) {
+        print $q->start_Tr(), "\n";
+        print $q->start_td(), $rank, $q->end_td, "\n";
+        print $q->start_td(), $player->{pairingnumber}, $q->end_td, "\n";
+        print $q->start_td(), $player->{name}, $q->end_td, "\n";
+        print $q->start_td(), $player->{rating}, $q->end_td, "\n";
+
+        ## result and opponent for rounds played 
+        foreach my $round_number (1..$round) {
+            ## determine opponent
+            ## TODO: is this error-prone? (e.g. no opponent found?)
+            my $opp = $player->myOpponent(
+                          $tourney->{play}->{$round_number}->{$player->{id}}
+                      );
+
+            ## print result and rank of opponent
+            print $q->start_td(),
+                  $map{$player->{scores}->{$round_number}},
+                  $players_rank{$opp->{name}},
+                  $q->end_td(), "\n";
+        }
+
+        ## mark future rounds with a simple dot
+        if ( $round < $rounds_total ) {
+            foreach my $round_number ($round+1..$rounds_total) {
+                print $q->start_td(), ".", $q->end_td, "\n";
+            }
+        }
+
+        print $q->start_td(), $player->score, $q->end_td, "\n";
+
+        print $q->end_Tr(), "\n";
+        $rank++;
+    }
+
+    print $q->end_table, "\n";
+
+    print_button_main_page();
+    print $q->end_html;
+}
+
+sub read_games_from_file {
+    my $tourney = shift;
+    my $r = shift;
+    my $ResWhite;
+    my $ResBlack;
+    my $game;
+    my @games;
+    open(GAMES,"$TOURNAMENTDIR/rd_${r}_results");
+    while (<GAMES>) {
+        if ( /^Board \d+: (.*)$/ ) {
+            my ($White,$Black,$result) = split (/\t/,$1);
+            if ( $result eq '= : =' ) {
+                $ResWhite = 'Draw';
+                $ResBlack = 'Draw';
+            } elsif ( $result eq '1 : 0' ) {
+                $ResWhite = 'Win';
+                $ResBlack = 'Loss';
+            } elsif ( $result eq '0 : 1' ) {
+                $ResWhite = 'Loss';
+                $ResBlack = 'Win';
+            }
+            $game = Games::Tournament::Card->new(
+                round => $r,
+                contestants => { Black => $tourney->named($Black),
+                                 White => $tourney->named($White) },
+                result => { Black => $ResBlack, White => $ResWhite },
+            );
+            push(@games,$game);
+        }
+        if ( /^Bye: (.*)$/ ) {
+            $game = Games::Tournament::Card->new(
+                round => $r,
+                contestants => { Bye => $tourney->named($1) },
+                result => { Bye => 'Bye' }
+            );
+            push(@games,$game);
+        }
+    }
+    close(GAMES);
+    return @games;
+}
 
 sub get_round_number {
+    my $round;
     if ($q->param('round') =~ /(\d+)/) { $round = $1; }
-    $prevround = $round-1;
+    return($round);
 }
 
-=item C<read_pairings>
-
-Reads pairings from $TOURNAMENTDIR/$round/round.yaml into separate hashes
-%White and %Black. Keys for this hashes are the board numbers.
-
-=cut
-
-sub read_pairings {
-	open(PAIRING,"$TOURNAMENTDIR/$round/round.yaml");
+sub read_pairings_from_file {
+    my $r = shift;
+    undef(@Bye);
+    undef(%White);
+    undef(%Black);
+    open(PAIRING,"$TOURNAMENTDIR/rd_${r}_pairings");
     while (<PAIRING>) {
-        if (/^  (\d+):/) {        ## line with board number
-            $board = $1+1;
+        ## player with a bye
+        if (/^Bye: (.*)\n$/) {        
+            push (@Bye, $1);
         }
-        if (/Black: '(.*)'/) {    ## player with black pieces
-            $Black{$board} = $1;
+        ## normal line with White and Black
+        elsif (/^Board (\d+): (.*)\t(.*)\n$/) {        
+            $board = $1;
+ 			$White{$board} = $2;
+            $Black{$board} = $3;
         }
- 		if (/White: '(.*)'/) {    ## player with white pieces
- 			$White{$board} = $1;
- 		}
     }
 	close(PAIRING);
 }
 
-=item C<get_result>
+sub get_new_results_from_cgi_params {
+    my $board = 1;
+    my @results;
+    while ($q->param("Board$board")) {
+        $results[$board] = $q->param("Board$board");
+        $board++;
+    }
+    return @results;
+}
 
-Returns "single character value" for literal result. 
- 'Win'  -> '1'
- 'Draw' -> '='
- 'Loss' -> '0'
-
-=cut
+## TODO: Besser Dokumentieren
+sub write_new_results_to_file {
+    my $round = shift;
+    my @results = @_;
+    open(RESULTS_NEW, ">$TOURNAMENTDIR/rd_${round}_results");
+    foreach $board ( sort {$a <=> $b} keys(%White)) {
+        print RESULTS_NEW "Board $board: ",
+                          "$White{$board}",
+                          "\t",
+                          "$Black{$board}",
+                          "\t",
+                          "$results[$board]",
+                          "\n";
+    }
+    if ( @Bye ) {
+        foreach ( @Bye ) {
+            print RESULTS_NEW "Bye: $_\n";
+        }
+    }
+    close(RESULTS_NEW);
+}
 
 sub get_result {
 	my $Player = shift();
@@ -428,26 +593,187 @@ sub get_result {
 }
 
 sub generate_pairings {
-    ## executing "pairingtable", "pairtable2yaml" and "pair"
-    ## as described in README of Games::Tournament::Swiss (v0.08)
-    chdir("$TOURNAMENTDIR");
-    system("perl $PAIRINGTABLESCRIPT > $PAIRINGTABLE");
-    system("perl $PAIRTABLE2YAMLSCRIPT $PAIRINGTABLE");
-    system("cp $PAIRTABLEYAML $round/$PAIRTABLEYAML");
-    ## TODO: chdir ersetzen?
-    ## TODO: error handling
-    chdir("$TOURNAMENTDIR/$round");
-    system("perl $PAIRSCRIPT 1>tmpfile 2>&1");
-    ## Use next line to log standard error only
-    # system("perl $PAIRSCRIPT 2>tmpfile");
-    chdir("$CGIDIR");
+    my $round = shift;
+    my $rounds_total = shift;
+
+    ## TODO: check whether we have results for this round
+
+    ## map actual results and numerical results for internal use
+    my %map = ('Win','1','Bye','1','Draw','0.5','Loss','0','Absent','0');
+
+    ## get players
+    my @players = read_players_from_data_file();
+
+    ## create tournament object
+    my $tourney = Games::Tournament::Swiss->new( rounds => $rounds_total, 
+                                                 entrants => \@players );
+
+    ## IMPORTANT: assing pairing numbers and initialize preferences
+    ## otherwise $tourney->formBrackets doesn't work (see below)
+    $tourney->assignPairingNumbers( @players );
+    $tourney->initializePreferences;
+    $tourney->round(0);
+
+    ## if there are earlier rounds: add games to our tournament
+    if ( $round ne '1' ) {
+        foreach my $round_number (1..$round-1) {
+            ## get games (list of hash references) 
+            my @games = read_games_from_file($tourney,$round_number);
+
+            ## taken from t/three.t of Games::Tournament::Swiss
+            ## not sure what it does exactly
+            $tourney->collectCards(@games);
+
+            ## get colors and floats from game data
+            foreach my $game ( @games ) {
+                if ( $game->{contestants}->{Bye} ) { 
+                    ## do we have to do something?
+                }
+                else {
+                    ## get players for this game
+                    my $white = $game->{contestants}->{White};
+                    my $black = $game->{contestants}->{Black};
+    
+                    ## get colors (roles) and add them to player objects
+                    $white->roles( $game->myRole($white) );
+                    $black->roles( $game->myRole($black) );
+    
+                    ## check for floats and add them to player objects
+                    my $result_white = $map{$game->{result}->{White}};
+                    my $result_black = $map{$game->{result}->{Black}};
+    
+                    ## white had higher score before game 
+                    if ( ( $white->score - $result_white ) 
+                        > ( $black->score - $result_black ) ) {
+                        ## white floats down, black floats up
+                        $white->floats( $round_number, 'Down' );
+                        $black->floats( $round_number, 'Up' );
+                    }
+                    ## white had lower score before game 
+                    elsif ( ( $white->score - $result_white ) 
+                        < ( $black->score - $result_black ) ) {
+                        ## white floats down, black floats up
+                        $white->floats( $round_number, 'Up' );
+                        $black->floats( $round_number, 'Down' );
+                    }
+                }
+            }
+
+            ## taken from t/three.t of Games::Tournament::Swiss
+            ## not sure what it does exactly
+            $tourney->round($round_number);
+        }
+    }
+
+    ## specify log file and select LOGFILE
+    open(LOGFILE, ">$TOURNAMENTDIR/rd_${round}_logfile");
+    select (LOGFILE);
+
+    ## form brackets with equal total scores
+    my %brackets = $tourney->formBrackets;
+
+    ## get a Games::Tournament::Swiss::Procedure object with given brackets
+    my $pairing = $tourney->pairing( \%brackets );
+
+    ## be verbose about pairing process
+    $pairing->loggingAll;
+
+    ## pair new round
+    my $paired = $pairing->matchPlayers;
+
+    ## select STDOUT and close log file
+    select (STDOUT);
+    close(LOGFILE);
+
+    ## prepare computed pairings for output
+    my $matches = $paired->{matches};
+    my @games;
+    ## dirty hack to get the order of matches right (added by CB 2008-07-11)
+    ## keys from %$matches are named "2.5", "2", "2Remainder", "0Bye" and so on
+    for my $bracket ( reverse sort {
+            if ( $a =~ /Bye$/ ) {
+                return -1;
+            }
+            elsif ( $b =~ /Bye$/ ) {
+                return 1;
+            }
+            elsif ( $a =~ /^(\d+\.?5?)Remainder$/ ) { 
+                if ( $1 eq $b ) {
+                    return -1;
+                }
+                else { 
+                    my $numbers_a = $1;
+                    if ( $b =~ /^(\d+\.?5?)Remainder$/ ) {
+                        return $numbers_a cmp $1;
+                    }
+                    else {
+                        return $numbers_a cmp $b; 
+                    }
+                }
+            }
+            elsif ( $b =~ /^(\d+\.?5?)Remainder$/ ) { 
+                if ( $1 eq $a ) {
+                    return 1;
+                }
+                else { 
+                    my $numbers_b = $1;
+                    if ( $a =~ /^(\d+\.?5?)Remainder$/ ) {
+                        return $1 cmp $numbers_b;
+                    }
+                    else {
+                        return $a cmp $numbers_b; 
+                    }
+                }
+            }
+            else { return $a cmp $b; }
+        } keys %$matches )
+    {
+        my $bracketmatches = $matches->{$bracket};
+        push @games, grep { $_ if ref eq 'Games::Tournament::Card' }
+            @$bracketmatches;
+    }
+
+    open(PAIRINGS, ">$TOURNAMENTDIR/rd_${round}_pairings");
+    my $n = 1;
+    foreach my $game (@games) {
+        if ( $game->{contestants}->{Bye} ) {
+            my $bye = $game->{contestants}->{Bye};
+            print PAIRINGS "Bye: $bye->{name}\n";
+        }
+        else {
+            my $white = $game->{contestants}->{White};
+            my $black = $game->{contestants}->{Black};
+    
+            print PAIRINGS "Board $n: ",
+                           "$white->{name}",
+                           "\t",
+                           "$black->{name}",
+                           "\n";
+        }
+        $n++;
+    }
+    close(PAIRINGS);
 }
 
-## subroutine to sort players according to rating and 
-## assign pairingnumbers
+sub read_and_display_log_file {
+    my $round = shift; 
+
+    ## TODO: error handling
+    print $q->start_html;
+    open(LOGFILE, "$TOURNAMENTDIR/rd_${round}_logfile");
+    while (<LOGFILE>) {
+        print $_, $q->br;
+    }
+    close(LOGFILE);
+    print_button_main_page();
+    print $q->end_html;
+}
+
 ## TODO: Is there a cleaner way to do this?
 sub sort_and_assign_pairingnumbers {
     my $players = shift;
+    # my $tourney = Games::Tournament->new( entrants => \@players );
+    # @players = $tourney->rank(@players);
     my $lineup;
     my $pairingnumber;
     my @ratings;
@@ -471,61 +797,113 @@ sub sort_and_assign_pairingnumbers {
     return $players = { member => $lineup };
 }
 
-## this subroutine adds a new participant to file $PARTICIPANTS
-## and returns a message which player was added
+sub read_players_from_data_file {
+    my @players;
+    my $new_player;
+    my $firstname;
+    my $surname;
+    my $rating;
+    my $id;
+    my $pairingNumber;
+    ## TODO: error handling
+    if (-e "$TOURNAMENTDIR/players") {
+        open(FILE,"$TOURNAMENTDIR/players");
+        while (<FILE>) {
+            chomp();
+            ($id,$pairingNumber,$surname,$firstname,$rating) = split(/\t/);
+            $new_player = Games::Tournament::Contestant::Swiss->new(
+                surname => $surname,
+                firstname => $firstname,
+                name => $surname . ", " . $firstname,
+                rating => $rating,
+                id => $id,
+                pairingnumber => $pairingNumber,
+                preference =>
+                    Games::Tournament::Contestant::Swiss::Preference->new
+            );
+            push(@players,$new_player);
+        }
+        close(FILE);
+    }
+    return(@players);
+}
+
+sub new_player_from_cgi_data {
+    my $id = shift;
+    my $firstname = $q->param('firstname');
+    my $surname = $q->param('surname');
+    my $rating = $q->param('dwz');
+    my $new_player = Games::Tournament::Contestant::Swiss->new( 
+        surname => $surname,
+        firstname => $firstname,
+        name => $surname . ", " . $firstname,
+        rating => $rating,
+        id => $id
+    );
+    return $new_player;
+}
+
+sub write_players_to_file_and_assign_pairing_number {
+    my @players = @_;
+    my $tourney = Games::Tournament->new( entrants => \@players );
+    @players = $tourney->rank(@players);
+    ## TODO: Is there a cleaner way to assign pairing numbers?
+    ## TODO: $tourney->assignPairingNumbers seems to expect other things
+    open(FILE,">$TOURNAMENTDIR/players");
+    my $n = 1;
+    foreach (@players) {
+        $_->pairingNumber($n);
+        print FILE "$_->{id}\t",
+                   "$_->{pairingNumber}\t",
+                   "$_->{surname}\t",
+                   "$_->{firstname}\t",
+                   "$_->{rating}\n";
+        $n++;
+    }
+    close(FILE);
+}
+
 sub add_participant {
+    my @players = @_;
     if ($q->param('firstname') and $q->param('surname')) {
-        ## get highest ID of "old" players
         my $maxid = 0;
-        for $member ( @{$league->{member} } ) {
-            if ($member->{id} >= $maxid) { $maxid = $member->{id}; }
+        foreach (@players) {
+            if ( $_->{id} >= $maxid) { $maxid = $_->{id}; }
         }
-        $maxid++;
         ## TODO: securing input?
-        ## add data for new player (yaml data structure)
-        ## to list of players $league
-        my $new_player = { 
-            id => $maxid, 
-            name => $q->param('surname') . ", " . $q->param('firstname'),
-            rating => $q->param('dwz') };
-        push @{$league->{member} }, $new_player;
-        $league = sort_and_assign_pairingnumbers($league);
-        ## save list of all players to $PARTICIPANTS
-        DumpFile("$TOURNAMENTDIR/$PARTICIPANTS", $league);
+        my $new_player = new_player_from_cgi_data($maxid+1);
+        push(@players,$new_player);
+        write_players_to_file_and_assign_pairing_number(@players);
     } else { 
-        ## incomplete data via CGI form
-        print $q->p( "Angaben unvollständig. Bitte Vor- 
-            und Nachnamen eingeben!" );
+        print $q->p( loc("(Incomplete data.)") ),
+              $q->p( loc("(Please insert firstname and surname!)") );
     }
 }
 
-## this subroutine adds a new participant to file $PARTICIPANTS
-## and returns a message which player was added
 sub delete_participant {
-	for $member ( @{$league->{member} } ) {
-	    unless ($member->{id} eq $q->param('id')) {
-            push @$lineup, $member;
+    my @players = @_;
+    my @left_players;
+    foreach (@players) {
+        unless ( $_->{id} eq $q->param('id') ) {
+            push(@left_players,$_);
         }
     }
-    ## put players from $lineup in YAML data structure
-    $league = { member => $lineup };
-    $league = sort_and_assign_pairingnumbers($league);
-    ## save list of all players to $PARTICIPANTS
-    DumpFile("$TOURNAMENTDIR/$PARTICIPANTS", $league);
+    write_players_to_file_and_assign_pairing_number(@left_players);
 }
 
-=head3 Output Functions (for printing HTML code)
+sub print_form_save_results {
+    my $round = shift;
 
-=item C<print_button_save_results>
+    print $q->p( loc("(Please enter results of round %1:)", $round) ),
+          $q->start_form( -action => "./$CGISCRIPT",
+                          -method => 'post' );
 
-Prints a button to save the results.
+    ## print HTML table with form elements for input of results
+    print_results_as_table('print_form');
 
-=cut
-
-sub print_button_save_results {
     print $q->p,
-          $q->hidden( -name => 'action', 
-                       -default => 'pairings_or_results' ), "\n",
+          $q->hidden( -name => 'action', -default => 'new_results',
+                      -override => 'true' ), "\n",
           $q->hidden( -name => 't_dir', 
                        -default => "$t_dir" ), "\n",
           $q->hidden( -name => 'round', 
@@ -536,47 +914,84 @@ sub print_button_save_results {
           $q->end_form, "\n";
 }
 
-## subroutine to print results
-sub print_results {
-	open(RESULTS,"$TOURNAMENTDIR/$SCORES/$round.yaml");
-		@scores = <RESULTS>;
-	close(RESULTS);
-	open(PAIRING,"$TOURNAMENTDIR/$round/round.yaml");
-	while (<PAIRING>) {
-        if (/^  (\d+):/) {          ## line with board number
-            $board = $1+1;
+## read results from file and display them
+sub read_results_from_file_and_display_them {
+    my $round = shift;
+
+    undef(@Bye);
+
+    ## read results from file
+    open(RESULTS,"$TOURNAMENTDIR/rd_${round}_results");
+    while (<RESULTS>) {
+        if ( /^Board (\d+): (.*)$/ ) {
+            my $board = $1;
+            my $result;
+            ($White{$board},$Black{$board},$result) = split (/\t/,$2);
+            ($ResWhite{$board},$ResBlack{$board}) = split (/ : /,$result);
         }
-        if (/Black: '(.*)'/) {      ## player with black pieces
-            $Black{$board} = $1;
-            $ResBlack{$board} = get_result($Black{$board});
-        }
-        if (/White: '(.*)'/) {      ## player with white pieces
-            $White{$board} = $1;
-            $ResWhite{$board} = get_result($White{$board});
+        elsif ( /^Bye: (.*)$/ ) {
+            push (@Bye, $1);
         }
     }
-    foreach $board (sort {$a <=> $b} keys(%White)) {
-		print $q->p( loc("(Board)"), " $board: $White{$board} -- $Black{$board} 
-                                  $ResWhite{$board} : $ResBlack{$board}" );
-    }
+    close(RESULTS);
+
+    ## print HTML table with given results (no form elements for input)
+    print $q->p( loc("(Results of round %1:)", $round) );
+    print_results_as_table('print_given_results');
 }
 
+sub print_results_as_table {
+    ## shall we print form elements for new results or show given results?
+    my $form_or_given_results = shift;
 
-## this subroutine displays the main page for management of participants
-## it includes a form to add a new participant, 
-## a list of all actual participants
-## and finally buttons to delete them
+    ## start table
+    print $q->start_table( { -class => 'results' } ), "\n";
+    print $q->start_Tr(), "\n";
+    print $q->start_th(), loc("(Board)"), $q->end_td, "\n";
+    print $q->start_th(), loc("(White)"), $q->end_td, "\n";
+    print $q->start_th(), loc("(Black)"), $q->end_td, "\n";
+    print $q->start_th(), loc("(Result)"), $q->end_td, "\n";
+    print $q->end_Tr(), "\n";
+
+    ## print table rows for played games
+    foreach $board (sort {$a <=> $b} keys(%White)) {
+        print $q->start_Tr(), "\n";
+        print $q->start_td(), $board, $q->end_td, "\n";
+        print $q->start_td(), $White{$board}, $q->end_td, "\n";
+        print $q->start_td(), $Black{$board}, $q->end_td, "\n";
+        print $q->start_td();
+        if ( $form_or_given_results eq 'print_form' ) {
+            print $q->popup_menu( -name => "Board$board", 
+                                  -values => [('1 : 0', '= : =', '0 : 1')]);
+        }
+        elsif ( $form_or_given_results eq 'print_given_results' ) {
+            print "$ResWhite{$board} : $ResBlack{$board}";
+        }
+        print $q->end_td, "\n";
+        print $q->end_Tr(), "\n";
+    }
+
+    ## print table rows for byes
+    foreach my $player_with_bye ( @Bye ) { 
+        print $q->start_Tr(), "\n";
+        print $q->start_td(), "-", $q->end_td, "\n";
+        print $q->start_td(), $player_with_bye, $q->end_td, "\n";
+        print $q->start_td(), $q->end_td, "\n";
+        print $q->start_td(), loc("(Bye)"), $q->end_td, "\n";
+        print $q->end_Tr(), "\n";
+    }
+
+    ## end table
+    print $q->end_table, "\n";
+}
+
 sub show_page_for_managing_participants {
-    print $q->start_html( -title => loc("(Participants)") ), "\n",
-          $q->h1( loc("(Manage participants for tournament %1)", $t_name) ),
-          "\n", $q->hr, "\n";
     display_form_for_new_participant();
     display_participants();
-    print_link_to_main_page();
+    print_button_main_page();
     print $q->end_html;
 }
 
-## this subroutine displays a CGI form for a new participant
 sub display_form_for_new_participant {
     print $q->h3 ( loc("(New Participant)") ), "\n",
           $q->start_form( -action => "./$CGISCRIPT",
@@ -595,25 +1010,25 @@ sub display_form_for_new_participant {
           $q->hr, "\n";
 }
 
-## print relevant data for all participants
-## also print a "delete" button for each participant
 sub display_participants {
+    my @players = read_players_from_data_file();
     print $q->h3 ( loc("(List of Participants)") ), "\n";
     print $q->start_table( { -border => 2, -cellpadding => 4, 
                              -cellspacing => 2 } ), "\n",
-          $q->Tr( [ $q->th ( [ loc("(Nr.)"), loc("(Name)"), loc("(Rating)"), '' ] ) ] ), "\n";
-    for $member ( @{$league->{member} } ) {
+          $q->Tr( [ $q->th ( [ loc("(Nr.)"), loc("(Name)"), 
+                               loc("(Rating)"), '' ] ) ] ), "\n";
+    foreach ( @players ) {
         print $q->start_TR,
-              $q->td( "$member->{pairingnumber}"),
-              $q->td( "$member->{name}"),
-              $q->td( "$member->{rating}"),
+              $q->td( "$_->{pairingnumber}"),
+              $q->td( "$_->{name}"),
+              $q->td( "$_->{rating}"),
               $q->start_td, "\n",
               $q->start_form ( -action => "./$CGISCRIPT",
                                -method => 'post' ), "\n",
               $q->hidden( -name => 'action', -default => 'delete_participant',
                           -override => 'true' ), "\n",
               $q->hidden( -name => 't_dir', -default => "$t_dir" ), "\n",
-              $q->hidden( -name => 'id', -default => "$member->{id}",
+              $q->hidden( -name => 'id', -default => "$_->{id}",
                           -override => 'true' ), "\n",
               $q->hidden( -name => 'lang', -default => "$language",
                           -override => 'true' ), "\n",
@@ -625,8 +1040,7 @@ sub display_participants {
     print $q->end_table;
 }
 
-## print link to main page
-sub print_link_to_main_page {
+sub print_button_main_page {
     print $q->hr,
           $q->start_form( -action => "./$CGISCRIPT",
                           -method => "post"),
@@ -638,7 +1052,6 @@ sub print_link_to_main_page {
           $q->end_form;
 }
 
-## print link to page for tournament selection
 sub print_button_tournament_selection {
     print $q->hr, "\n",
           $q->start_form( -action => "./$CGISELECT",
@@ -659,14 +1072,6 @@ sub print_error_no_tournament_selected {
     print_button_tournament_selection();
     print $q->end_html;
 }
-
-=item C<print_language_menu>
-
-Prints a "select language" menu as a CGI form. Available values are presented
-as a dropdown menu and are taken from @LANGUAGES. CGI paramter 'lang' is set
-to selected language.
-
-=cut
 
 sub print_language_menu {
     print $q->start_form( -method => 'post',
@@ -729,7 +1134,7 @@ sub print_pairing_table_menu {
 }
 
 sub print_debugging_output_menu {
-    print $q->h3( loc("(Output of script pair -- for debugging purposes)") ),
+    print $q->h3( loc("(Output of pairing routines -- for debugging)") ),
           $q->start_form( -action => "./$CGISCRIPT",
                           -method => 'post' ),
           $q->popup_menu( -name => 'round', -values => [(1..$rounds)] ),
@@ -741,10 +1146,305 @@ sub print_debugging_output_menu {
           $q->end_form, "\n";
 }
 
+__END__
+
+##############################################################################
+##    POD for perl applications                                             ##
+##    Derived from Example 7.2 from Chapter 7 of "Perl Best Practices"      ##
+##    by Damian Conway. Copyright (c) O'Reilly & Associates, 2005.          ##
+##############################################################################
+
+=head1 NAME
+
+tournament.pl - CGI script for managing swiss chess tournaments
+ 
+=head1 VERSION
+
+Version 0.0.10
+
+=head1 USAGE
+ 
+Used as a CGI script in combination with select_tournament.pl
+ 
+=head1 DESCRIPTION
+
+This CGI script is part of a project to create a perl-based web interface for
+management of swiss chess tournaments. It is used for adding and removing
+participants, creating pairings and displaying crosstables. That is, it allows
+to do the basic things of tournament management.
+
+=head2 REQUIRED ARGUMENTS
+
+Required arguments
+ 
+=head2 OPTIONS
+
+Available options
+ 
+=head2 SETUP
+
+Adjust the following settings for your site.
+
+=item C<$CGIDIR>
+
+Directory where CGI scripts reside.
+
+=item C<$TOURNAMENTBASEDIR>
+
+Directory where tournaments are stored.
+
+=item C<Local Modules>
+
+Set the directory where perl modules are installed. Only needed if you
+installed modules in non standard directories (e.g. because you didn't have
+permissions to installed them system wide).
+
+use lib qw(/path/to/modules/directory);
+
+=head2 I18n
+
+The script uses Locale::Maketext::Simple for internationalization. 
+
+Language files like 'en.po' or 'de.po' are in the subdirectory
+'./language_files'. For more informations see
+http://search.cpan.org/~audreyt/Locale-Maketext-Simple-0.18/
+
+=head2 Functions
+
+=head3 Program Functions (for executing "real" program code)
+
+=item C<set_language>
+
+Sets language for internationalization (see above) according to CGI parameter
+'lang' and returns the language. If no value is specified via CGI param, the
+default value 'en' is used. 'lang' is one of ('en', 'de').
+
+=item C<get_action>
+
+Returns the 'action' parameter defined via CGI-form. 'action' is one of
+('manage_participants', 'pairings_or_results', 'new_results', 'standings',
+'pairing_table', 'debug', 'add_participant', 'delete_participant', '').
+
+=item C<get_tournament_dir>
+
+Checks which tournament we want to work on (CGI param 't_dir'). If no value
+is specified or if it doesn't match (\w+) prints an error and die. Otherwise
+returns value for $t_dir. $t_dir is untainted in this subroutine.
+
+=item C<get_tournament_data>
+
+Returns the following values read from $DATAFILE:
+ * tournament name
+ * number of rounds
+ * status of tournament
+
+=item C<compute_and_print_pairingtable>
+
+Print the pairing table after a given round. An external script
+('pairingtable') is executed and its output is printed as preformatted text.
+
+=item C<print_crosstable>
+
+Print the crosstable after a given round. Rankings and single results are
+computed and presented as a simple table (CSS: class="standings").
+
+=item C<read_games_from_file>
+
+Reads games from file $TOURNAMENTDIR/rd_$round_results and returns corresponding
+list of Games::Tournament::Card objects.
+
+=item C<get_round_number>
+
+Returns current round number according to CGI param 'round'.
+Value of $q->param('round') is untainted.
+
+=item C<read_pairings_from_file>
+
+Reads pairings from $TOURNAMENTDIR/$r/round.yaml into separate hashes
+%White and %Black. Keys for this hashes are the board numbers. $r must be
+passed to this function as an argument.
+
+=item C<get_new_results_from_cgi_params>
+
+Returns @results, which are taken from CGI params 'Board1' to 'BoardN'. Each
+result is one of 
+ * "1 : 0" 
+ * "= : ="
+ * "0 : 1"
+
+=item C<write_new_results_to_file>
+
+Writes results to file.
+
+=item C<get_result>
+
+Returns "single character value" for literal result. 
+ 'Win'  -> '1'
+ 'Draw' -> '='
+ 'Loss' -> '0'
+
+=item C<generate_pairings>
+
+Generates pairings. At the moment this is done by starting an external script.
+For security reasons there is a time limit for this script to finish. If it
+takes longer, we are dying.
+
+=item C<sort_and_assign_pairingnumbers
+
+Sorts players and assigns pairing numbers accoring to rating.
+
+=item C<read_players_from_data_file>
+
+Reads players from file $TOURNAMENTDIR/players as
+Games::Tournament::Contestant::Swiss-> new objects and returns list of all
+players.
+
+=item C<new_player_from_cgi_data>
+
+Creates new player as Games::Tournament::Contestant::Swiss-> new object and
+returns reference to that object. Values are read from CGI params
+'firstname', 'surname', 'dwz'.
+
+=item C<write_players_file_and_assign_pairing_number>
+
+Assigns pairing numbers to list of players and writes list of players to file
+'players' afterwards. Uses a simple tab-delimited format -- one player per
+line with the following values: 
+ * id 
+ * pairing number 
+ * surname 
+ * firstname 
+ * rating
+
+=item C<add_participant>
+
+Adds a new participant to file $PARTICIPANTS. Data are read from CGI params
+'firstname', 'surname' and 'rating' (the last param is optional). The id of
+the new player is 1 greater than the highest id of 'old players'.
+
+=item C<delete_participant>
+
+Removes one player from list of participants and write the new list to file
+$PARTICIPANTS.
+
+=head3 Output Functions (for printing HTML code)
+
+=item C<print_form_save_results>
+
+Prints all pairings together with pull-down menues for the results. Pairings
+are stored in %White and %Black. Byes are stored in @Bye.
+
+=item C<read_results_from_file_and_display_them>
+
+Prints results for a given round. The round number must be passed as an
+argument to this funktion. Pairings are read from file "$round/round.yaml".
+Results are read from file "scores/$round.yaml".
+
+=item C<show_page_for_managing_participants>
+
+Displays the main page for management of participants. This consists of 
+ * a form to add a new participant, 
+ * a list of all actual participants with buttons to delete them
+
+=item C<display_form_for_new_participant>
+
+Prints a CGI form for adding a new participants. Requested values are
+ * firstname
+ * surname
+ * rating (DWZ)
+
+=item C<display_participants>
+
+Prints relevant data for all participants. Also prints a "delete" button for
+each participant. Data is printed as a table (one participant per row).
+
+=item C<print_button_main_page>
+
+Prints a button to return to main page for this tournament.
+
+=item C<print_button_tournament_selection>
+
+Prints a button to return to page for tournament selection.
+
+=item C<print_error_no_tournament_selected>
+
+Prints error message if no tournament is selected. (This may occur when the
+script is called without correct values for CGI param 't_dir'.) 
+
+=item C<print_language_menu>
+
+Prints a "select language" menu as a CGI form. Available values are presented
+as a dropdown menu and are taken from @LANGUAGES. CGI paramter 'lang' is set
+to selected language.
+
+=item C<print_button_manage_participants>
+
+Prints a button which sets the CGI param 'action' to 'manage_participants'.
+
+=item C<print_pairings_or_results_menu>
+
+Prints a menu to display pairings or results for a certain round. 
+
+=item C<print_standings_menu>
+
+Prints a menu to display standings for a certain round. 
+
+=item C<print_pairing_table_menu>
+
+Prints a menu to display the pairing table for a certain round. 
+
+=item C<print_debugging_output_menu>
+
+Prints a menu to display the output of script 'pair' for a certain round. This
+is used for debugging purpose only.
+
+
+
+=head2 DIAGNOSTICS
+ 
+A list of every error and warning message that the application can generate
+(even the ones that will "never happen"), with a full explanation of each 
+problem, one or more likely causes, and any suggested remedies. If the
+application generates exit status codes (e.g. under Unix) then list the exit
+status associated with each error.
+ 
+=head1 DEPENDENCIES
+ 
+The script depends on the following modules.
+
+=item C<CGI>
+
+Needed because the script is used via a web frontend.
+
+=item C<Locale::Maketext::Simple>
+
+Used for internationalization. (See I18n below.)
+
+=item C<Games::Tournament::Swiss::Config>
+
+Module by Dr Bean for Swiss Tournaments. See http://search.cpan.org/dist/Games-Tournament-Swiss/
+
+ 
+=head1 BUGS AND LIMITATIONS
+ 
+There are no known bugs in this application. 
+Please report problems to Christian Bartolomaeus  (<bartolin@gmx.de>)
+ 
 =head1 AUTHOR
+ 
+Christian Bartolomaeus  (<bartolin@gmx.de>)
 
-Bartolin
+=head1 ACKNOWLEDGMENTS
 
-=cut
+This script took a lot of ideas and some code from different parts of
+Games::Tournament::Swiss (written by DrBean,
+http://search.cpan.org/~drbean/Games-Tournament-Swiss/)
+ 
+=head1 LICENCE AND COPYRIGHT
+ 
+Copyright (c) <2008> <Christian Bartolomaeus> (<bartolin@gmx.de>), all rights reserved.
+ 
+This application is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
 
 # vim: set tw=78 ts=4 sw=4 et:
