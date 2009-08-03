@@ -61,8 +61,8 @@ msgstr "Manage tournament"
 msgid "(Tournament data (tournament name, directory or number of rounds) was incomplete or wrong.)"
 msgstr "Tournament data (tournament name, directory or number of rounds) was incomplete or wrong."
 
-msgid "(The selected tournament doesn't exist or it was not possible to delete it.)"
-msgstr "The selected tournament doesn't exist or it was not possible to delete it."
+msgid "(The selected tournament does not exist or it was not possible to delete it.)"
+msgstr "The selected tournament does not exist or it was not possible to delete it."
 
 msgid "(Please choose another directory.)"
 msgstr "Please choose another directory."
@@ -166,8 +166,8 @@ msgstr "You didn't select a tournament."
 msgid "(Please click below to return to tournament selection.)"
 msgstr "Please click below to return to tournament selection."
 
-msgid "(Output of script pair -- for debugging purposes)"
-msgstr "Output of script pair -- for debugging purposes"
+msgid "(Output of pairing routines -- for debugging)"
+msgstr "Output of pairing routines -- for debugging"
 
 msgid "(Pairing Tables)"
 msgstr "Pairing Tables"
@@ -177,3 +177,21 @@ msgstr "Pairing Table"
 
 msgid "(save results)"
 msgstr "save results"
+
+msgid "(Bye)"
+msgstr "Bye"
+
+msgid "(Incomplete data.)"
+msgstr "Incomplete data."
+
+msgid "(Please insert firstname and surname!)"
+msgstr "Please insert firstname and surname!"
+
+msgid "(Points)"
+msgstr "Points"
+
+msgid "(Rank)"
+msgstr "Rank"
+
+msgid "(No)"
+msgstr "No"

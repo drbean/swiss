@@ -61,7 +61,7 @@ msgstr "Turnier bearbeiten"
 msgid "(Tournament data (tournament name, directory or number of rounds) was incomplete or wrong.)"
 msgstr "Die Turnierdaten (Turniername, Verzeichnis oder Rundenzahl) waren unvollständig oder fehlerhaft."
 
-msgid "(The selected tournament doesn't exist or it was not possible to delete it.)"
+msgid "(The selected tournament does not exist or it was not possible to delete it.)"
 msgstr "Das ausgewählte Turnier existiert nicht oder das Löschen ist fehlgeschlagen."
 
 msgid "(Please choose another directory.)"
@@ -166,8 +166,8 @@ msgstr "Es wurde kein Turnier ausgewählt."
 msgid "(Please click below to return to tournament selection.)"
 msgstr "Bitte unten klicken, um zur Turnierauswahl zu gelangen."
 
-msgid "(Output of script pair -- for debugging purposes)"
-msgstr "Ausgabe des Skripts pair -- zum Aufspüren von Fehlern"
+msgid "(Output of pairing routines -- for debugging)"
+msgstr "Ausgabe der Paarungs-Funktionen -- zum Aufspüren von Fehlern"
 
 msgid "(Pairing Tables)"
 msgstr "Pairing Tables"
@@ -177,3 +177,21 @@ msgstr "Pairing Table"
 
 msgid "(save results)"
 msgstr "Ergebnisse speichern"
+
+msgid "(Bye)"
+msgstr "Freilos"
+
+msgid "(Incomplete data.)"
+msgstr "Angaben unvollständig."
+
+msgid "(Please insert firstname and surname!)"
+msgstr "Bitte Vor- und Nachnamen angeben!"
+
+msgid "(Points)"
+msgstr "Punkte"
+
+msgid "(Rank)"
+msgstr "Platz"
+
+msgid "(No)"
+msgstr "Nr"
