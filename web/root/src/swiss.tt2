@@ -1,0 +1,7 @@
+[% META title = 'Tournament Pairing Request' -%]
+
+<form method="post" action="[% c.uri_for('name') %]">
+  Tournament Name:</td><td>
+  <INPUT type="text" name="tournament" size="15">
+  <INPUT type="submit" name="Submit" value="Submit">
+</form>
