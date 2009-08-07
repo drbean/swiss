@@ -1,7 +1,31 @@
 [% META title = 'Tournament Pairing Request' -%]
 
+[% IF tournaments.size %]
+
+  <H1>Either,</H1>
+  <H2>Continue old tournament:</H2>
+  
+  <form method="post" action="[% c.uri_for('name') %]">
+    Tournament Names:
+  
+  <select name="tournament" size="[% tournaments.size %]">
+  
+  [% FOREACH tournament IN tournaments %]
+  <OPTION [% "selected" IF tournament == recentone %] value="[% tournament %]">[% tournament %]</OPTION>
+  [% END %]
+  
+  </select>
+    <INPUT type="submit" name="old" value="Old">
+  </form>
+
+  <H1>Or,</H1>
+
+[% END %]
+
+<H2>Start new tournament</H2>
+
 <form method="post" action="[% c.uri_for('name') %]">
   Tournament Name:</td><td>
   <INPUT type="text" name="tournament" size="15">
-  <INPUT type="submit" name="Submit" value="Submit">
+  <INPUT type="submit" name="new" value="New">
 </form>
