@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  7月 28, 12時44分22秒
+# Last Edit: 2009  8月 04, 09時22分45秒
 # $Id: $
 
 use warnings;
@@ -490,6 +490,7 @@ sub idCheck {
 	if ( defined $idcheck{$id} ) {
 	    croak $name . " and $idcheck{$id} have the same id: $id";
 	}
+	$idcheck{$id} = $name;
     }
 }
 
@@ -512,6 +513,7 @@ sub nameCheck {
 	    carp "WARNING: $id and $namecheck{$name} have the same name: " .
 		$name . ". Proceeding, but BEWARE there may be problems later,";
 	}
+	$namecheck{$name} = $id;
     }
 }
 
