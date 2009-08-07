@@ -19,10 +19,10 @@
 
 <form method="post" action="[% c.uri_for('edit_players') %]">
 <H2>Edit entry list</H2>
-<TEXTAREA name="playerlist" rows = [% playerlist.size %] cols="34">
+<TEXTAREA name="playerlist" rows = [% playerlist.size %] cols="35">
 [% FOREACH player IN playerlist %]
 [%- player.id %][% space.repeat(9-player.id.length) %][% player.name %][% space.repeat(21-player.name.length) %][% player.rating %]
-[% END %]
+[% END -%]
 </TEXTAREA>
 <input type="submit" name="edit" value="Save">
 </form>
