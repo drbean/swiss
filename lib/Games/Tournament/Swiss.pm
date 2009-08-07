@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 07, 05時41分52秒
+# Last Edit: 2009  8月 07, 11時58分36秒
 # $Id: $
 
 use warnings;
@@ -319,9 +319,9 @@ sub publishCards {
 
 =head2 myCard
 
- $game = $tourney->myCard(round => 4, player => $alekhine);
+ $game = $tourney->myCard(round => 4, player => 13301616);
 
-Finds match from $tourney's play accessor, which is keyed on round and ids of players.
+Finds match from $tourney's play accessor, which is keyed on round and IDS of players. 'player' is id of player.
 
 =cut
 
@@ -330,9 +330,9 @@ sub myCard {
     my %args    = @_;
     my $round   = $args{round};
     my $player  = $args{player};
-    my $matches = $self->{play}->{$round};
-    my $match   = first { $_->{id} eq $player->{id} } %$matches;
-    return $match;
+    my $roundmatches = $self->{play}->{$round};
+    my $id   = first { $_ eq $player } keys %$roundmatches;
+    return $roundmatches->{$id};
 }
 
 
