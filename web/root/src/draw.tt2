@@ -1,0 +1,22 @@
+[% META title = 'Draw' -%]
+[% n = 1 %]
+
+<table>
+<caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
+  <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
+      <TH colspan="3"><H2>[% roles.1 %]</H2>
+  <TR><TH>Table<TH>ID<TH>Name<TH>Score<TH>Result<TH>ID<TH>Name<TH>Score
+[% FOREACH game IN games %]
+  <TR>
+    <td>[% n %]
+    <td>[% game.contestants.$roles.0.id %]
+    <td>[% game.contestants.$roles.0.name %]
+    <td>[% game.contestants.$roles.0.score || 0 %]
+    <td> :
+    <td>[% game.contestants.$roles.1.id %]
+    <td>[% game.contestants.$roles.1.name %]
+    <td>[% game.contestants.$roles.1.score || 0 %]
+    [% n = n+1 %]
+[% END %]
+</form>
+</table>
