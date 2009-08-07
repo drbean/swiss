@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 04, 15時07分18秒
+# Last Edit: 2009  8月 05, 16時23分02秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -475,9 +475,10 @@ sub c5 {
     $self->log( "ordered: @s1ids\n\t       & @s2ids" );
     $group->s1( \@s1 );
     $group->s2( \@s2 );
+$DB::single=1;
     for my $member ( @{ $group->s2 } ) {
         die "$member->{id} was in ${number}th bracket more than once"
-          if ( grep { $_->id == $member->id } @{ $group->s2 } ) > 1;
+          if ( grep { $_->id eq $member->id } @{ $group->s2 } ) > 1;
     }
     $groups->{ $self->thisBracket } = $group;
     $self->brackets($groups);
