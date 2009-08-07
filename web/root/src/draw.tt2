@@ -9,10 +9,22 @@
 [% FOREACH game IN games %]
   <TR>
     <td>[% n %]
-    <td>[% game.contestants.$roles.0.id %]
+    <td>[% game.contestants.$roles.0.id || games.contestants.Bye.id %]
     <td>[% game.contestants.$roles.0.name %]
     <td>[% game.contestants.$roles.0.score || 0 %]
-    <td> :
+    <td> 
+<form method="post" action="[% c.uri_for('rounds') %]">
+<select name="table[% n %]" size="1">
+
+<OPTION selected value="0">-:-</OPTION>
+<OPTION value="1">W:L</OPTION>
+<OPTION value="2">L:W</OPTION>
+<OPTION value="3">=:=</OPTION>
+<OPTION value="4">W:F</OPTION>
+<OPTION value="5">F:W</OPTION>
+<OPTION value="6">F:F</OPTION>
+
+</select>
     <td>[% game.contestants.$roles.1.id %]
     <td>[% game.contestants.$roles.1.name %]
     <td>[% game.contestants.$roles.1.score || 0 %]
@@ -20,3 +32,6 @@
 [% END %]
 </form>
 </table>
+W: Win, L: Loss, =: draw, F: Forfeit
+<br>
+<input type="submit" name="Submit" value="Submit">
