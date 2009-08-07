@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use List::MoreUtils qw/all notall/;
+use List::MoreUtils qw/none any all notall/;
 
 #
 # Sets the actions in this controller to be registered with no prefix
@@ -50,39 +50,80 @@ Request a pairing of a tournament
 
 sub swiss : Local {
 	my ($self, $c) = @_;
+	my ($lasttourney, $tourneychoice, @tournaments);
+	if ( $c->request->cookie('tournament') and
+		$c->request->cookie('tournament')->isa('CGI::Simple::Cookie') )
+	{
+		$lasttourney = $c->request->cookie('tournament')->value;
+	}
+	if ( $c->request->cookie('tournaments') and
+		$c->request->cookie('tournaments')->isa('CGI::Simple::Cookie') )
+	{
+		$tourneychoice = $c->request->cookie('tournaments')->value;
+		@tournaments = $c->model('GTS')->destringCookie($tourneychoice);
+	}
+	$c->stash->{recentone} = $lasttourney;
+	$c->stash->{tournaments} = \@tournaments;
 }
 
 
 =head2 name
 
-Tournament name
+Tournament name. Set 'tournaments' cookie.
 
 =cut
 
 sub name : Local {
         my ($self, $c) = @_;
-	my $tournament = $c->request->params->{tournament};
-	$c->stash->{tournament} = $tournament;
-	$c->response->cookies->{tournament} = { value => $tournament };
-	$c->stash->{template} = 'players.tt2';
+	my $tourname = $c->request->params->{tournament};
+	my @tournames;
+	if ( $c->request->cookie('tournaments') and
+		$c->request->cookie('tournaments')->isa('CGI::Simple::Cookie') )
+	{
+		my $tourneychoice = $c->request->cookie('tournaments')->value;
+		@tournames = $c->model('GTS')->destringCookie($tourneychoice);
+	}
+	$c->stash->{tournament} = $tourname;
+	$c->response->cookies->{tournament} = { value => $tourname };
+	if ( @tournames == 0 or none { $tourname eq $_ } @tournames ) {
+		push @tournames, $tourname;
+		my $cookie = $c->model('GTS')->stringifyCookie(@tournames) 
+			if @tournames;
+		$c->response->cookies->{tournaments} = { value => $cookie };
+		$c->response->cookies->{"${tourname}_round"} = { value => 0 };
+		$c->stash->{template} = 'players.tt2';
+		return;
+	}
+	else {
+		$c->detach( 'edit_players' );
+	}
 }
 
 
 =head2 add_player
 
-First round, players, number of rounds
+First round, players, number of rounds. Spaghetti code in deciding what to do after stop? Make it public, conversational! Noticeable, top level!
 
 =cut
 
 sub add_player : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
-	my $tourney = $c->request->cookie('tournament')->value;
-	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourney, $cookies);
-	$c->stash->{tournament} = $tourney;
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = $c->request->cookie("${tourname}_round")->value;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	$c->stash->{tournament} = $tourname;
 	if (  $c->request->params->{stop} ) {
-		$c->stash->{template} = 'rounds.tt2';
-		return;
+		if ( $c->request->cookie("${tourname}_rounds") and
+			$c->request->cookie("${tourname}_rounds")->isa(
+				'CGI::Simple::Cookie') )
+		{
+			$c->detach("pairtable");
+		}
+		else {
+			$c->stash->{template} = 'rounds.tt2';
+			return;
+		}
 	}
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
@@ -99,10 +140,11 @@ sub add_player : Local {
 		push @playerlist, \%entrant;
 		$c->stash->{playerlist} = \@playerlist;
 		my %cookies = $c->model('GTS')->turnIntoCookies(
-			$tourney, \@playerlist);
+			$tourname, \@playerlist);
 		$c->response->cookies->{$_} = { value => $cookies{$_ } }
 			for keys %cookies;
 	}
+	$c->stash->{round} = $round;
 	$c->stash->{template} = 'players.tt2';
 }
 
@@ -110,16 +152,28 @@ sub add_player : Local {
 
 =head2 edit_players
 
-First round, players, number of rounds
+Later rounds, players
 
 =cut
 
 sub edit_players : Local {
         my ($self, $c) = @_;
+	my $tournament = $c->stash->{tournament};
 	my $cookies = $c->request->cookies;
-	my $tourney = $c->request->cookie('tournament')->value;
-	my $newlist = $c->request->params->{playerlist};
-	my @playerlist = $c->model('GTS')->parsePlayers($tourney, $newlist);
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = $c->request->cookie("${tourname}_round")->value;
+	my @playerlist;
+	if ( my $newlist = $c->request->params->{playerlist} ) {
+		@playerlist = $c->model('GTS')->parsePlayers(
+			$tourname, $newlist);
+	}
+	else {
+		my $cookies = $c->request->cookies;
+		my $tourname = $c->request->cookie('tournament')->value;
+		@playerlist = $c->model('GTS')->turnIntoPlayers(
+			$tourname, $cookies);
+	}
+	$c->stash->{round} = $round;
 	$c->stash->{template} = 'players.tt2';
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck(@playerlist ) ) {
@@ -132,7 +186,7 @@ sub edit_players : Local {
 	}
 	else {
 		my %cookies = $c->model('GTS')->turnIntoCookies(
-			$tourney, \@playerlist);
+			$tourname, \@playerlist);
 		$c->response->cookies->{$_} = { value => $cookies{$_ } }
 			for keys %cookies;
 		$c->stash->{playerlist} = \@playerlist;
@@ -148,27 +202,50 @@ Number of rounds
 
 sub rounds : Local {
         my ($self, $c) = @_;
-	my $tourney = $c->request->cookie('tournament')->value;
+	my $tourname = $c->request->cookie('tournament')->value;
 	my $rounds = $c->request->params->{rounds};
-	$c->response->cookies->{"${tourney}_rounds"} = { value => $rounds };
+	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
 	$c->stash->{rounds} = $rounds;
-	$c->detach('pair');
+	$c->detach('nextround');
 }
 
 
-=head2 pair
+=head2 nextround
 
 Pair first round
 
 =cut
 
-sub pair : Local {
+sub nextround : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
-	my $tourney = $c->request->cookie('tournament')->value;
-	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourney, $cookies);
-	my $rounds = $c->stash->{"${tourney}_rounds"};
-	my @games = $c->model('GTS')->pair( {rounds => $rounds, entrants => \@playerlist} );
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = ( $c->request->cookie("${tourname}_round") and
+		$c->request->cookie("${tourname}_round")->isa(
+			'CGI::Simple::Cookie') ) ?
+		$c->request->cookie("${tourname}_round")->value: 0;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+$DB::single=1;
+	my %pairingtable = $c->model('GTS')->readHistory(
+				$tourname, \@playerlist, $cookies, $round);
+	my $rounds = $c->stash->{rounds};
+	my $tourney = $c->model('GTS')->setupTournament( {
+			name => $tourname,
+			round => $round,
+			rounds => $rounds,
+			entrants => \@playerlist });
+	my @games = $c->model('GTS')->pair( {
+			tournament => $tourney,
+			history => \%pairingtable } );
+	$c->model('GTS')->changeHistory(
+			$tourney, \%pairingtable, \@games );
+	my %prefFloatcookies =
+		$c->model('GTS')->historyCookies( $tourney, \%pairingtable);
+	$c->response->cookies->{$_} = { value => $prefFloatcookies{$_} }
+			for keys %prefFloatcookies;
+	$round = $tourney->round;
+	$c->response->cookies->{"${tourname}_round"} = { value => $round };
+	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = \@games;
 	$c->stash->{template} = "draw.tt2";
