@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  7月 21, 18時07分12秒
+# Last Edit: 2009  8月 04, 15時07分18秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -144,7 +144,7 @@ sub matchPlayers {
             die
 qq/Pairing error: @{[map { "$_ => $args{$_}, " } keys %args]} Pairing NOT complete\n/;
         }
-        if ( $state eq LAST ) { print "Pairing complete\n"; return $self; }
+        if ( $state eq LAST ) { return $self; }
         die "No transition defined from $oldState to $state"
           unless grep m/$state/, @alterStates;
     }
