@@ -1,7 +1,16 @@
-[% META title = 'Tournament Pairing Request' -%]
+[% META title = 'Rounds' -%]
+[% rounds = [ 1 .. 20 ] %]
 
-<form method="post" action="[% c.uri_for('name') %]">
-  Tournament Name:</td><td>
-  <INPUT type="text" name="tournament" size="15">
-  <INPUT type="submit" name="Submit" value="Submit">
+<H1>[% tournament %] Tournament</H1>
+
+Number of rounds that will be played:
+<form method="post" action="[% c.uri_for('rounds') %]">
+<select name="rounds" size="[% rounds.size %]">
+
+[% FOREACH n IN rounds %]
+<OPTION value="[% n %]">[% n %]</OPTION>
+[% END %]
+
+</select>
+<input type="submit" name="Submit" value="Submit">
 </form>
