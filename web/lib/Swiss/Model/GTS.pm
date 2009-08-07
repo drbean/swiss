@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 05, 21時54分44秒
+# Last Edit: 2009  8月 07, 22時02分56秒
 # $Id$
 
 use strict;
@@ -8,7 +8,7 @@ use warnings;
 use parent 'Catalyst::Model';
 
 use CGI::Simple::Util qw/escape unescape/;
-use List::MoreUtils qw/notall/;
+use List::MoreUtils qw/any all notall/;
 
 =head1 NAME
 
@@ -50,6 +50,23 @@ Roles
 sub roles { return \@Games::Tournament::Swiss::Config::roles; }
 
 
+=head2 setupTournament
+
+Passing round a tournament, with players, is easier.
+
+=cut
+
+sub setupTournament {
+	my ($self, $args) = @_;
+	my $players = $args->{entrants};
+	my @entrants = map { Games::Tournament::Contestant::Swiss->new(%$_) }
+			@$players;
+	$args->{entrants} = \@entrants;
+	my $tournament = Games::Tournament::Swiss->new( %$args );
+	return $tournament;
+}
+
+
 =head2 turnIntoCookies
 
 Prepare cookies for a tournament's players with ids, names, ratings, and perhaps later, preference histories, float histories, and scores. The cookie name for the player ids is 'tournament_ids' (where 'tournament' is the name of the tournament) and the values are a list of the players ids. The tournament name is to distinguish different tournaments being paired from the same browser.
@@ -57,12 +74,60 @@ Prepare cookies for a tournament's players with ids, names, ratings, and perhaps
 =cut
 
 sub turnIntoCookies {
-	my ($self, $tournament, $playerlist) = @_;
+	my ($self, $tourname, $playerlist) = @_;
 	my %cookie;
 	for my $key ( qw/id name rating/ ) {
 		my @keylist = map { $_->{$key} } @$playerlist;
 		my $keystring = join "&", map { escape( $_ ) } @keylist;
+		$cookie{$tourname . '_' . $key . 's'} = $keystring;
+	}
+	return %cookie;
+}
+
+
+=head2 makeCookies
+
+Prepare cookies for a tournament's players accessors. The cookie name for the player fields is 'tournament_fields' (where 'tournament' is the name of the tournament and 'field' is 'opponents', etc) and the values are a list of the players ids. The tournament name is to distinguish different tournaments being paired from the same browser.
+
+=cut
+
+sub makeCookies {
+	my ($self, $tournament, $playerlist, $fields, $hash) = @_;
+	my %cookie;
+	for my $key ( @$fields ) {
+		my @keylist = map { $_->{$key} } @$playerlist;
+		my $keystring = join "&", map { escape( $_ ) } @keylist;
 		$cookie{$tournament . '_' . $key . 's'} = $keystring;
+	}
+	return %cookie;
+}
+
+
+=head2 historyCookies
+
+Prepare cookies for a tournament's players opponent, preference and float histories, and scores. The cookie name for the player fields is 'tournament_fields' (where 'tournament' is the name of the tournament and 'field' is 'opponents', etc) and the values are listed by player id, in entry order in the tournament.
+	# my %cookies = $self->makeCookies( $tourney, $players, $keys, $history);
+
+=cut
+
+sub historyCookies {
+	my ($self, $tourney, $history) = @_;
+	my %cookie;
+	my $players = $tourney->entrants;
+	my $tourname = $tourney->{name};
+	my $types = [ qw/opponent role float score/ ];
+	my @ids = map { $_->{id} } @$players;
+	for my $type ( @$types ) {
+		my $historicaltype = $history->{$type};
+		my @historicalvalue;
+		my @typeids = keys %$historicaltype;
+		die "Not all players have a $type history in $tourname Tourney"
+			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
+		for my $id ( @ids ) {
+			push @historicalvalue, $historicaltype->{$id};
+		}
+		$cookie{"${tourname}_${type}s"} =
+			join '&', map { escape($_) } @historicalvalue;
 	}
 	return %cookie;
 }
@@ -77,7 +142,21 @@ Inflate a tournament's players' cookies with ids, names, ratings, and perhaps la
 sub turnIntoPlayers {
 	my ($self, $tourney, $cookies) = @_;
 	my @playerlist;
-	my @cookieNames = map { "${tourney}_${_}s" } qw/id name rating/;
+	my $fields = [ qw/id name rating/ ];
+	return $self->breakCookie($tourney, $cookies, $fields);
+}
+
+
+=head2 breakCookie
+
+Decode the cookie into an array of hashes representing the values (as array refs) for each of the fields of a list of players.
+
+=cut
+
+sub breakCookie {
+	my ($self, $tourney, $cookies, $fields) = @_;
+	my @playerlist;
+	my @cookieNames = map { "${tourney}_${_}s" } @$fields;
 	for my $name ( @cookieNames ) {
 		next unless exists $cookies->{$name};
 		my $playercookie = $cookies->{$name};
@@ -85,12 +164,67 @@ sub turnIntoPlayers {
 				$playercookie->isa('CGI::Simple::Cookie');
 		(my $fieldname = $name ) =~ s/^${tourney}_(.*)s$/$1/;
 		my $playerstring = $playercookie->value;
-		my @values = map { unescape( $_ ) } split /[&;]/, $playerstring;
+		my @values = $self->destringCookie( $playerstring );
 		for my $n ( 0 .. @values-1 ) {
 			$playerlist[$n]->{$fieldname} = $values[$n];
 		}
 	}
 	return @playerlist;
+}
+
+
+=head2 stringifyCookie
+
+The value of a CGI::Simple::Cookie, a string, can represent an array or a hash of strings. Join the array/hash of strings into a string suitable as a cookie value after encoding/escaping the strings. I don't know why CGI::Simple::Cookie isn't doing this for me.
+
+=cut
+
+sub stringifyCookie {
+	my ($self, @values) = @_;
+	my $value = join '&', map { escape($_) } @values;
+	return $value;
+}
+
+
+=head2 destringCookie
+
+The value of a CGI::Simple::Cookie, a string, can represent an array or a hash of strings. Split the cookie into an array/hash of strings and decode the (escaped) strings. I don't know why CGI::Simple::Cookie isn't doing this for me.
+
+=cut
+
+sub destringCookie {
+	my ($self, $string) = @_;
+	my @values = map { unescape( $_ ) } split /[&;]/, $string;
+	return @values;
+}
+
+
+=head2 readHistory
+
+Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id.
+
+=cut
+
+sub readHistory {
+	my ($self, $tourname, $playerlist, $cookies, $round) = @_;
+	my %histories;
+	my $fields = [ qw/opponent role float score/ ];
+	my @playerData = $self->breakCookie($tourname, $cookies, $fields);
+	my $n=0;
+	for my $player ( @playerData ) {
+		my $id = $playerlist->[$n]->{id};
+		for my $field ( @$fields ) {
+			my $values = $playerData[$n]->{$field};
+			my @values = split /,/, $values;
+			for my $rounds ( 0 .. $round-1 ) {
+				# $histories{$field}->[$n]= \@values;
+				$histories{$field}->{$id}->[$rounds] =
+					$values[$rounds];
+			}
+		}
+		$n++;
+	}
+	return %histories;
 }
 
 
@@ -132,15 +266,33 @@ Pair players for the next round of a swiss tournament
 
 sub pair {
 	my ($self, $args) = @_;
-	my $rounds = $args->{rounds};
-	my $playerlist = $args->{entrants};
-	my @entrants = map { Games::Tournament::Contestant::Swiss->new(
-				%$_ ) } @$playerlist;
-	my $tourney = Games::Tournament::Swiss->new(
-		round => 0,
-		rounds => $rounds,
-		entrants => \@entrants );
+	my $tourney = $args->{tournament};
+	my $round = $tourney->round;
+	my $rounds = $tourney->rounds;
+	my $entrants = $tourney->entrants;
 	$tourney->idNameCheck;
+	my $pairingtable = $args->{history};
+	my ( $opponents, $roles, $floats, $score ) =
+		@$pairingtable{qw/opponent role float score/};
+	my @ids;
+	for my $player ( @$entrants ) {
+		my $id = $player->id;
+		push @ids, $id;
+		$player->score( $score->{$id} );
+	}
+	my $lastround = $round;
+	for my $round ( 1..$lastround ) {
+		my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
+		my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
+		my %floats =
+			map { $_ => $floats->{$_}->[$round-$lastround-1] } @ids;
+		my @games = $tourney->recreateCards( {
+			round => $round, opponents => \%opponents,
+			roles => \%roles, floats => \%floats } );
+$DB::single=1;
+		$tourney->collectCards( @games );
+	}
+
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences;
@@ -160,6 +312,49 @@ sub pair {
 	}
 	$tourney->round(1);
 	my @tables = $tourney->publishCards(@games);
+}
+
+
+=head2 changeHistory
+
+Update the opponent, preference and float data for the round.
+
+=cut
+
+sub changeHistory {
+	my ($self, $tourney, $history, $games) = @_;
+	$tourney->collectCards( @$games );
+	my $round = $tourney->round;
+	my $players = $tourney->entrants;
+	for my $player ( @$players ) {
+		my $id = $player->id;
+		my $game = $tourney->myCard(round => $round, player => $id);
+		if ( defined $game ) {
+			my $opponent = $player->myOpponent($game)
+			|| Games::Tournament::Contestant->new( name => "Bye", id => "-" );
+			$history->{opponent}->{$id} .= 
+			$history->{opponent}->{$id}?  "," . $opponent->id:
+				$opponent->id ;
+			my $role = $game->myRole($player);
+			if ( $role eq 'Bye' ) { $role = '-'; }
+			else                  { $role =~ s/^(.).*$/$1/; }
+			$history->{role}->{$id} .= $role;
+		}
+		else {
+			$history->{opponent}->{$id} .= "-,";
+			$history->{role}->{$id} .= "-";
+		}
+		my $floats = $player->floats;
+		my $float = '';
+		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
+		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
+		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
+		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
+		$history->{float}->{$id} = $float;
+		my $score = defined $player->score? $player->score: '-';
+		$history->{score}->{$id} = $score;
+	}
+	return $history;
 }
 
 
