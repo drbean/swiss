@@ -1,0 +1,14 @@
+[% META title = 'Entrants' -%]
+[% space=' '%]
+
+<h1>[% tournament %] Tournament, Round [% round %]</h1>
+
+<form method="post" action="[% c.uri_for('score_games') %]">
+<H2>Edit entry list</H2>
+<TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="35">
+[% FOREACH player IN playerlist %]
+[%- player.id %][% space.repeat(9-player.id.length) %][% player.opponent %] [% player.role %] [% player.float %] [% player.score %]
+[% END -%]
+</TEXTAREA>
+<input type="submit" name="edit" value="Save">
+</form>
