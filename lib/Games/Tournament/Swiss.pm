@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 30, 22時14分13秒
+# Last Edit: 2009  8月 07, 05時41分52秒
 # $Id: $
 
 use warnings;
@@ -331,7 +331,7 @@ sub myCard {
     my $round   = $args{round};
     my $player  = $args{player};
     my $matches = $self->{play}->{$round};
-    my $match   = grep { $_->{id} == $player->{id} } %$matches;
+    my $match   = first { $_->{id} eq $player->{id} } %$matches;
     return $match;
 }
 
