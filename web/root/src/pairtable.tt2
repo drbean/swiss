@@ -1,14 +1,26 @@
-[% META title = 'Entrants' -%]
+[% META title = 'Pairing Table' -%]
 [% space=' '%]
 
-<h1>[% tournament %] Tournament, Round [% round %]</h1>
+<h1>[% tournament %] Tournament, Round [% round %] Pairing table</h1>
 
-<form method="post" action="[% c.uri_for('score_games') %]">
-<H2>Edit entry list</H2>
-<TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="35">
-[% FOREACH player IN playerlist %]
-[%- player.id %][% space.repeat(9-player.id.length) %][% player.opponent %] [% player.role %] [% player.float %] [% player.score %]
-[% END -%]
-</TEXTAREA>
-<input type="submit" name="edit" value="Save">
+<form method="post" action="[% c.uri_for('nextround') %]">
+<H3>Edit:</H3>
+<UL>
+<LI>Scores of winners, drawers after round [% round - 1 %]
+<BR><TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="[% 9 + 9 + 9 + 3 + playerlist.0.score.length + 6 %]">
+ID       Opponents Roles Floats Score
+[%- FOREACH player IN playerlist %]
+[% player.id _ space.repeat(9-player.id.length) -%]
+[% player.opponent.join(,) _ space.repeat(9-player.opponent.length) -%]
+[% player.role.substrs(0,1).join() _ space.repeat(9-player.role.length) -%]
+[% player.float _ space.repeat(3-player.float.length) -%]
+[% player.score %][% END %]</TEXTAREA>
+<input type="submit" name="edit" value="Pair Round [% round %]">
 </form>
+<H3>Other edits:</H3>
+<UL>
+<LI>Bye players' scores.
+<LI>Replace the opponent, role, and float in the round with a '-', for BOTH players in a game not played because of a forfeit, etc. See FIDE Rule F2.
+<LI>Remember to make the change in the score of a winner by forfeit.
+<LI>You are free to change the opponents of players and the roles they took in the last round, if that is how the round actually was played. Only simple checks are made of who played who. However, if it is found 2 players have met twice, the program will die.
+</UL>
