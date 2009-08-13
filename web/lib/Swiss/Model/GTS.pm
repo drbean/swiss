@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 09, 12時06分52秒
+# Last Edit: 2009  8月 13, 15時04分43秒
 # $Id$
 
 use strict;
@@ -107,6 +107,14 @@ sub makeCookies {
 
 Prepare cookies for a tournament's players opponent, preference and float histories, and scores. The cookie name for the player fields is 'tournament_fields' (where 'tournament' is the name of the tournament and 'field' is 'opponents', etc) and the values are listed by player id, in the same order as in 'tournament_ids'.
 	# my %cookies = $self->makeCookies( $tourney, $players, $keys, $history);
+2,-,     1,-,
+2%2C-%2C 1%2C-%2C
+2%2C-%2C&1%2C-%2C
+2%252C-%252C%261%252C-%252C
+
+3,1 4,2 1,3 2,4
+3%2C1&4%2C2&1%2C3&2%2C4
+3%252C1%264%252C2%261%252C3%262%252C4
 
 =cut
 
@@ -130,16 +138,15 @@ sub historyCookies {
 				$value = join ',', @$value if $value and
 							ref $value eq 'ARRAY';
 			}
-			else {
-				$value = join '', @$value if $value and
+			elsif ( $type eq 'role' or $type eq 'float' ) {
+				$value = join '', map
+					{defined $_ and substr $_, 0, 1}
+						@$value if $value and
 							ref $value eq 'ARRAY';
 			}
-			#$value = join '', map { $_ } @$value if
-			#				$type eq 'roles';
 			push @historicalvalue, $value;
 		}
-		$cookie{"${tourname}_${type}s"} =
-			join '&', map { escape($_) } @historicalvalue;
+		$cookie{"${tourname}_${type}s"} = join '&', @historicalvalue;
 	}
 	return %cookie;
 }
@@ -246,15 +253,17 @@ sub readHistory {
 	my $n=0;
 	for my $player ( @playerData ) {
 		my $id = $playerlist->[$n]->{id};
-		for my $field ( @$fields ) {
+		for my $field ( qw/opponent role float/ ) {
 			my $values = $playerData[$n]->{$field};
-			my @values = split /,/, $values;
+			my @values = split //, $values;
+			@values = split /,/, $values if $field eq 'opponent';
 			for my $rounds ( 0 .. $round-1 ) {
 				# $histories{$field}->[$n]= \@values;
 				$histories{$field}->{$id}->[$rounds] =
 					$values[$rounds];
 			}
 		}
+		$histories{score}->{$id} = $playerData[$n]->{score};
 		$n++;
 	}
 	return %histories;
@@ -307,7 +316,7 @@ sub parseTable {
 		my %player;
 		chomp $line;
 		my @fields = split ' ', $line;
-		die "No spaces allowed between opponents, and between roles. Format is: 2016192 4100026,2805687 BW uD 2" if @fields > 5;
+		die "No spaces allowed between opponents, and between roles. Format is: '2016192 4100026,2805687 BW uD 2'" if @fields > 5;
 		if ( @fields == 4 ) {
 			$fields[4] = $fields[3];
 			$fields[3] = '';
@@ -344,32 +353,35 @@ sub pair {
 	my $entrants = $tourney->entrants;
 	$tourney->idNameCheck;
 	my $pairingtable = $args->{history};
-	my ( $opponents, $roles, $floats, $score ) =
-		@$pairingtable{qw/opponent role float score/};
-	my @ids;
-	for my $player ( @$entrants ) {
-		my $id = $player->id;
-		push @ids, $id;
-		$player->score( $score->{$id} );
+	if ( $pairingtable ) {
+		my ( $opponents, $roles, $floats, $score ) =
+			@$pairingtable{qw/opponent role float score/};
+		my @ids;
+		for my $player ( @$entrants ) {
+			my $id = $player->id;
+			push @ids, $id;
+			$player->score( $score->{$id} );
+		}
+		my $lastround = $round;
+		for my $round ( 1..$lastround ) {
+			my %opponents = map { $_ =>
+					$opponents->{$_}->[$round-1] } @ids;
+			my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
+			my %floats = map { $_ =>
+				$floats->{$_}->[$round-$lastround-1] } @ids;
+			my @games = $tourney->recreateCards( {
+				round => $round, opponents => \%opponents,
+				roles => \%roles, floats => \%floats } );
+			$tourney->collectCards( @games );
+		}
 	}
-	my $lastround = $round;
-	for my $round ( 1..$lastround ) {
-		my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
-		my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
-		my %floats =
-			map { $_ => $floats->{$_}->[$round-$lastround-1] } @ids;
-		my @games = $tourney->recreateCards( {
-			round => $round, opponents => \%opponents,
-			roles => \%roles, floats => \%floats } );
-		$tourney->collectCards( @games );
-	}
-
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences if $round == 0;
 	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
+	$pairing->round(++$round);
 	# $pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
 	my $matches = $results->{matches};
@@ -387,7 +399,7 @@ sub pair {
 
 =head2 changeHistory
 
-Update the opponent, preference and float data for the round.
+Update the opponent, preference and float data for the round. A lot of this stuff is 'View', eg abbreviations and player score being '-' or 0.
 
 =cut
 
@@ -426,7 +438,8 @@ sub changeHistory {
 		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
 		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
 		$history->{float}->{$id} = $floats;
-		my $score = defined $player->score? $player->score: '-';
+		my $score = defined $player->score? $player->score:
+					$round == 1? '-': 0;
 		$history->{score}->{$id} = $score;
 	}
 	return $history;
