@@ -2,6 +2,12 @@ package Swiss::View::TT;
 
 use strict;
 use base 'Catalyst::View::TT';
+use Template::Stash;
+
+$Template::Stash::LIST_OPS->{substrs} = sub {
+	my ($list, $offset, $length ) = @_;
+	return [ map { substr( $_, $offset, $length ) } @$list ];
+};
 
 __PACKAGE__->config(
 	# Change default TT extension
