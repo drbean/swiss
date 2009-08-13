@@ -69,7 +69,7 @@ sub swiss : Local {
 
 =head2 name
 
-Tournament name. Set 'tournaments' cookie.
+Tournament name. Set 'tournament' and reset 'tournaments' cookie. Set 'tournament_round' cookie to 0. But remember, Not everyone agrees about what round it is.
 
 =cut
 
@@ -110,7 +110,7 @@ sub add_player : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
-	my $round = $c->request->cookie("${tourname}_round")->value;
+	my $round = $c->request->cookie("${tourname}_round")->value + 1;
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	$c->stash->{tournament} = $tourname;
 	if (  $c->request->params->{stop} ) {
@@ -118,7 +118,7 @@ sub add_player : Local {
 			$c->request->cookie("${tourname}_rounds")->isa(
 				'CGI::Simple::Cookie') )
 		{
-			$c->detach("pairtable");
+			$c->detach("pairingtable");
 		}
 		else {
 			$c->stash->{template} = 'rounds.tt2';
@@ -127,6 +127,7 @@ sub add_player : Local {
 	}
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
+	$entrant{firstround} = $round;
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -161,7 +162,7 @@ sub edit_players : Local {
 	my $tournament = $c->stash->{tournament};
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
-	my $round = $c->request->cookie("${tourname}_round")->value;
+	my $round = $c->request->cookie("${tourname}_round")->value + 1;
 	my @playerlist;
 	if ( my $newlist = $c->request->params->{playerlist} ) {
 		@playerlist = $c->model('GTS')->parsePlayers(
@@ -210,6 +211,36 @@ sub rounds : Local {
 }
 
 
+=head2 pairingtable
+
+Offer pairing table for later rounds 
+
+=cut
+
+sub pairingtable : Local {
+        my ($self, $c) = @_;
+	my $cookies = $c->request->cookies;
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = ( $c->request->cookie("${tourname}_round") and
+		$c->request->cookie("${tourname}_round")->isa(
+			'CGI::Simple::Cookie') ) ?
+		$c->request->cookie("${tourname}_round")->value + 1: 1;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my %pairingtable = $c->model('GTS')->readHistory(
+				$tourname, \@playerlist, $cookies, $round);
+	for my $player ( @playerlist ) {
+		my $id = $player->{id};
+		for my $historytype ( qw/opponent role float score/ ) {
+			my $run = $pairingtable{$historytype}->{$id};
+			$player->{$historytype} = $run;
+		}
+	}
+	$c->stash->{round} = $round;
+	$c->stash->{playerlist} = \@playerlist;
+	$c->stash->{template} = "pairtable.tt2";
+}
+
+
 =head2 nextround
 
 Pair first round
@@ -223,24 +254,31 @@ sub nextround : Local {
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
-		$c->request->cookie("${tourname}_round")->value: 0;
-	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
-$DB::single=1;
-	my %pairingtable = $c->model('GTS')->readHistory(
-				$tourname, \@playerlist, $cookies, $round);
+		$c->request->cookie("${tourname}_round")->value + 1: 1;
 	my $rounds = $c->stash->{rounds};
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => $round,
+			round => 0,
 			rounds => $rounds,
 			entrants => \@playerlist });
+	my %pairingtable;
+	if ( $c->request->params->{pairingtable} ) {
+		my $table = $c->request->params->{pairingtable};
+		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
+	}
+	else {
+		%pairingtable = $c->model('GTS')->readHistory(
+				$tourname, \@playerlist, $cookies, $round);
+	}
 	my @games = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
-	$c->model('GTS')->changeHistory(
+	$tourney->round($round);
+	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, \@games );
 	my %prefFloatcookies =
-		$c->model('GTS')->historyCookies( $tourney, \%pairingtable);
+		$c->model('GTS')->historyCookies( $tourney, $newhistory);
 	$c->response->cookies->{$_} = { value => $prefFloatcookies{$_} }
 			for keys %prefFloatcookies;
 	$round = $tourney->round;
@@ -250,7 +288,6 @@ $DB::single=1;
 	$c->stash->{games} = \@games;
 	$c->stash->{template} = "draw.tt2";
 }
-
 
 
 =head2 end
