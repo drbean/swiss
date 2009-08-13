@@ -118,7 +118,7 @@ sub add_player : Local {
 			$c->request->cookie("${tourname}_rounds")->isa(
 				'CGI::Simple::Cookie') )
 		{
-			$c->detach("pairingtable");
+			$c->response->redirect("pairingtable");
 		}
 		else {
 			$c->stash->{template} = 'rounds.tt2';
@@ -259,7 +259,7 @@ sub nextround : Local {
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => 0,
+			round => ($round -1),
 			rounds => $rounds,
 			entrants => \@playerlist });
 	my %pairingtable;
