@@ -1,5 +1,7 @@
 [% META title = 'Pairing Table' -%]
-[% space=' '%]
+[% space = ' ' %]
+[% last = playerlist.0.float.size - 2 %]
+[% secondlast = last - 1 %]
 
 <h1>[% tournament %] Tournament, Round [% round %] Pairing table</h1>
 
@@ -7,20 +9,21 @@
 <H3>Edit:</H3>
 <UL>
 <LI>Scores of winners, drawers after round [% round - 1 %]
-<BR><TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="[% 9 + 9 + 9 + 3 + playerlist.0.score.length + 6 %]">
+<BR><TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="[% 9 + 9 + 9 + 3 + ( playerlist.0.score.length or 2) + 6 %]">
 ID       Opponents Roles Floats Score
 [%- FOREACH player IN playerlist %]
 [% player.id _ space.repeat(9-player.id.length) -%]
-[% player.opponent.join(,) _ space.repeat(9-player.opponent.length) -%]
-[% player.role.substrs(0,1).join() _ space.repeat(9-player.role.length) -%]
-[% player.float _ space.repeat(3-player.float.length) -%]
+[% player.opponent.join(',') %][% space.repeat(9-(player.opponent.size or 0)) -%]
+[% player.role.substrs(0,1).join('') %][% space.repeat(9-(player.role.size or 0)) -%]
+[% IF player.float.$secondlast == 'N' %][% space %][% ELSE %][% player.float.$secondlast.lc %][% END -%]
+[% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
 [% player.score %][% END %]</TEXTAREA>
 <input type="submit" name="edit" value="Pair Round [% round %]">
 </form>
 <H3>Other edits:</H3>
 <UL>
-<LI>Bye players' scores.
+<LI>Change Bye players' scores.
 <LI>Replace the opponent, role, and float in the round with a '-', for BOTH players in a game not played because of a forfeit, etc. See FIDE Rule F2.
 <LI>Remember to make the change in the score of a winner by forfeit.
-<LI>You are free to change the opponents of players and the roles they took in the last round, if that is how the round actually was played. Only simple checks are made of who played who. However, if it is found 2 players have met twice, the program will die.
+<LI>Change the opponents of players and the roles they took in the last round, if that is how the round actually was played.
 </UL>
