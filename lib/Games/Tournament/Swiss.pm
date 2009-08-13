@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 07, 11時58分36秒
+# Last Edit: 2009  8月 10, 11時36分56秒
 # $Id: $
 
 use warnings;
@@ -64,7 +64,7 @@ In a Swiss tournament, there is a pre-declared number of rounds, each contestant
 
  @rankings = $tourney->assignPairingNumbers;
 
-Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The old id is saved as oldId. But don't change id to pairingNumber. It will change with late entries.) This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. A2
+Sets the participants pairing numbers, sorting on rating, title and name, and substitutes this for the id they had before (The id was, but is no longer, saved as oldId. But don't change id to pairingNumber. It will change with late entries.) This function uses Games::Tournament::rank. Before the first round, all scores are usually 0. A2
 
 =cut
 
@@ -74,11 +74,12 @@ sub assignPairingNumbers {
     return if all { $_->pairingNumber } @players;
     my @rankings = $self->rank(@players);
     foreach my $n ( 0 .. $#rankings ) {
-        $rankings[$n]->pairingNumber( $n+1 );
-        $rankings[$n]->oldId( $rankings[$n]->id ) unless $rankings[$n]->oldId;
+	my $id = $rankings[$n]->id;
+	my $player = $self->ided($id);
+        $player->pairingNumber( $n+1 );
     }
     $self->log( join ', ', map { $_->pairingNumber . ": " . $_->id } @rankings);
-    $self->entrants( \@rankings );
+    $self->entrants( \@players );
 }
 
 
@@ -379,7 +380,7 @@ sub formBrackets {
 
  $pairing = $tourney->pairing( \@groups );
 
-Returns a Games::Tournament::Swiss::Procedure object. Groups are Games::Tournament::Swiss::Brackets objects of contestants with the same score and they are ordered by score, the group with the highest score first, and the group with the lowest score last. This is the point where round i becomes round i+1.
+Returns a Games::Tournament::Swiss::Procedure object. Groups are Games::Tournament::Swiss::Brackets objects of contestants with the same score and they are ordered by score, the group with the highest score first, and the group with the lowest score last. This is the point where round i becomes round i+1. But the program is expected to update the Games::Tournament::Swiss object itself. (Why?)
 
 =cut
 
