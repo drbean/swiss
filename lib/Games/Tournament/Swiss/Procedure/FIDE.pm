@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 13, 13時50分20秒
+# Last Edit: 2009  8月 13, 14時48分48秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1330,6 +1330,8 @@ sub c12 {
 
 If the lowest score group contains a player who cannot be paired without violating B1 or B2 or who, if they are the only player in the group, cannot be given a bye (B2b), the pairing of the penultimate score bracket is undone.  Try to find another pairing in the penultimate score bracket which will allow a pairing in the lowest score bracket. If in the penultimate score bracket p becomes zero (i.e. no pairing can be found which will allow a correct pairing for the lowest score bracket) then the two lowest score brackets are joined into a new lowest score bracket. Because now another score bracket is the penultimate one C13 can be repeated until an acceptable pairing is obtained.  XXX  Perhaps all the players from the old penultimate bracket were floated down. eg, t/cc6619.t. As a hack unfloat only those with the same score as the new penultimate bracket.
 
+TODO not finding a pairing is not a program ERROR, but a LAST state.
+
 =cut 
 
 sub c13 {
@@ -1351,7 +1353,7 @@ sub c13 {
     }
     if ( $index eq $self->firstBracket )
     {
-	return ERROR,
+	return LAST,
 	msg => "All joined into one $index bracket, but no pairings! Sorry";
     }
     my $penultimateIndex = $self->previousBracket;
