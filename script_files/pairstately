@@ -1,12 +1,13 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 28, 12時42分48秒
+# Last Edit: 2009  8月 13, 06時16分56秒
 # $Id: /swiss/trunk/script_files/pairstately 1472 2007-10-13T02:03:22.823448Z greg  $
 
 use strict;
 use warnings;
 
 use YAML qw/LoadFile DumpFile/;
+use List::Util qw/first/;
 use List::MoreUtils qw/all any/;
 
 use Games::Tournament::Swiss::Config;
@@ -183,9 +184,9 @@ if ( $newplayers ) {
 	next if grep { $_ eq $member->{name} } @absentees;
 	next if $member->{pairingnumber} and
 	    grep { $_->pairingNumber == $member->{pairingnumber} } @$lineup;
-	if ( my @id = grep { $_->oldId == $member->{id} } @$lineup )
+	if ( my $ided = first { $_->id eq $member->{id} } @$lineup )
 	{
-	    $member->{pairingnumber} = $id[0]->pairingNumber;
+	    $member->{pairingnumber} = $ided->pairingNumber;
 	}
     }
     DumpFile '../league.yaml', $league;
