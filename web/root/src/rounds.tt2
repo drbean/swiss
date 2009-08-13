@@ -12,5 +12,5 @@ Number of rounds that will be played:
 [% END %]
 
 </select>
-<input type="submit" name="Submit" value="Submit">
+<input type="submit" name="Submit" value="Pair Round 1">
 </form>
