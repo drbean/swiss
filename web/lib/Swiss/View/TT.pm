@@ -4,9 +4,19 @@ use strict;
 use base 'Catalyst::View::TT';
 use Template::Stash;
 
+$Template::Stash::SCALAR_OPS->{lc} = sub {
+	my ($string ) = @_;
+	return lc $string;
+};
+
 $Template::Stash::LIST_OPS->{substrs} = sub {
 	my ($list, $offset, $length ) = @_;
 	return [ map { substr( $_, $offset, $length ) } @$list ];
+};
+
+$Template::Stash::LIST_OPS->{map} = sub {
+	my ($list, $sub ) = @_;
+	return [ map { $sub->($_) } @$list ];
 };
 
 __PACKAGE__->config(
