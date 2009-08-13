@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 10, 11時36分56秒
+# Last Edit: 2009  8月 13, 08時04分42秒
 # $Id: $
 
 use warnings;
@@ -87,27 +87,34 @@ sub assignPairingNumbers {
 
  @rankings = $tourney->initializePreferences;
 
-Before the first round, the color (role) preference of the highest ranked player and the other odd-numbered players in the top half of the rankings is determined by lot. The preference of the even-numbered players in the top half is given to the other color. If there is only one player in the tournament, the preference is not initialized. The method assumes all entrants have a preference attribute. This accessor is given the player by the Games::Tournament::Contestant::Swiss constructor. E5
+Before the first round, the color (role) preference of the highest ranked player and the other odd-numbered players in the top half of the rankings is determined by lot. The preference of the even-numbered players in the top half is given to the other color. If there is only one player in the tournament, the preference is not initialized. The method assumes all entrants have a preference attribute. This accessor is given the player by the Games::Tournament::Contestant::Swiss constructor. We take care to put the players back in the same order that we got them from entrants method. Users may rely on the original order being maintained in web app cookies. E5
 
 =cut
 
 sub initializePreferences {
     my $self    = shift;
     my @players = @{ $self->{entrants} };
+    my @rankings = $self->rank( @players );
     my ( $evenRole, $oddRole ) = $self->randomRole;
-    my $p = int( @players / 2 );
+    my $p = int( @rankings / 2 );
     if ( $p == 0 ) {
-        $players[ 0 ]->preference->sign('');
-        $players[ 0 ]->preference->difference(0);
-	return $self->entrants( \@players );
+        $rankings[ 0 ]->preference->sign('');
+        $rankings[ 0 ]->preference->difference(0);
+	return $self->entrants( \@rankings );
     }
     for ( my $n=0; $n <= $p-1; $n+=2 ) {
-        $players[ $n ]->preference->sign($evenRole);
-        $players[ $n ]->preference->difference(0);
+        $rankings[ $n ]->preference->sign($evenRole);
+        $rankings[ $n ]->preference->difference(0);
     }
     for ( my $n=1; $n <= $p-1; $n+=2 ) {
-        $players[ $n ]->preference->sign($oddRole);
-        $players[ $n ]->preference->difference(0);
+        $rankings[ $n ]->preference->sign($oddRole);
+        $rankings[ $n ]->preference->difference(0);
+    }
+    foreach my $n ( 0 .. $#rankings ) {
+	my $id = $rankings[$n]->id;
+	my $player = $self->ided($id);
+	my $preference = $rankings[$n]->preference;
+        $player->preference( $preference );
     }
     $self->entrants( \@players );
 }
