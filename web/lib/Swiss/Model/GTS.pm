@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 07, 22時02分56秒
+# Last Edit: 2009  8月 09, 12時06分52秒
 # $Id$
 
 use strict;
@@ -76,7 +76,7 @@ Prepare cookies for a tournament's players with ids, names, ratings, and perhaps
 sub turnIntoCookies {
 	my ($self, $tourname, $playerlist) = @_;
 	my %cookie;
-	for my $key ( qw/id name rating/ ) {
+	for my $key ( qw/id name rating firstround/ ) {
 		my @keylist = map { $_->{$key} } @$playerlist;
 		my $keystring = join "&", map { escape( $_ ) } @keylist;
 		$cookie{$tourname . '_' . $key . 's'} = $keystring;
@@ -105,7 +105,7 @@ sub makeCookies {
 
 =head2 historyCookies
 
-Prepare cookies for a tournament's players opponent, preference and float histories, and scores. The cookie name for the player fields is 'tournament_fields' (where 'tournament' is the name of the tournament and 'field' is 'opponents', etc) and the values are listed by player id, in entry order in the tournament.
+Prepare cookies for a tournament's players opponent, preference and float histories, and scores. The cookie name for the player fields is 'tournament_fields' (where 'tournament' is the name of the tournament and 'field' is 'opponents', etc) and the values are listed by player id, in the same order as in 'tournament_ids'.
 	# my %cookies = $self->makeCookies( $tourney, $players, $keys, $history);
 
 =cut
@@ -118,13 +118,25 @@ sub historyCookies {
 	my $types = [ qw/opponent role float score/ ];
 	my @ids = map { $_->{id} } @$players;
 	for my $type ( @$types ) {
+		my %expando = reverse %$abbrev if $type eq 'roles';
 		my $historicaltype = $history->{$type};
 		my @historicalvalue;
 		my @typeids = keys %$historicaltype;
 		die "Not all players have a $type history in $tourname Tourney"
 			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
 		for my $id ( @ids ) {
-			push @historicalvalue, $historicaltype->{$id};
+			my $value = $historicaltype->{$id};
+			if ( $type eq 'opponent') {
+				$value = join ',', @$value if $value and
+							ref $value eq 'ARRAY';
+			}
+			else {
+				$value = join '', @$value if $value and
+							ref $value eq 'ARRAY';
+			}
+			#$value = join '', map { $_ } @$value if
+			#				$type eq 'roles';
+			push @historicalvalue, $value;
 		}
 		$cookie{"${tourname}_${type}s"} =
 			join '&', map { escape($_) } @historicalvalue;
@@ -142,7 +154,7 @@ Inflate a tournament's players' cookies with ids, names, ratings, and perhaps la
 sub turnIntoPlayers {
 	my ($self, $tourney, $cookies) = @_;
 	my @playerlist;
-	my $fields = [ qw/id name rating/ ];
+	my $fields = [ qw/id name rating firstround/ ];
 	return $self->breakCookie($tourney, $cookies, $fields);
 }
 
@@ -201,8 +213,29 @@ sub destringCookie {
 
 =head2 readHistory
 
-Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id.
+Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
 
+	opponents:
+	  1: [6 4 2 5] 
+	  2: [7 3 1 4] 
+	  3: [8 2 6 7] 
+	  6: [1 5 3 9]
+	roles:
+	  1: [qw/White Black White Black/] 
+	  2: [qw/Black White Black White/] 
+	  3: [qw/White Black White Black/] 
+	  6: [qw/Black White Black White/] 
+	floats:
+	  1: ['Up' 'Down'] 
+	  2: [undef 'Down'] 
+	  3: ['Down' undef] 
+	  6: [undef undef] 
+	score:
+	  1: 3.5 
+	  2: 3.5 
+	  3: 2.5 
+	  6: 2.5 
+	
 =cut
 
 sub readHistory {
@@ -258,6 +291,45 @@ sub parsePlayers {
 }
 
 
+=head2 parseTable
+
+Parse the textarea pairing table and return it in the same format as readHistory above.
+
+=cut
+
+sub parseTable {
+	my ($self, $tourney, $table) = @_;
+	my %pairingtable;;
+	my @records = split /\n/, $table;
+	for my $line ( @records ) {
+		next if $line =~ m/^$/;
+		next if $line =~ m/^id \s+ opponents/xi;
+		my %player;
+		chomp $line;
+		my @fields = split ' ', $line;
+		die "No spaces allowed between opponents, and between roles. Format is: 2016192 4100026,2805687 BW uD 2" if @fields > 5;
+		if ( @fields == 4 ) {
+			$fields[4] = $fields[3];
+			$fields[3] = '';
+		}
+		@player{qw/id opponent role float score/} = @fields;
+		my $id = $player{id};
+		my @opponents = split ',', $player{opponent};
+		$player{opponent} = \@opponents;
+		my @roles = map { $abbrev->{$_} } split //, $player{role};
+		$player{role} = \@roles;
+		my $float = $player{float};
+		my @floats = map {	$float =~ m/$_->[0]/? 'Up':
+					$float =~ m/$_->[1]/? 'Down':
+					'Not' } (['u', 'd'],['U', 'D']);
+		$player{float} = \@floats;
+		$pairingtable{$_}->{$id} = $player{$_} for
+					qw/opponent role float score/;
+	}
+	return %pairingtable;
+}
+
+
 =head2 pair
 
 Pair players for the next round of a swiss tournament
@@ -289,13 +361,12 @@ sub pair {
 		my @games = $tourney->recreateCards( {
 			round => $round, opponents => \%opponents,
 			roles => \%roles, floats => \%floats } );
-$DB::single=1;
 		$tourney->collectCards( @games );
 	}
 
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
-	$tourney->initializePreferences;
+	$tourney->initializePreferences if $round == 0;
 	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
@@ -310,7 +381,6 @@ $DB::single=1;
 	    push @games, grep { ref eq 'Games::Tournament::Card' }
 		@$bracketmatches;
 	}
-	$tourney->round(1);
 	my @tables = $tourney->publishCards(@games);
 }
 
@@ -331,26 +401,31 @@ sub changeHistory {
 		my $game = $tourney->myCard(round => $round, player => $id);
 		if ( defined $game ) {
 			my $opponent = $player->myOpponent($game)
-			|| Games::Tournament::Contestant->new( name => "Bye", id => "-" );
-			$history->{opponent}->{$id} .= 
-			$history->{opponent}->{$id}?  "," . $opponent->id:
-				$opponent->id ;
+			|| Games::Tournament::Contestant->new(
+				name => "Bye", id => "-" );
+			my $opponents = $history->{opponent}->{$id};
+			push @$opponents, $opponent->id;
+			$history->{opponent}->{$id} = $opponents;
 			my $role = $game->myRole($player);
 			if ( $role eq 'Bye' ) { $role = '-'; }
 			else                  { $role =~ s/^(.).*$/$1/; }
-			$history->{role}->{$id} .= $role;
+			my $roles = $history->{role}->{$id};
+			push @$roles, $role;
+			$history->{role}->{$id} = $roles;
 		}
 		else {
-			$history->{opponent}->{$id} .= "-,";
-			$history->{role}->{$id} .= "-";
+			push @{ $history->{opponent}->{$id} }, "-,";
+			push @{ $history->{role}->{$id} }, "-";
 		}
 		my $floats = $player->floats;
 		my $float = '';
 		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
 		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
+		$float = 'n' if $floats->[-2] and $floats->[-2] eq 'Not';
 		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
 		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
-		$history->{float}->{$id} = $float;
+		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
+		$history->{float}->{$id} = $floats;
 		my $score = defined $player->score? $player->score: '-';
 		$history->{score}->{$id} = $score;
 	}
