@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 07, 06時59分57秒
+# Last Edit: 2009  8月 13, 13時50分20秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1349,6 +1349,11 @@ sub c13 {
 	$self->byer($members->[0]);
 	return BYE;
     }
+    if ( $index eq $self->firstBracket )
+    {
+	return ERROR,
+	msg => "All joined into one $index bracket, but no pairings! Sorry";
+    }
     my $penultimateIndex = $self->previousBracket;
     my $penultimateBracket = $brackets->{$penultimateIndex};
     my $penultimateNumber = $penultimateBracket->number;
@@ -1357,11 +1362,6 @@ sub c13 {
     if ( @$members == 1 and not $self->byes->{$members->[0]->pairingNumber} ) {
 	$self->byer($members->[0]);
 	return BYE;
-    }
-    if ( $index eq $self->firstBracket )
-    {
-	return ERROR,
-	msg => "All joined into one $index bracket, but no pairings! Sorry";
     }
     delete $matches->{ $penultimateIndex };
     $self->log(
