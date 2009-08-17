@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 15, 21時15分46秒
+# Last Edit: 2009  8月 15, 23時12分05秒
 # $Id$
 
 use strict;
@@ -353,7 +353,8 @@ sub assignScores {
 	my ($self, $tourney, $history, $params) = @_;
 	my $scores;
 	my @ids = map { $_->id } @{ $tourney->entrants };
-	my %results = map { m/^(.*)_:_(.*)$/;
+	my %results = map {
+			m/^(.*)_:_(.*)$/;
 			my $firstroleplayer = $1;
 			my $secondroleplayer = $2;
 			die
@@ -374,6 +375,7 @@ sub assignScores {
 		my $result = $results{$player};
 		my $score = $scoring->{$result} || 0;
 		my $total = $history->{score}->{$player} + $score; 
+		$history->{score}->{$player} = $total;
 		push @$scores, $total;
 	}
 	return $scores;
@@ -402,8 +404,9 @@ sub pair {
         }
 		my $lastround = $round;
 		for my $round ( 1..$lastround ) {
-			$self->postPlayPaperwork(
+			my $games = $self->postPlayPaperwork(
 				$tourney, $pairingtable, $round);
+			$tourney->collectCards( @$games );
 		}
 	}
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
@@ -448,7 +451,7 @@ sub postPlayPaperwork {
 	my @games = $tourney->recreateCards( {
 		round => $round, opponents => \%opponents,
 		roles => \%roles, floats => \%floats } );
-	$tourney->collectCards( @games );
+	return \@games;
 }
 
 
