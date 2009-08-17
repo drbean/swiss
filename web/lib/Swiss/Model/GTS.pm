@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 17, 06時25分54秒
+# Last Edit: 2009  8月 17, 12時55分27秒
 # $Id$
 
 use strict;
@@ -267,6 +267,13 @@ sub readHistory {
 					$values[$rounds];
 			}
 		}
+		for my $rounds ( 0 .. $round-1 ) {
+			if ( $histories{role}->{$id}->[$rounds] eq '-'
+				and $histories{opponent}->{$id}->[$rounds] eq
+				'Bye') {
+				$histories{role}->{$id}->[$rounds] = 'Bye';
+			}
+		}
 		$histories{score}->{$id} = $playerData[$n]->{score};
 		$n++;
 	}
@@ -472,7 +479,7 @@ sub changeHistory {
 		if ( defined $game ) {
 			my $opponent = $player->myOpponent($game)
 			|| Games::Tournament::Contestant->new(
-				name => "Bye", id => "-" );
+				name => "Bye", id => "Bye" );
 			my $opponents = $history->{opponent}->{$id};
 			push @$opponents, $opponent->id;
 			$history->{opponent}->{$id} = $opponents;
