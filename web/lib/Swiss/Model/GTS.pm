@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 14, 14時44分37秒
+# Last Edit: 2009  8月 15, 15時33分36秒
 # $Id$
 
 use strict;
@@ -25,16 +25,16 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
-my $scores = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
+my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
 my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
 	0.5 => 'Draw', '=' => 'Draw'  };
 
-$swiss->frisk($scores, $roles, $firstround, $algorithm, $abbrev);
+$swiss->frisk($scoring, $roles, $firstround, $algorithm, $abbrev);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
-%Games::Tournament::Swiss::Config::scores = %$scores;
+%Games::Tournament::Swiss::Config::scores = %$scoring;
 @Games::Tournament::Swiss::Config::roles = @$roles;
 $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
@@ -136,7 +136,6 @@ sub historyCookies {
 			my $values = $historicaltype->{$id};
 			my $string;
 			if ( $type eq 'opponent') {
-$DB::single=1;
 				$string = join ',', @$values if defined $values
 					and ref $values eq 'ARRAY';
 			}
@@ -352,7 +351,7 @@ Get results for the last round from the user and recreate the games for them fro
 
 sub assignScores {
 	my ($self, $tourney, $history, $params) = @_;
-	my %pairingtable;
+	my $scores;
 	my @ids = map { $_->id } @{ $tourney->entrants };
 	my %results = map { m/^(.*)_:_(.*)$/;
 			my $firstroleplayer = $1;
@@ -366,19 +365,18 @@ sub assignScores {
 			my $secondresult = $2;
 			die
 	"One/both of $firstresult, $secondresult not a possible result" unless
-				any { $_ eq $firstresult } keys %$scores and
-				any { $_ eq $secondresult } keys %$scores;
+				any { $_ eq $firstresult } keys %$scoring and
+				any { $_ eq $secondresult } keys %$scoring;
 			( $firstroleplayer => $firstresult,
 			$secondroleplayer => $secondresult )
 			} grep m/^(.*)_:_(.*)$/, keys %$params;
 	for my $player ( @ids ) {
 		my $result = $results{$player};
-		my $score = $scores->{$result} || 0;
+		my $score = $scoring->{$result} || 0;
 		my $total = $history->{score}->{$player} + $score; 
-		$history->{score}->{$player} = $total;
+		push @$scores, $total;
 	}
-	%pairingtable = %$history;
-	return %pairingtable;
+	return $scores;
 }
 
 
@@ -397,10 +395,15 @@ sub pair {
 	$tourney->idNameCheck;
 	my $pairingtable = $args->{history};
 	if ( $pairingtable ) {
+		my $scores = $pairingtable->{score};
+        for my $player ( @$entrants ) {
+                my $id = $player->id;
+                $player->score( $scores->{$id} );
+        }
 		my $lastround = $round;
 		for my $round ( 1..$lastround ) {
 			$self->postPlayPaperwork(
-				$tourney, $pairingtable, $round, $lastround);
+				$tourney, $pairingtable, $round);
 		}
 	}
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
@@ -409,6 +412,9 @@ sub pair {
 	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
+	if ( $pairing->message ) {
+		return $pairing->message;
+	}
 	$pairing->round(++$round);
 	# $pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
@@ -422,17 +428,19 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
+	return \@tables;
 }
 
 
 =head2 postPlayPaperwork
 
-The details of who played who, what roles they took and their floats, taken from the pairing table for crunching by the pairing procedure.
+The details of who played who, what roles they took and their floats, taken from the pairing table and recreated into game cards for crunching by the pairing procedure.
 
 =cut
 
 sub postPlayPaperwork {
-	my ($self, $tourney, $pairingtable, $round, $lastround) = @_;
+	my ($self, $tourney, $pairingtable, $round) = @_;
+	my $lastround = $tourney->round;
 	my @ids = map { $_->id } @{ $tourney->entrants };
 	my ( $opponents, $roles, $floats, $score ) =
 		@$pairingtable{qw/opponent role float score/};
