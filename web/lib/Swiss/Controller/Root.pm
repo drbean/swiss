@@ -288,19 +288,25 @@ sub nextround : Local {
 		}
 		else { %pairingtable = %history; }
 	}
-	my @games = $c->model('GTS')->pair( {
+	my $games = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
+	if ( $games =~ m/^All joined into one .*, but no pairings! Sorry/ ) {
+		$c->stash->{error_msg} = $games;
+		$c->stash->{round} = $round - 1;
+		$c->stash->{template}  = "end.tt2";
+		return;
+	}
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
-			$tourney, \%pairingtable, \@games );
+			$tourney, \%pairingtable, $games );
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
-	$c->stash->{games} = \@games;
+	$c->stash->{games} = $games;
 	$c->stash->{template} = "draw.tt2";
 }
 
