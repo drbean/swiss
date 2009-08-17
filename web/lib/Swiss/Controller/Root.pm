@@ -107,7 +107,7 @@ sub name : Local {
 
 =head2 add_player
 
-First round, players, number of rounds. Spaghetti code in deciding what to do after stop? Make it public, conversational! Noticeable, top level!
+First round, players.
 
 =cut
 
@@ -118,20 +118,6 @@ sub add_player : Local {
 	my $round = $c->request->cookie("${tourname}_round")->value + 1;
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	$c->stash->{tournament} = $tourname;
-	if (  $c->request->params->{stop} ) {
-		if ( $c->request->cookie("${tourname}_rounds") and
-			$c->request->cookie("${tourname}_rounds")->isa(
-				'CGI::Simple::Cookie') )
-		{
-			$c->response->redirect("pairingtable");
-		}
-		else {
-			my $playerNumber = $#playerlist;
-			$c->stash->{rounds} = $playerNumber;
-			$c->stash->{template} = 'rounds.tt2';
-			return;
-		}
-	}
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
 	$entrant{firstround} = $round;
@@ -157,7 +143,6 @@ sub add_player : Local {
 }
 
 
-
 =head2 edit_players
 
 Later rounds, players
@@ -166,7 +151,6 @@ Later rounds, players
 
 sub edit_players : Local {
         my ($self, $c) = @_;
-	my $tournament = $c->stash->{tournament};
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $round = $c->request->cookie("${tourname}_round")->value + 1;
@@ -176,8 +160,6 @@ sub edit_players : Local {
 			$tourname, $newlist);
 	}
 	else {
-		my $cookies = $c->request->cookies;
-		my $tourname = $c->request->cookie('tournament')->value;
 		@playerlist = $c->model('GTS')->turnIntoPlayers(
 			$tourname, $cookies);
 	}
@@ -202,6 +184,32 @@ sub edit_players : Local {
 }
 
 
+=head2 final_players
+
+Finish editing players
+
+=cut
+
+sub final_players : Local {
+        my ($self, $c) = @_;
+	my $cookies = $c->request->cookies;
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = $c->request->cookie("${tourname}_round")->value + 1;
+	my @players = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	if ( $c->request->cookie("${tourname}_rounds") and
+		$c->request->cookie("${tourname}_rounds")->isa(
+			'CGI::Simple::Cookie') )
+	{
+		$c->stash->{template} = "pairingtable.tt2";
+	}
+	else {
+		my $playerNumber = @players / 2? @players: $#players;
+		$c->stash->{rounds} = $playerNumber;
+		$c->stash->{template} = 'rounds.tt2';
+	}
+}
+
+
 =head2 rounds
 
 Number of rounds
@@ -214,7 +222,7 @@ sub rounds : Local {
 	my $rounds = $c->request->params->{rounds};
 	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
 	$c->stash->{rounds} = $rounds;
-	$c->response->redirect('nextround');
+	$c->stash->{template} = 'pair.tt2';
 }
 
 
@@ -285,21 +293,25 @@ sub nextround : Local {
 				$tourney, \%pairingtable, $params);
 			$pairingtable{score} = $latestscores;
 			my $scorestring;
-			$scorestring = join '&', @$latestscores if
-				all { defined } @$latestscores;
+			$scorestring = join '&', map { $latestscores->{$_} }
+				map { $_->{id} } @playerlist if
+				all { defined } values %$latestscores;
 			$c->response->cookies->{"${tourname}_scores"} =
-				{ value => $scorestring };
+				{ value => $scorestring } if $scorestring;
 			# $c->response->redirect('nextround');
 			# return;
 		}
 	}
-	if ( ( not defined $latestscores or any { not defined } @$latestscores ) and $round != 1 ) {
+	if ( ( not defined $latestscores or not all { defined }
+				values %$latestscores ) and $round >= 2 ) {
 		$round--;
 		my $games = $c->model('GTS')->postPlayPaperwork(
 			$tourney, \%pairingtable, $round );
 		$c->stash->{round} = $round;
 		$c->stash->{roles} = $c->model('GTS')->roles;
 		$c->stash->{games} = $games;
+		$c->stash->{error_msg} = "Can't pair Round " . ($round+1) .
+			" with unfinished games in Round $round.";
 		$c->stash->{template} = "draw.tt2";
 		return;
 	}
