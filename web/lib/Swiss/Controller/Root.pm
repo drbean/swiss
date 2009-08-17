@@ -269,31 +269,43 @@ sub nextround : Local {
 			round => ($round -1),
 			rounds => $rounds,
 			entrants => \@playerlist });
-	my %pairingtable;
+	my ($latestscores, %pairingtable);
 	if ( $c->request->params->{pairingtable} ) {
 		my $table = $c->request->params->{pairingtable};
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
+		$latestscores = $pairingtable{score};
 	}
 	else {
-		my %history = $c->model('GTS')->readHistory(
+		%pairingtable = $c->model('GTS')->readHistory(
 				$tourname, \@playerlist, $cookies, $round-1);
 		if ( exists $c->request->params->{Submit} and
 			$c->request->params->{Submit} eq "Pair round $round" ) {
 			my $params = $c->request->params;
-			my $scores = $c->model('GTS')->assignScores(
-				$tourney, \%history, $params);
-			my $scorestring = join '&', @$scores;
+			$latestscores = $c->model('GTS')->assignScores(
+				$tourney, \%pairingtable, $params);
+			$pairingtable{score} = $latestscores;
+			my $scorestring;
+			$scorestring = join '&', @$latestscores if
+				all { defined } @$latestscores;
 			$c->response->cookies->{"${tourname}_scores"} =
 				{ value => $scorestring };
-			$c->response->redirect('nextround');
-			return;
+			# $c->response->redirect('nextround');
+			# return;
 		}
-		else { %pairingtable = %history; }
+	}
+	if ( ( not defined $latestscores or any { not defined } @$latestscores ) and $round != 1 ) {
+		$round--;
+		my $games = $c->model('GTS')->postPlayPaperwork(
+			$tourney, \%pairingtable, $round );
+		$c->stash->{round} = $round;
+		$c->stash->{roles} = $c->model('GTS')->roles;
+		$c->stash->{games} = $games;
+		$c->stash->{template} = "draw.tt2";
+		return;
 	}
 	my ($mess, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
-$DB::single=1;
 	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
 		@$games * 2 < @playerlist ) {
 		$c->stash->{error_msg} = $mess;
