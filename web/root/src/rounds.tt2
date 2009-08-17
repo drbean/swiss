@@ -1,13 +1,12 @@
 [% META title = 'Rounds' -%]
-[% rounds = [ 1 .. 20 ] %]
 
 <H1>[% tournament %] Tournament</H1>
 
 Number of rounds that will be played:
 <form method="post" action="[% c.uri_for('rounds') %]">
-<select name="rounds" size="[% rounds.size %]">
+<select name="rounds" size="[% rounds %]">
 
-[% FOREACH n IN rounds %]
+[% FOREACH n IN [1 .. rounds] %]
 <OPTION value="[% n %]">[% n %]</OPTION>
 [% END %]
 

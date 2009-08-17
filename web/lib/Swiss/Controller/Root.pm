@@ -126,6 +126,8 @@ sub add_player : Local {
 			$c->response->redirect("pairingtable");
 		}
 		else {
+			my $playerNumber = $#playerlist;
+			$c->stash->{rounds} = $playerNumber;
 			$c->stash->{template} = 'rounds.tt2';
 			return;
 		}
