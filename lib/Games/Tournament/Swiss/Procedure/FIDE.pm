@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 13, 14時48分48秒
+# Last Edit: 2009  8月 15, 14時33分26秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -142,13 +142,33 @@ sub matchPlayers {
 	}
         if ( $state eq ERROR ) {
             die
-qq/Pairing error: @{[map { "$_ => $args{$_}, " } keys %args]} Pairing NOT complete\n/;
+qq/Pairing error: $args{msg}. Pairing NOT complete\n/;
         }
-        if ( $state eq LAST ) { return $self; }
+        if ( $state eq LAST ) {
+	    $self->message( $args{msg} );
+	    return $self; }
         die "No transition defined from $oldState to $state"
           unless grep m/$state/, @alterStates;
     }
 }
+
+
+=head2 message
+
+ $pairing->message;
+
+Something about the success or failure of the pairing procedure as far as it concerns the user. This is not a message about the success or failure of the Games::Tournament::Swiss::Procedure::FIDE code as in 'warn', or a logging of the progress of the players in their brackets through the FIDE pairing procedure as in 'log', or a message about a problem coding the FIDE algorithm, as in 'ERROR'.
+
+=cut 
+
+sub message {
+    my $self = shift;
+    my $message = shift;
+    if ( defined $message ) { $self->{message} .= $message; }
+    elsif ( $self->{message} ) { return $self->{message}; }
+}
+
+
 
 
 =head2 start
