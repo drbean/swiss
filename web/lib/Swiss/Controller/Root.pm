@@ -288,13 +288,15 @@ sub nextround : Local {
 		}
 		else { %pairingtable = %history; }
 	}
-	my $games = $c->model('GTS')->pair( {
+	my ($mess, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
-	if ( $games =~ m/^All joined into one .*, but no pairings! Sorry/ ) {
-		$c->stash->{error_msg} = $games;
+$DB::single=1;
+	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
+		@$games * 2 < @playerlist ) {
+		$c->stash->{error_msg} = $mess;
 		$c->stash->{round} = $round - 1;
-		$c->stash->{template}  = "end.tt2";
+		$c->stash->{template}  = "gameover.tt2";
 		return;
 	}
 	$tourney->round($round);
