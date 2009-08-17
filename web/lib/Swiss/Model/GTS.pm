@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 14, 12時55分13秒
+# Last Edit: 2009  8月 14, 14時44分37秒
 # $Id$
 
 use strict;
@@ -346,7 +346,7 @@ sub parseTable {
 
 =head2 assignScores
 
-Get results for the last round from the user and incorporate them in the data for previous rounds and the last round from readHistory above.
+Get results for the last round from the user and recreate the games for them from the last round from readHistory above.
 
 =cut
 
@@ -397,25 +397,10 @@ sub pair {
 	$tourney->idNameCheck;
 	my $pairingtable = $args->{history};
 	if ( $pairingtable ) {
-		my ( $opponents, $roles, $floats, $score ) =
-			@$pairingtable{qw/opponent role float score/};
-		my @ids;
-		for my $player ( @$entrants ) {
-			my $id = $player->id;
-			push @ids, $id;
-			$player->score( $score->{$id} );
-		}
 		my $lastround = $round;
 		for my $round ( 1..$lastround ) {
-			my %opponents = map { $_ =>
-					$opponents->{$_}->[$round-1] } @ids;
-			my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
-			my %floats = map { $_ =>
-				$floats->{$_}->[$round-$lastround-1] } @ids;
-			my @games = $tourney->recreateCards( {
-				round => $round, opponents => \%opponents,
-				roles => \%roles, floats => \%floats } );
-			$tourney->collectCards( @games );
+			$self->postPlayPaperwork(
+				$tourney, $pairingtable, $round, $lastround);
 		}
 	}
 	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
@@ -437,6 +422,27 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
+}
+
+
+=head2 postPlayPaperwork
+
+The details of who played who, what roles they took and their floats, taken from the pairing table for crunching by the pairing procedure.
+
+=cut
+
+sub postPlayPaperwork {
+	my ($self, $tourney, $pairingtable, $round, $lastround) = @_;
+	my @ids = map { $_->id } @{ $tourney->entrants };
+	my ( $opponents, $roles, $floats, $score ) =
+		@$pairingtable{qw/opponent role float score/};
+	my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
+	my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
+	my %floats = map { $_ => $floats->{$_}->[$round-$lastround-1] } @ids;
+	my @games = $tourney->recreateCards( {
+		round => $round, opponents => \%opponents,
+		roles => \%roles, floats => \%floats } );
+	$tourney->collectCards( @games );
 }
 
 
