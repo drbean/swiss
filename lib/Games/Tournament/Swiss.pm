@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 16, 17時15分50秒
+# Last Edit: 2009  8月 16, 23時34分05秒
 # $Id: $
 
 use warnings;
@@ -168,7 +168,7 @@ sub recreateCards {
             croak "Player $id has $role, in round $round?"
               unless $player and $role eq '-';
         }
-        if ( $opponentId eq 'Bye' ) {
+        elsif ( $opponentId eq 'Bye' ) {
             croak "Player $id has $role, in round $round?"
               unless $player and $role eq 'Bye';
         }
