@@ -76,6 +76,11 @@ Tournament name. Set 'tournament' and reset 'tournaments' cookie. Set 'tournamen
 sub name : Local {
         my ($self, $c) = @_;
 	my $tourname = $c->request->params->{tournament};
+	unless ( $tourname ) {
+		$c->stash->{error_msg} = "What is the tournament's name?";
+		$c->stash->{template} = 'swiss.tt2';
+		return;
+	}
 	my @tournames;
 	if ( $c->request->cookie('tournaments') and
 		$c->request->cookie('tournaments')->isa('CGI::Simple::Cookie') )
@@ -268,8 +273,21 @@ sub nextround : Local {
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
 	}
 	else {
-		%pairingtable = $c->model('GTS')->readHistory(
+		my %history = $c->model('GTS')->readHistory(
 				$tourname, \@playerlist, $cookies, $round);
+		if ( $c->request->params->{Submit} eq "Pair round $round" ) {
+			my $params = $c->request->params;
+			%pairingtable = $c->model('GTS')->assignScores(
+				$tourney, \%history, $params);
+			my $newhistory = $c->model('GTS')->changeHistory(
+					$tourney, \%pairingtable, \@games );
+			my %cookies = $c->model('GTS')->historyCookies(
+				$tourney, $newhistory);
+			$c->response->cookies->{$_} = { value => $cookies{$_} }
+					for keys %cookies;
+			$c->response->redirect('next_round');
+		}
+		else { %pairingtable = %history; }
 	}
 	my @games = $c->model('GTS')->pair( {
 			tournament => $tourney,
@@ -277,10 +295,8 @@ sub nextround : Local {
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, \@games );
-	my %prefFloatcookies =
-		$c->model('GTS')->historyCookies( $tourney, $newhistory);
-	$c->response->cookies->{$_} = { value => $prefFloatcookies{$_} }
-			for keys %prefFloatcookies;
+	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
+	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{round} = $round;
