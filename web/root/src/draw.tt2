@@ -1,7 +1,7 @@
 [% META title = 'Draw' -%]
 [% n = 1 %]
 
-<form method="post" action="[% c.uri_for('rounds') %]">
+<form method="post" action="[% c.uri_for('nextround') %]">
 <table>
 <caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
   <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
@@ -12,7 +12,7 @@
     <td>[% n + 1 %]
     <td>[% games.$n.contestants.$roles.0.id || games.contestants.Bye.id %]
     <td>[% games.$n.contestants.$roles.0.name %]
-    <td>[% games.$n.contestants.$roles.0.score || 0 %]
+    <td>[% games.$n.contestants.$roles.0.score.defined ? games.$n.contestants.$roles.0.score : '-' %]
     <td> 
 <select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
 
@@ -27,7 +27,7 @@
 </select>
     <td>[% games.$n.contestants.$roles.1.id %]
     <td>[% games.$n.contestants.$roles.1.name %]
-    <td>[% games.$n.contestants.$roles.1.score || 0 %]
+    <td>[% games.$n.contestants.$roles.1.score.defined ? games.$n.contestants.$roles.1.score : '-' %]
     [% n = n+1 %]
 [% END %]
 </table>
