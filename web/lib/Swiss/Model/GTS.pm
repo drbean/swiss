@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 15, 15時33分36秒
+# Last Edit: 2009  8月 15, 21時15分46秒
 # $Id$
 
 use strict;
@@ -412,9 +412,7 @@ sub pair {
 	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
-	if ( $pairing->message ) {
-		return $pairing->message;
-	}
+	my $message = $pairing->message;
 	$pairing->round(++$round);
 	# $pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
@@ -428,13 +426,13 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
-	return \@tables;
+	return ($message, \@tables);
 }
 
 
 =head2 postPlayPaperwork
 
-The details of who played who, what roles they took and their floats, taken from the pairing table and recreated into game cards for crunching by the pairing procedure.
+The details of who played who, what roles they took and their floats in some round, taken from a pairing table found somewhere and recreated into game cards for crunching by the pairing procedure.
 
 =cut
 
