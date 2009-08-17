@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 16, 11時45分54秒
+# Last Edit: 2009  8月 17, 06時25分54秒
 # $Id$
 
 use strict;
@@ -259,7 +259,7 @@ sub readHistory {
 			my $values = $playerData[$n]->{$field};
 			my @values = split //, $values;
 			@values = split /,/, $values if $field eq 'opponent';
-			@values = map { $abbrev->{$_} } split //, $values
+			@values = map { $abbrev->{$_} || $_ } split //, $values
 				if $field eq 'role';
 			for my $rounds ( 0 .. $round-1 ) {
 				# $histories{$field}->[$n]= \@values;
@@ -329,7 +329,7 @@ sub parseTable {
 		my $id = $player{id};
 		my @opponents = split ',', $player{opponent};
 		$player{opponent} = \@opponents;
-		my @roles = map { $abbrev->{$_} } split //, $player{role};
+		my @roles = map { $abbrev->{$_} || $_ } split //, $player{role};
 		$player{role} = \@roles;
 		my $float = $player{float};
 		my @floats = map {	$float =~ m/$_->[0]/? 'Up':
