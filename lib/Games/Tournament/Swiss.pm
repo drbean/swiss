@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 13, 08時04分42秒
+# Last Edit: 2009  8月 16, 17時15分50秒
 # $Id: $
 
 use warnings;
@@ -124,9 +124,9 @@ sub initializePreferences {
 
  $tourney->recreateCards( {
      round => $round,
-     opponents => { 1 => 2, 2 => 1},
-     roles => { 1 => 'W', 2 => 'B' },
-     floats => { 1 => 'U', 2=> 'D' }
+     opponents => { 1 => 2, 2 => 1, 3 => 'Bye', 4 => '-' },
+     roles => { 1 => 'W', 2 => 'B', 3 => 'Bye', 4 => '-' },
+     floats => { 1 => 'U', 2=> 'D', 3 => 'Down', 4 => 'Not' }
  } )
 
 From hashes of the opponents, roles and floats for each player in a round (as provided by a pairing table), draws up the original game cards for each of the matches of the round. Returned is a list of Games::Tournament::Card objects, with undefined result fields. Pairing numbers are not used. Ids are used. Pairing numbers change with late entries.
@@ -160,11 +160,14 @@ sub recreateCards {
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
 "Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
-          unless $opponentId eq 'Bye'
+          unless $opponentId eq 'Bye' or $opponentId eq '-'
               or $opponentsOpponent eq $id;
         my $role         = $roles->{$id};
         my $opponentRole = $roles->{$opponentId};
-
+        if ( $opponentId eq '-' ) {
+            croak "Player $id has $role, in round $round?"
+              unless $player and $role eq '-';
+        }
         if ( $opponentId eq 'Bye' ) {
             croak "Player $id has $role, in round $round?"
               unless $player and $role eq 'Bye';
