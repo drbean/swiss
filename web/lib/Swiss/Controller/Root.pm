@@ -179,8 +179,6 @@ sub edit_players : Local {
 		@playerlist = $c->model('GTS')->turnIntoPlayers(
 			$tourname, $cookies);
 	}
-	$c->stash->{round} = $round;
-	$c->stash->{template} = 'players.tt2';
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck(@playerlist ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -197,6 +195,8 @@ sub edit_players : Local {
 			for keys %cookies;
 		$c->stash->{playerlist} = \@playerlist;
 	}
+	$c->stash->{round} = $round;
+	$c->stash->{template} = 'players.tt2';
 }
 
 
@@ -212,7 +212,7 @@ sub rounds : Local {
 	my $rounds = $c->request->params->{rounds};
 	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
 	$c->stash->{rounds} = $rounds;
-	$c->detach('nextround');
+	$c->response->redirect('nextround');
 }
 
 
@@ -274,18 +274,17 @@ sub nextround : Local {
 	}
 	else {
 		my %history = $c->model('GTS')->readHistory(
-				$tourname, \@playerlist, $cookies, $round);
-		if ( $c->request->params->{Submit} eq "Pair round $round" ) {
+				$tourname, \@playerlist, $cookies, $round-1);
+		if ( exists $c->request->params->{Submit} and
+			$c->request->params->{Submit} eq "Pair round $round" ) {
 			my $params = $c->request->params;
-			%pairingtable = $c->model('GTS')->assignScores(
+			my $scores = $c->model('GTS')->assignScores(
 				$tourney, \%history, $params);
-			my $newhistory = $c->model('GTS')->changeHistory(
-					$tourney, \%pairingtable, \@games );
-			my %cookies = $c->model('GTS')->historyCookies(
-				$tourney, $newhistory);
-			$c->response->cookies->{$_} = { value => $cookies{$_} }
-					for keys %cookies;
-			$c->response->redirect('next_round');
+			my $scorestring = join '&', @$scores;
+			$c->response->cookies->{"${tourname}_scores"} =
+				{ value => $scorestring };
+			$c->response->redirect('nextround');
+			return;
 		}
 		else { %pairingtable = %history; }
 	}
