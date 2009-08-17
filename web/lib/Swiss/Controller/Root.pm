@@ -200,7 +200,7 @@ sub final_players : Local {
 		$c->request->cookie("${tourname}_rounds")->isa(
 			'CGI::Simple::Cookie') )
 	{
-		$c->stash->{template} = "pairingtable.tt2";
+		$c->stash->{template} = "pairtable.tt2";
 	}
 	else {
 		my $playerNumber = @players / 2? @players: $#players;
