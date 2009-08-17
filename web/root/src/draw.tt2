@@ -28,7 +28,6 @@
     <td>[% games.$n.contestants.$roles.1.id %]
     <td>[% games.$n.contestants.$roles.1.name %]
     <td>[% games.$n.contestants.$roles.1.score.defined ? games.$n.contestants.$roles.1.score : '-' %]
-    [% n = n+1 %]
 [% END %]
 </table>
 </form>
