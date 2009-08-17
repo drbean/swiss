@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 13, 15時04分43秒
+# Last Edit: 2009  8月 14, 12時55分13秒
 # $Id$
 
 use strict;
@@ -128,25 +128,28 @@ sub historyCookies {
 	for my $type ( @$types ) {
 		my %expando = reverse %$abbrev if $type eq 'roles';
 		my $historicaltype = $history->{$type};
-		my @historicalvalue;
+		my @historicalvalues;
 		my @typeids = keys %$historicaltype;
 		die "Not all players have a $type history in $tourname Tourney"
 			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
 		for my $id ( @ids ) {
-			my $value = $historicaltype->{$id};
+			my $values = $historicaltype->{$id};
+			my $string;
 			if ( $type eq 'opponent') {
-				$value = join ',', @$value if $value and
-							ref $value eq 'ARRAY';
+$DB::single=1;
+				$string = join ',', @$values if defined $values
+					and ref $values eq 'ARRAY';
 			}
 			elsif ( $type eq 'role' or $type eq 'float' ) {
-				$value = join '', map
+				$string = join '', map
 					{defined $_ and substr $_, 0, 1}
-						@$value if $value and
-							ref $value eq 'ARRAY';
+						@$values if defined $values and
+							ref $values eq 'ARRAY';
 			}
-			push @historicalvalue, $value;
+			elsif( $type eq 'score' ) { $string = $values || 0 }
+			push @historicalvalues, $string;
 		}
-		$cookie{"${tourname}_${type}s"} = join '&', @historicalvalue;
+		$cookie{"${tourname}_${type}s"} = join '&', @historicalvalues;
 	}
 	return %cookie;
 }
@@ -222,17 +225,17 @@ sub destringCookie {
 
 Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
 
-	opponents:
+	opponent:
 	  1: [6 4 2 5] 
 	  2: [7 3 1 4] 
 	  3: [8 2 6 7] 
 	  6: [1 5 3 9]
-	roles:
+	role:
 	  1: [qw/White Black White Black/] 
 	  2: [qw/Black White Black White/] 
 	  3: [qw/White Black White Black/] 
 	  6: [qw/Black White Black White/] 
-	floats:
+	float:
 	  1: ['Up' 'Down'] 
 	  2: [undef 'Down'] 
 	  3: ['Down' undef] 
@@ -257,6 +260,8 @@ sub readHistory {
 			my $values = $playerData[$n]->{$field};
 			my @values = split //, $values;
 			@values = split /,/, $values if $field eq 'opponent';
+			@values = map { $abbrev->{$_} } split //, $values
+				if $field eq 'role';
 			for my $rounds ( 0 .. $round-1 ) {
 				# $histories{$field}->[$n]= \@values;
 				$histories{$field}->{$id}->[$rounds] =
@@ -335,6 +340,44 @@ sub parseTable {
 		$pairingtable{$_}->{$id} = $player{$_} for
 					qw/opponent role float score/;
 	}
+	return %pairingtable;
+}
+
+
+=head2 assignScores
+
+Get results for the last round from the user and incorporate them in the data for previous rounds and the last round from readHistory above.
+
+=cut
+
+sub assignScores {
+	my ($self, $tourney, $history, $params) = @_;
+	my %pairingtable;
+	my @ids = map { $_->id } @{ $tourney->entrants };
+	my %results = map { m/^(.*)_:_(.*)$/;
+			my $firstroleplayer = $1;
+			my $secondroleplayer = $2;
+			die
+	"One/both of $firstroleplayer, $secondroleplayer not an entrant" unless
+				any { $_ eq $firstroleplayer } @ids and
+				any { $_ eq $secondroleplayer } @ids;
+			$params->{$_} =~ m/^(.*):(.*)$/;
+			my $firstresult = $1;
+			my $secondresult = $2;
+			die
+	"One/both of $firstresult, $secondresult not a possible result" unless
+				any { $_ eq $firstresult } keys %$scores and
+				any { $_ eq $secondresult } keys %$scores;
+			( $firstroleplayer => $firstresult,
+			$secondroleplayer => $secondresult )
+			} grep m/^(.*)_:_(.*)$/, keys %$params;
+	for my $player ( @ids ) {
+		my $result = $results{$player};
+		my $score = $scores->{$result} || 0;
+		my $total = $history->{score}->{$player} + $score; 
+		$history->{score}->{$player} = $total;
+	}
+	%pairingtable = %$history;
 	return %pairingtable;
 }
 
@@ -438,9 +481,7 @@ sub changeHistory {
 		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
 		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
 		$history->{float}->{$id} = $floats;
-		my $score = defined $player->score? $player->score:
-					$round == 1? '-': 0;
-		$history->{score}->{$id} = $score;
+		$history->{score}->{$id} = $player->score;
 	}
 	return $history;
 }
