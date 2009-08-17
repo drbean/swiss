@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 15, 23時12分05秒
+# Last Edit: 2009  8月 16, 11時45分54秒
 # $Id$
 
 use strict;
@@ -345,38 +345,38 @@ sub parseTable {
 
 =head2 assignScores
 
-Get results for the last round from the user and recreate the games for them from the last round from readHistory above.
+Get results for the last round from the user and compute latest scores, using  history up until the last round.
 
 =cut
 
 sub assignScores {
 	my ($self, $tourney, $history, $params) = @_;
-	my $scores;
 	my @ids = map { $_->id } @{ $tourney->entrants };
-	my %results = map {
-			m/^(.*)_:_(.*)$/;
-			my $firstroleplayer = $1;
-			my $secondroleplayer = $2;
-			die
-	"One/both of $firstroleplayer, $secondroleplayer not an entrant" unless
+	my ($scores, %results);
+	PARAM: for my $param ( keys %$params ) {
+		my ( $firstroleplayer, $secondroleplayer);
+		{
+			next PARAM unless $param =~ m/^(.*)_:_(.*)$/;
+			$firstroleplayer = $1;
+			$secondroleplayer = $2;
+		}
+		die
+	"Either $firstroleplayer or $secondroleplayer not an entrant" unless
 				any { $_ eq $firstroleplayer } @ids and
-				any { $_ eq $secondroleplayer } @ids;
-			$params->{$_} =~ m/^(.*):(.*)$/;
-			my $firstresult = $1;
-			my $secondresult = $2;
-			die
-	"One/both of $firstresult, $secondresult not a possible result" unless
-				any { $_ eq $firstresult } keys %$scoring and
-				any { $_ eq $secondresult } keys %$scoring;
-			( $firstroleplayer => $firstresult,
-			$secondroleplayer => $secondresult )
-			} grep m/^(.*)_:_(.*)$/, keys %$params;
-	for my $player ( @ids ) {
-		my $result = $results{$player};
-		my $score = $scoring->{$result} || 0;
-		my $total = $history->{score}->{$player} + $score; 
-		$history->{score}->{$player} = $total;
-		push @$scores, $total;
+				any { $_ eq $secondroleplayer } @ids, 'Bye';
+		$params->{$param} =~ m/^(.*):(.*)$/;
+		my $firstresult = $1;
+		my $secondresult = $2;
+		$results{$firstroleplayer} = $firstresult;
+		$results{$secondroleplayer} = $secondresult;
+	}
+	for my $id ( @ids ) {
+		my $result = $results{$id};
+		my ($score, $total);
+		$score = $scoring->{$result} if defined $result;
+		$total = $history->{score}->{$id} + $score if defined $score;
+		$history->{score}->{$id} = $total if defined $total;
+		$scores->{$id} = $total if defined $total;
 	}
 	return $scores;
 }
