@@ -1,37 +1,37 @@
 [% META title = 'Draw' -%]
 [% n = 1 %]
 
+<form method="post" action="[% c.uri_for('rounds') %]">
 <table>
 <caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
   <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
       <TH colspan="3"><H2>[% roles.1 %]</H2>
   <TR><TH>Table<TH>ID<TH>Name<TH>Score<TH>Result<TH>ID<TH>Name<TH>Score
-[% FOREACH game IN games %]
+[% FOREACH n IN [ 0 .. games.max ] %]
   <TR>
-    <td>[% n %]
-    <td>[% game.contestants.$roles.0.id || games.contestants.Bye.id %]
-    <td>[% game.contestants.$roles.0.name %]
-    <td>[% game.contestants.$roles.0.score || 0 %]
+    <td>[% n + 1 %]
+    <td>[% games.$n.contestants.$roles.0.id || games.contestants.Bye.id %]
+    <td>[% games.$n.contestants.$roles.0.name %]
+    <td>[% games.$n.contestants.$roles.0.score || 0 %]
     <td> 
-<form method="post" action="[% c.uri_for('rounds') %]">
-<select name="table[% n %]" size="1">
+<select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
 
 <OPTION selected value="0">-:-</OPTION>
-<OPTION value="1">W:L</OPTION>
-<OPTION value="2">L:W</OPTION>
-<OPTION value="3">=:=</OPTION>
-<OPTION value="4">W:F</OPTION>
-<OPTION value="5">F:W</OPTION>
-<OPTION value="6">F:F</OPTION>
+<OPTION value="win:loss">W:L</OPTION>
+<OPTION value="loss:win">L:W</OPTION>
+<OPTION value="draw:draw">=:=</OPTION>
+<OPTION value="win:forfeit">W:F</OPTION>
+<OPTION value="forfeit:win">F:W</OPTION>
+<OPTION value="forfeit:forfeit">F:F</OPTION>
 
 </select>
-    <td>[% game.contestants.$roles.1.id %]
-    <td>[% game.contestants.$roles.1.name %]
-    <td>[% game.contestants.$roles.1.score || 0 %]
+    <td>[% games.$n.contestants.$roles.1.id %]
+    <td>[% games.$n.contestants.$roles.1.name %]
+    <td>[% games.$n.contestants.$roles.1.score || 0 %]
     [% n = n+1 %]
 [% END %]
-</form>
 </table>
+</form>
 W: Win, L: Loss, =: draw, F: Forfeit
 <br>
-<input type="submit" name="Submit" value="Submit">
+<input type="submit" name="Submit" value="Pair round [% round + 1 %]">
