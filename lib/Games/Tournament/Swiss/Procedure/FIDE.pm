@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 15, 14時33分26秒
+# Last Edit: 2009  8月 17, 08時05分49秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1465,7 +1465,7 @@ sub bye {
     $matches->{$byeindex} = [
       Games::Tournament::Card->new(
 	round       => $round,
-	result      => { Bye => 'Bye' },
+	result      => undef,
 	contestants => { Bye => $byer } )
       ];
     $self->log( "OK." );
