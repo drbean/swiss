@@ -8,9 +8,10 @@
       <TH colspan="3"><H2>[% roles.1 %]</H2>
   <TR><TH>Table<TH>ID<TH>Name<TH>Score<TH>Result<TH>ID<TH>Name<TH>Score
 [% FOREACH n IN [ 0 .. games.max ] %]
+[% UNLESS games.$n.contestants.size == 1 %]
   <TR>
     <td>[% n + 1 %]
-    <td>[% games.$n.contestants.$roles.0.id || games.contestants.Bye.id %]
+    <td>[% games.$n.contestants.$roles.0.id %]
     <td>[% games.$n.contestants.$roles.0.name %]
     <td>[% games.$n.contestants.$roles.0.score.defined ? games.$n.contestants.$roles.0.score : '-' %]
     <td> 
@@ -28,6 +29,19 @@
     <td>[% games.$n.contestants.$roles.1.id %]
     <td>[% games.$n.contestants.$roles.1.name %]
     <td>[% games.$n.contestants.$roles.1.score.defined ? games.$n.contestants.$roles.1.score : '-' %]
+[% ELSE %]
+  <TR>
+    <td>[% n + 1 %]
+    <td>[% games.$n.contestants.Bye.id %]
+    <td>[% games.$n.contestants.Bye.name %]
+    <td>[% games.$n.contestants.Bye.score.defined ? games.$n.contestants.Bye.score : '-' %]
+    <td> 
+<select name="[% games.$n.contestants.Bye.id %]_:_Bye" size="1">
+
+<OPTION selected value="bye:bye">Bye</OPTION>
+
+</select>
+[% END %]
 [% END %]
 </table>
 </form>
