@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 17, 17時17分41秒
+# Last Edit: 2009  8月 18, 14時13分03秒
 # $Id: $
 
 use warnings;
@@ -78,7 +78,7 @@ sub assignPairingNumbers {
 	my $player = $self->ided($id);
         $player->pairingNumber( $n+1 );
     }
-    $self->log( join ', ', map { $_->pairingNumber . ": " . $_->id } @rankings);
+    $self->log( join ', ', map { $_->id . ": " . $_->pairingNumber } @players);
     $self->entrants( \@players );
 }
 
