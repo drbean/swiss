@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 18, 08時13分36秒
+# Last Edit: 2009  8月 18, 10時30分50秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -994,7 +994,7 @@ sub c10 {
 	    my $lowest = $s1->[-1];
 	    my $id = $lowest->id;
 	    my $match = $matches->[-1];
-	    my $partner = first { $_->id != $id } $match->myPlayers;
+	    my $partner = $lowest->myOpponent($match);
 	    my $partnerId = $partner->pairingNumber;
 	    $self->log(
 "Unpairing lowest downfloater, $id and $partnerId in $index-Bracket [$number]
