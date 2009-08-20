@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 17, 21時27分15秒
+# Last Edit: 2009  8月 18, 11時00分44秒
 # $Id$
 
 use strict;
@@ -417,16 +417,19 @@ sub pair {
 			$tourney->collectCards( @$games );
 		}
 	}
-	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
+	$tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences if $round == 0;
-	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
+	my $log = 'Pairing numbers';
+	my %logged = $tourney->catLog;
+	$log .= $logged{ASSIGNPAIRINGNUMBERS};
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
 	my $message = $pairing->message;
 	$pairing->round(++$round);
-	# $pairing->loggingAll;
+	$pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
+	$log .= $pairing->{logreport};
 	my $matches = $results->{matches};
 	my @games;
 	my %number = map { $_ => $brackets{$_}->number } keys %brackets;
@@ -437,7 +440,7 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
-	return ($message, \@tables);
+	return ($message, $log, \@tables);
 }
 
 
