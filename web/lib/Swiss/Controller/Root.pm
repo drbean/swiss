@@ -315,7 +315,8 @@ sub nextround : Local {
 		$c->stash->{template} = "draw.tt2";
 		return;
 	}
-	my ($mess, $games) = $c->model('GTS')->pair( {
+$DB::single=1;
+	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
 	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
@@ -335,6 +336,7 @@ sub nextround : Local {
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
+	$c->stash->{log} = $log;
 	$c->stash->{template} = "draw.tt2";
 }
 

@@ -48,3 +48,7 @@
 W: Win, L: Loss, =: draw, F: Forfeit
 <br>
 <input type="submit" name="Submit" value="Pair round [% round + 1 %]">
+
+<H2>Log</H2>
+
+<PRE>[% log %]</PRE>
