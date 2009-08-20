@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 18, 14時13分03秒
+# Last Edit: 2009  8月 20, 10時05分52秒
 # $Id: $
 
 use warnings;
@@ -71,14 +71,21 @@ Sets the participants pairing numbers, sorting on rating, title and name, and su
 sub assignPairingNumbers {
     my $self    = shift;
     my @players = @{ $self->entrants };
-    return if all { $_->pairingNumber } @players;
+    $self->log( 'Pairing numbers' );
+    my $numbers = sub { join ', ',
+	    map { $_->id . ": " . $_->pairingNumber } @players;
+    };
+    if ( all { $_->pairingNumber } @players ) {
+	$self->log( &$numbers );
+	return;
+    }
     my @rankings = $self->rank(@players);
     foreach my $n ( 0 .. $#rankings ) {
 	my $id = $rankings[$n]->id;
 	my $player = $self->ided($id);
         $player->pairingNumber( $n+1 );
     }
-    $self->log( join ', ', map { $_->id . ": " . $_->pairingNumber } @players);
+    $self->log( &$numbers );
     $self->entrants( \@players );
 }
 
