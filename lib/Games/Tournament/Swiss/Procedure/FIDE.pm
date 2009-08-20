@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 18, 10時30分50秒
+# Last Edit: 2009  8月 18, 10時42分06秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -138,7 +138,7 @@ sub matchPlayers {
 	if ( any { $_ eq $oldState } $self->loggedProcedures )
 	{
 	    my %log = $self->tailLog($oldState);
-	    print $oldState . "," . $log{$oldState} if %log;
+	    $self->logreport( $oldState . "," . $log{$oldState} ) if %log;
 	}
         if ( $state eq ERROR ) {
             die
@@ -169,6 +169,20 @@ sub message {
 }
 
 
+=head2 logreport
+
+ $pairing->logreport('C6: Pairing S1 and S2');
+
+Accumulates a log in string form, of the progress of the players in their brackets through the FIDE pairing procedure, using the logging methods of Games::Tournament, and returning the log accumulated if no arguments are passed.
+
+=cut 
+
+sub logreport {
+    my $self = shift;
+    my $logreport = shift;
+    if ( defined $logreport ) { $self->{logreport} .= $logreport; }
+    elsif ( $self->{logreport} ) { return $self->{logreport}; }
+}
 
 
 =head2 start
