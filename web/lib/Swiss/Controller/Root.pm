@@ -200,10 +200,14 @@ sub final_players : Local {
 		$c->request->cookie("${tourname}_rounds")->isa(
 			'CGI::Simple::Cookie') )
 	{
+		my @pairingtable = buildPairingtable(
+			$c, $tourname, $cookies, $round );
+		$c->stash->{round} = $round;
+		$c->stash->{playerlist} = \@pairingtable;
 		$c->stash->{template} = "pairtable.tt2";
 	}
 	else {
-		my $playerNumber = @players / 2? @players: $#players;
+		my $playerNumber = @players % 2? @players: $#players;
 		$c->stash->{rounds} = $playerNumber;
 		$c->stash->{template} = 'rounds.tt2';
 	}
@@ -240,6 +244,20 @@ sub pairingtable : Local {
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
+	my @pairingtable = buildPairingtable($c, $tourname, $cookies, $round );
+	$c->stash->{round} = $round;
+	$c->stash->{playerlist} = \@pairingtable;
+	$c->stash->{template} = "pairtable.tt2";
+}
+
+=head2 buildPairingtable
+
+Common code in pairingtable, final_players actions that converts cookies to player list, opponents, roles, and floats histories and scores and creates an array of hashes with player histories for each individual player, suitable for display as a pairing table. Extracted into a function.
+
+=cut
+
+sub buildPairingtable {
+	my ($c, $tourname, $cookies, $round) = @_; 
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my %pairingtable = $c->model('GTS')->readHistory(
 				$tourname, \@playerlist, $cookies, $round);
@@ -250,9 +268,7 @@ sub pairingtable : Local {
 			$player->{$historytype} = $run;
 		}
 	}
-	$c->stash->{round} = $round;
-	$c->stash->{playerlist} = \@playerlist;
-	$c->stash->{template} = "pairtable.tt2";
+	return @playerlist;
 }
 
 
