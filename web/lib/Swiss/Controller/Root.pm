@@ -202,12 +202,14 @@ sub final_players : Local {
 	{
 		my @pairingtable = buildPairingtable(
 			$c, $tourname, $cookies, $round );
+		$c->stash->{tournament} = $tourname;
 		$c->stash->{round} = $round;
 		$c->stash->{playerlist} = \@pairingtable;
 		$c->stash->{template} = "pairtable.tt2";
 	}
 	else {
 		my $playerNumber = @players % 2? @players: $#players;
+		$c->stash->{tournament} = $tourname;
 		$c->stash->{rounds} = $playerNumber;
 		$c->stash->{template} = 'rounds.tt2';
 	}
@@ -225,6 +227,7 @@ sub rounds : Local {
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $rounds = $c->request->params->{rounds};
 	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{template} = 'pair.tt2';
 }
@@ -245,6 +248,7 @@ sub pairingtable : Local {
 			'CGI::Simple::Cookie') ) ?
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
 	my @pairingtable = buildPairingtable($c, $tourname, $cookies, $round );
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{playerlist} = \@pairingtable;
 	$c->stash->{template} = "pairtable.tt2";
@@ -353,6 +357,7 @@ sub nextround : Local {
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
