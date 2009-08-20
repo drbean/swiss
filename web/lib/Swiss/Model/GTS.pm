@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 17, 12時55分27秒
+# Last Edit: 2009  8月 17, 21時27分15秒
 # $Id$
 
 use strict;
@@ -25,16 +25,17 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
+my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
+	0.5 => 'Draw', '=' => 'Draw'  };
 my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
-my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
 
 $swiss->frisk($scoring, $roles, $firstround, $algorithm, $abbrev);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
 %Games::Tournament::Swiss::Config::scores = %$scoring;
+%Games::Tournament::Swiss::Config::abbreviation = %$abbrev;
 @Games::Tournament::Swiss::Config::roles = @$roles;
 $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
@@ -140,8 +141,8 @@ sub historyCookies {
 					and ref $values eq 'ARRAY';
 			}
 			elsif ( $type eq 'role' or $type eq 'float' ) {
-				$string = join '', map
-					{defined $_ and substr $_, 0, 1}
+				$string = join '', map { defined $_ and
+					$_ eq 'Bye'? '-' : substr $_, 0, 1}
 						@$values if defined $values and
 							ref $values eq 'ARRAY';
 			}
