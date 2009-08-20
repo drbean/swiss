@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 17, 08時05分49秒
+# Last Edit: 2009  8月 18, 08時13分36秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -679,6 +679,7 @@ sub c6others {
 	my $next = $self->nextBracket;
 	my $nextBracket = $groups->{$next};
 	my $nextNumber = $nextBracket->number;
+	my @nextMembers = map {$_->pairingNumber} @{$nextBracket->members};
         for my $evacuee (@$nonpaired) {
             $group->exit($evacuee);
             $evacuee->floating('Down');
@@ -686,9 +687,8 @@ sub c6others {
         }
 	my @floaters = map {$_->pairingNumber} @$nonpaired;
 	my @pairIds = map {$_->pairingNumber} @{$group->members};
-	my @next = map {$_->pairingNumber} @{$nextBracket->members};
         $self->log(
-"Floating remaining @floaters Down. [$number] @pairIds & [$nextNumber] @next" );
+"Floating remaining @floaters Down. [$number] @pairIds. @floaters => [$nextNumber] @nextMembers" );
         return NEXT;
     }
     else {
