@@ -121,6 +121,7 @@ sub add_player : Local {
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
 	$entrant{firstround} = $round;
+	$entrant{pairingnumber} = '';
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -331,7 +332,6 @@ sub nextround : Local {
 		$c->stash->{template} = "draw.tt2";
 		return;
 	}
-$DB::single=1;
 	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
@@ -347,6 +347,12 @@ $DB::single=1;
 			$tourney, \%pairingtable, $games );
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
+	$playerlist[$_]->{pairingnumber} =
+		$tourney->entrants->[$_]->pairingNumber for (0 .. $#playerlist);
+	my %playercookies = $c->model('GTS')->turnIntoCookies(
+		$tourname, \@playerlist);
+	$c->response->cookies->{$_} = {value => $playercookies{$_}} for
+							keys %playercookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{round} = $round;

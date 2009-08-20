@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 18, 11時00分44秒
+# Last Edit: 2009  8月 18, 23時11分01秒
 # $Id$
 
 use strict;
@@ -70,14 +70,14 @@ sub setupTournament {
 
 =head2 turnIntoCookies
 
-Prepare cookies for a tournament's players with ids, names, ratings, and perhaps later, preference histories, float histories, and scores. The cookie name for the player ids is 'tournament_ids' (where 'tournament' is the name of the tournament) and the values are a list of the players ids. The tournament name is to distinguish different tournaments being paired from the same browser.
+Prepare cookies for a tournament's players with ids, names, ratings, firstround, pairingnumbers and perhaps later, preference histories, float histories, and scores. The cookie name for the player ids is 'tournament_ids' (where 'tournament' is the name of the tournament) and the values are a list of the players ids. The tournament name is to distinguish different tournaments being paired from the same browser.
 
 =cut
 
 sub turnIntoCookies {
 	my ($self, $tourname, $playerlist) = @_;
 	my %cookie;
-	for my $key ( qw/id name rating firstround/ ) {
+	for my $key ( qw/id name rating firstround pairingnumber/ ) {
 		my @keylist = map { $_->{$key} } @$playerlist;
 		my $keystring = join "&", map { escape( $_ ) } @keylist;
 		$cookie{$tourname . '_' . $key . 's'} = $keystring;
@@ -164,7 +164,7 @@ Inflate a tournament's players' cookies with ids, names, ratings, and perhaps la
 sub turnIntoPlayers {
 	my ($self, $tourney, $cookies) = @_;
 	my @playerlist;
-	my $fields = [ qw/id name rating firstround/ ];
+	my $fields = [ qw/id name rating firstround pairingnumber/ ];
 	return $self->breakCookie($tourney, $cookies, $fields);
 }
 
@@ -185,7 +185,7 @@ sub breakCookie {
 		next unless $playercookie and
 				$playercookie->isa('CGI::Simple::Cookie');
 		(my $fieldname = $name ) =~ s/^${tourney}_(.*)s$/$1/;
-		my $playerstring = $playercookie->value;
+		my $playerstring = $playercookie->value || '';
 		my @values = $self->destringCookie( $playerstring );
 		for my $n ( 0 .. @values-1 ) {
 			$playerlist[$n]->{$fieldname} = $values[$n];
