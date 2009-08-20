@@ -121,7 +121,6 @@ sub add_player : Local {
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
 	$entrant{firstround} = $round;
-	$entrant{pairingnumber} = '';
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -295,14 +294,19 @@ sub nextround : Local {
 			rounds => $rounds,
 			entrants => \@playerlist });
 	my ($latestscores, %pairingtable);
+	%pairingtable = $c->model('GTS')->readHistory(
+			$tourname, \@playerlist, $cookies, $round-1);
+	for my $n ( 0 .. $#playerlist ) {
+		my $id = $playerlist[$n]->{id};
+		$tourney->entrants->[$n]->pairingNumber(
+		$pairingtable{pairingnumber}->{$id} );
+	}
 	if ( $c->request->params->{pairingtable} ) {
 		my $table = $c->request->params->{pairingtable};
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
 		$latestscores = $pairingtable{score};
 	}
 	else {
-		%pairingtable = $c->model('GTS')->readHistory(
-				$tourname, \@playerlist, $cookies, $round-1);
 		if ( exists $c->request->params->{Submit} and
 			$c->request->params->{Submit} eq "Pair round $round" ) {
 			my $params = $c->request->params;
@@ -347,12 +351,6 @@ sub nextround : Local {
 			$tourney, \%pairingtable, $games );
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
-	$playerlist[$_]->{pairingnumber} =
-		$tourney->entrants->[$_]->pairingNumber for (0 .. $#playerlist);
-	my %playercookies = $c->model('GTS')->turnIntoCookies(
-		$tourname, \@playerlist);
-	$c->response->cookies->{$_} = {value => $playercookies{$_}} for
-							keys %playercookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{round} = $round;
