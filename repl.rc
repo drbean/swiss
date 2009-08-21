@@ -1,0 +1,12 @@
+BEGIN {
+	$Games::Tournament::Swiss::Config::algorithm =
+		'Games::Tournament::Swiss::Procedure::FIDE' }
+use Games::Tournament::Contestant::Swiss;
+use Games::Tournament::Swiss;
+my @p = map { Games::Tournament::Contestant::Swiss->new( id => $_+1, name => 
+	chr($_+65), rating=>2000-2*$_, title => 'M.' ) } 0..3;
+my @l = map { Games::Tournament::Contestant::Swiss->new( id=> $_+5, name => 
+	chr($_+97), rating=> 1999-2*$_, title => 'M.') } 0..3;
+my $t = Games::Tournament::Swiss->new(rounds=>4, entrants=>\@p);
+$t->assignPairingNumbers;
+$t->enter($l[0]);
