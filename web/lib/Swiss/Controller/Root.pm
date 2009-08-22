@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 22, 14時24分48秒
+# Last Edit: 2009  8月 22, 16時05分49秒
 # $Id$
 
 use strict;

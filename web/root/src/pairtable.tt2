@@ -5,7 +5,7 @@
 
 <h1>[% tournament %] Tournament, Round [% round %] Pairing table</h1>
 
-<form method="post" action="[% c.uri_for('nextround') %]">
+<form method="post" action="[% c.uri_for('preppair') %]">
 <H3>Edit:</H3>
 <UL>
 <LI>Scores of winners, drawers after round [% round - 1 %]
@@ -18,7 +18,7 @@ ID       Opponents Roles Floats Score
 [% IF player.float.$secondlast == 'N' %][% space %][% ELSE %][% player.float.$secondlast.lc %][% END -%]
 [% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
 [% player.score %][% END %]</TEXTAREA>
-<input type="submit" name="edit" value="Pair Round [% round %]">
+<input type="submit" name="edit" value="Record updated Round [% round %] Pairing Table">
 </form>
 <H3>Other edits:</H3>
 <UL>
