@@ -236,7 +236,7 @@ sub rounds : Local {
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{round} = $round;
-	$c->stash->{template} = 'pairprep.tt2';
+	$c->stash->{template} = 'preppair.tt2';
 }
 
 
@@ -306,7 +306,7 @@ sub preppair : Local {
 			entrants => \@playerlist });
 	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
-			$tourname, \@playerlist, $cookies, $round-1);
+			$tourname, \@playerlist, $cookies, $round);
 	for my $n ( 0 .. $#playerlist ) {
 		my $id = $playerlist[$n]->{id};
 		$tourney->entrants->[$n]->pairingNumber(
@@ -319,7 +319,7 @@ sub preppair : Local {
 	}
 	else {
 		if ( exists $c->request->params->{Submit} and
-			$c->request->params->{Submit} eq "Pair round $round" ) {
+			$c->request->params->{Submit} eq "Record Round $round results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
 				$tourney, \%pairingtable, $params);
