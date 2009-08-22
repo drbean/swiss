@@ -6,8 +6,8 @@
 <fieldset>
 <legend>Pairing data choices</legend>
 <ul>
-  <li><input type="checkbox" name="cards" value="Yes"> Score cards
-  <li><input type="checkbox" name="log" value="Yes"> FIDE Procedure log
+  <li><input type="checkbox" name="cards" value="Yes" checked> Score cards
+  <li><input type="checkbox" name="log" value="Yes"> FIDE Rule annotations
   <li><input type="checkbox" name="pairtable" value="Yes"> Round [% round + 1 %] pairing table
 </ul>
 </fieldset>

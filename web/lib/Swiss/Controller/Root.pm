@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 22, 13時41分32秒
+# Last Edit: 2009  8月 22, 14時24分48秒
 # $Id$
 
 use strict;
@@ -412,7 +412,7 @@ sub nextround : Local {
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
-	$c->stash->{log} = $log;
+	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
 }
 
