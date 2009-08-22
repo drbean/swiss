@@ -153,7 +153,6 @@ for my $table (@tables) {
 	@scores = map { $table->contestants->{$_}->score || 0 } @$roles;
     }
     write REP;
-    $template->{$n++} = { reverse %group };
 }
 
 if ( $lateEntries ) {
