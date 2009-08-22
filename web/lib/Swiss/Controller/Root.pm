@@ -283,13 +283,13 @@ sub buildPairingtable {
 }
 
 
-=head2 pairprep
+=head2 preppair
 
 Prepare to pair next round
 
 =cut
 
-sub pairprep : Local {
+sub preppair : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
@@ -358,7 +358,7 @@ sub pairprep : Local {
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
-	$c->stash->{template} = "pairprep.tt2";
+	$c->stash->{template} = "preppair.tt2";
 }
 
 
