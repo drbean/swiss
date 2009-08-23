@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 20, 14時03分36秒
+# Last Edit: 2009  8月 23, 10時56分59秒
 # $Id$
 
 use strict;
@@ -295,7 +295,7 @@ sub readHistory {
 
 =head2 parsePlayers
 
-Parse the line of ids, names and ratings into a list of hashes.
+Parse the line of ids, names and ratings (AND firstround) into a list of hashes. Any extra fields, 1..n-3 are joined together to make one name. Long IDs, names and ratings are chomped to 7, 20 and 4 characters, respectively.
 
 =cut
 
@@ -309,11 +309,11 @@ sub parsePlayers {
 		chomp $line;
 		my @fields = split ' ', $line;
 		my $n;
-		if ( $n = @fields and $n > 3 ) {
-			my $name = join ' ', @fields[1..$n-2];
-			splice @fields, 1, $n-2, $name;
+		if ( $n = @fields and $n > 4 ) {
+			my $name = join ' ', @fields[1..$n-3];
+			splice @fields, 1, $n-3, $name;
 		}
-		@player{qw/id name rating/} = @fields;
+		@player{qw/id name rating firstround/} = @fields;
 		$player{id} = substr $player{id}, 0, 7;
 		$player{name} = substr $player{name}, 0, 20;
 		$player{rating} = substr $player{rating}, 0, 4;
