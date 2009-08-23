@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 22, 23時22分50秒
+# Last Edit: 2009  8月 23, 11時00分21秒
 # $Id$
 
 use strict;
@@ -108,7 +108,7 @@ sub name : Local {
 
 =head2 add_player
 
-First round, players.
+First round, players. IDs, names and ratings are limited to 7, 20 and 4 characters, respectively.
 
 =cut
 
@@ -357,7 +357,6 @@ sub preppair : Local {
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
 	$round = $tourney->round;
-	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
