@@ -1,3 +1,17 @@
+FIDE pairing via web
+
+Following the lead of bartolin, http://cpanforum.com/posts/11228, I have written a web interface to Games::Tournament::Swiss and put it on the web, at http://e_learning.nuu.edu.tw/swiss/
+
+There are still a number of sharp edges to the interface as well as to Games::Tournament::Swiss itself, so I'm not taking any responsibility for what it does to your tournament.
+
+But the greater the number of players and the fewer the number of rounds, the less likely you will have problems.
+
+My main purpose in putting it up for free, open use is to hammer out bugs before I start using it this semester in discussion competitions.
+
+So I welcome reports of problems, perhaps here in reply to this post.
+
+I can't promise to do anything about them. In particular 
+
 Web pairing application user interface
 
 I'm thinking about the interface that a pairing program presents to the arbiter using it. 
