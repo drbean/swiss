@@ -4,13 +4,34 @@ Following the lead of bartolin, http://cpanforum.com/posts/11228, I have written
 
 There are still a number of sharp edges to the interface as well as to Games::Tournament::Swiss itself, so I'm not taking any responsibility for what it does to your tournament.
 
-But the greater the number of players and the fewer the number of rounds, the less likely you will have problems.
+Because it is still in development, I also can't promise any consistency
 
-My main purpose in putting it up for free, open use is to hammer out bugs before I start using it this semester in discussion competitions.
+What I can say is, the greater the number of players and the fewer the number of rounds, the less likely you will have problems.
 
-So I welcome reports of problems, perhaps here in reply to this post.
+My main purpose in putting it up for free, open use now is to hammer out bugs before I start using it this semester in discussion (ie, non-chess) competitions at school.
 
-I can't promise to do anything about them. In particular 
+So I welcome reports of problems, perhaps here in reply to this post.  Although I can't promise to do anything about the reports.
+
+The problems I am particularly interested in are adding and deleting players after the first round. It is important that this be possible without damaging the integrity of the pairing process.
+
+Another thing I am interested in is the smoothness, informativeness and intuitiveness of the interface. 
+
+The problem of the pairing process not terminating, or taking very long periods of time, either because of bugs in Games::Tournament::Swiss or the FIDE Rules is something I would have to do something about too. bartolin's application apparently terminated the pairing process if it did not return in some fixed length of time. I need to investigate how he did this.
+
+Problems of fidelity to the Rules are less important to me at this point. Games::Tournament::Swiss doesn't implement C12 properly. And the non-application of B 2,5 and 6 in the last round is not respected. These are 
+things I want to look at in the long-term.
+
+Feel free to report those and other problems however.
+
+The application maintains state from one round to the next by placing player and history cookies on your computer. These have validity for one month, and then expire. That seems long enough to me for the length between the rounds of any competition. 
+
+Don't rely on these cookies to preserve the record of your tournament. You need to independently back up your tournament data in case of cookie corruption.
+
+This opening up of Games::Tournament::Swiss to any one who wants to pair a tournament is an experiment. I wouldn't mind leaving it up permanently if it weren't going to use up server resources. But I've got other things going on on the server, and I'll probably take it down when the semester starts.
+
+The Games::Tournament::Swiss code will remain available at  http://search.cpan.org/dist/Games-Tournament-Swiss/ and the web interface will be 
+
+Server load
 
 Web pairing application user interface
 
