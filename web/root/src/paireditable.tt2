@@ -14,7 +14,7 @@ ID       Opponents Roles Floats Score
 [%- FOREACH player IN pairtable %]
 [% player.id _ space.repeat(9-player.id.length) -%]
 [% player.opponent.join(',') %][% space.repeat(9-(player.opponent.size or 0)) -%]
-[% player.role.substrs(0,1).join('') %][% space.repeat(9-(player.role.size or 0)) -%]
+[% player.role.abbrevs( roles.0, roles.1 ).join('') %][% space.repeat(9-(player.role.size or 0)) -%]
 [% IF player.float.$secondlast == 'N' %][% space %][% ELSE %][% player.float.$secondlast.lc %][% END -%]
 [% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
 [% player.score %][% END %]</TEXTAREA>
