@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 25, 11時02分15秒
+# Last Edit: 2009  8月 26, 17時04分14秒
 # $Id$
 
 use strict;
@@ -348,7 +348,6 @@ sub preppair : Local {
 		$c->stash->{template} = "cards.tt2";
 		return;
 	}
-$DB::single=1;
 	my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
 		$c->model('GTS')->changeHistory($tourney, \%pairingtable,
 				$games) : \%pairingtable;
@@ -361,7 +360,9 @@ $DB::single=1;
 	$c->stash->{round} = ++$round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
-	$c->stash->{template} = "preppair.tt2";
+	$c->stash->{template} = "preppair.tt2" unless 
+		 $c->request->args->[0] eq 'editable';
+	$c->stash->{template} = 'paireditable.tt2';
 }
 
 
