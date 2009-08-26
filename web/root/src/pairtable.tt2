@@ -4,7 +4,7 @@
 [% secondlast = last - 1 %]
 
 <form method="post" action="[% c.uri_for('preppair') %]">
-<H3>Edit:</H3>
+<H3>Edit Pairing Table:</H3>
 <UL>
 <fieldset>
 <legend>Scores of winners, drawers after round [% round - 1 %]</legend>
