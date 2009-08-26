@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 11時29分56秒
+# Last Edit: 2009  8月 24, 12時56分49秒
 # $Id$
 
 use strict;
@@ -202,8 +202,10 @@ sub final_players : Local {
 		$c->request->cookie("${tourname}_rounds")->isa(
 			'CGI::Simple::Cookie') )
 	{
+		my %histories = $c->model('GTS')->readHistory(
+				$tourname, \@players, $cookies, $round);
 		my @pairingtable = buildPairingtable(
-			$c, $tourname, \@players, $cookies, $round );
+			$c, $tourname, \@players, \%histories, $round );
 		$c->stash->{tournament} = $tourname;
 		$c->stash->{round} = $round;
 		$c->stash->{playerlist} = \@pairingtable;
@@ -253,8 +255,10 @@ sub pairingtable : Local {
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
+	my %histories = $c->model('GTS')->readHistory(
+				$tourname, \@playerlist, $cookies, $round);
 	my @pairingtable = buildPairingtable($c, $tourname,
-		\@playerlist, $cookies, $round );
+		\@playerlist, \%histories, $round );
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{playerlist} = \@pairingtable;
@@ -268,13 +272,11 @@ Common code in pairingtable, final_players actions that converts cookies to play
 =cut
 
 sub buildPairingtable {
-	my ($c, $tourname, $playerlist, $cookies, $round) = @_; 
-	my %pairingtable = $c->model('GTS')->readHistory(
-				$tourname, $playerlist, $cookies, $round);
+	my ($c, $tourname, $playerlist, $histories, $round) = @_; 
 	for my $player ( @$playerlist ) {
 		my $id = $player->{id};
 		for my $type ( qw/pairingnumber opponent role float score/ ) {
-			my $run = $pairingtable{$type}->{$id};
+			my $run = $histories->{$type}->{$id};
 			$player->{$type} = $run;
 		}
 	}
@@ -408,8 +410,8 @@ sub nextround : Local {
 	$round = $tourney->round;
 	setCookie( $c, "${tourname}_round" => $round );
 	if ( $c->request->params->{pairtable} ) {
-		@playerlist = buildPairingtable( $tourname, @players, 
-			$cookhist, $round );
+		@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
+			\%cookhist, $round );
 		$c->stash->{pairtable} = \@playerlist;
 	}
 	$c->stash->{tournament} = $tourname;
