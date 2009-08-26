@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 21時12分33秒
+# Last Edit: 2009  8月 24, 21時26分37秒
 # $Id$
 
 use strict;
@@ -205,7 +205,7 @@ sub final_players : Local {
 		my %histories = $c->model('GTS')->readHistory(
 				$tourname, \@players, $cookies, $round);
 		my @pairingtable = buildPairingtable(
-			$c, $tourname, \@players, \%histories, $round );
+			$c, $tourname, \@players, \%histories );
 		$c->stash->{tournament} = $tourname;
 		$c->stash->{round} = $round;
 		$c->stash->{playerlist} = \@pairingtable;
@@ -258,7 +258,7 @@ sub pairingtable : Local {
 	my %histories = $c->model('GTS')->readHistory(
 				$tourname, \@playerlist, $cookies, $round);
 	my @pairingtable = buildPairingtable($c, $tourname,
-		\@playerlist, \%histories, $round );
+		\@playerlist, \%histories );
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{playerlist} = \@pairingtable;
@@ -272,7 +272,7 @@ Common code in pairingtable, final_players, nextround actions that converts play
 =cut
 
 sub buildPairingtable {
-	my ($c, $tourname, $playerlist, $histories, $round) = @_; 
+	my ($c, $tourname, $playerlist, $histories) = @_; 
 	for my $player ( @$playerlist ) {
 		my $id = $player->{id};
 		for my $type ( qw/pairingnumber opponent role float score/ ) {
@@ -354,8 +354,8 @@ sub preppair : Local {
 			$tourney, \%pairingtable, $games );
 	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
 	setCookie( $c, %cookhist );
-	@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
-		$newhistory, $round );
+	@playerlist = buildPairingtable( $c, $tourname, \@playerlist,
+		$newhistory );
 	$c->stash->{pairtable} = \@playerlist;
 	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
@@ -414,7 +414,7 @@ sub nextround : Local {
 	setCookie( $c, "${tourname}_round" => $round );
 	if ( $c->request->params->{pairtable} ) {
 		@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
-			$newhistory, $round );
+			$newhistory );
 		$c->stash->{pairtable} = \@playerlist;
 	}
 	$c->stash->{tournament} = $tourname;
