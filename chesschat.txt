@@ -12,7 +12,7 @@ So I welcome reports of problems, perhaps here in reply to this post.  Although 
 
 The problems I am particularly interested in are adding and deleting players after the first round. It is important that this be possible without damaging the integrity of the pairing process.
 
-Another thing I am interested in is the smoothness, informativeness and intuitiveness of the interface. You may find it changing as I continue to refine it.
+Another thing I am interested in is the smoothness, informativeness and intuitiveness of the interface. You may find it changing as I continue to refine it. :-)
 
 The problem of the pairing process not terminating, or taking very long periods of time, either because of bugs in Games::Tournament::Swiss or the FIDE Rules is something I want to do something about too. bartolin's application apparently terminated the pairing process if it did not return in some fixed length of time. I need to investigate how he did this.
 
