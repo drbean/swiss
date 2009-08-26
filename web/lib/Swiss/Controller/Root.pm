@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 09時35分20秒
+# Last Edit: 2009  8月 24, 11時29分56秒
 # $Id$
 
 use strict;
@@ -203,7 +203,7 @@ sub final_players : Local {
 			'CGI::Simple::Cookie') )
 	{
 		my @pairingtable = buildPairingtable(
-			$c, $tourname, $cookies, $round );
+			$c, $tourname, \@players, $cookies, $round );
 		$c->stash->{tournament} = $tourname;
 		$c->stash->{round} = $round;
 		$c->stash->{playerlist} = \@pairingtable;
@@ -248,11 +248,13 @@ sub pairingtable : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
-	my @pairingtable = buildPairingtable($c, $tourname, $cookies, $round );
+	my @pairingtable = buildPairingtable($c, $tourname,
+		\@playerlist, $cookies, $round );
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{playerlist} = \@pairingtable;
@@ -266,18 +268,17 @@ Common code in pairingtable, final_players actions that converts cookies to play
 =cut
 
 sub buildPairingtable {
-	my ($c, $tourname, $cookies, $round) = @_; 
-	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my ($c, $tourname, $playerlist, $cookies, $round) = @_; 
 	my %pairingtable = $c->model('GTS')->readHistory(
-				$tourname, \@playerlist, $cookies, $round);
-	for my $player ( @playerlist ) {
+				$tourname, $playerlist, $cookies, $round);
+	for my $player ( @$playerlist ) {
 		my $id = $player->{id};
-		for my $historytype ( qw/opponent role float score/ ) {
-			my $run = $pairingtable{$historytype}->{$id};
-			$player->{$historytype} = $run;
+		for my $type ( qw/pairingnumber opponent role float score/ ) {
+			my $run = $pairingtable{$type}->{$id};
+			$player->{$type} = $run;
 		}
 	}
-	return @playerlist;
+	return @$playerlist;
 }
 
 
@@ -406,6 +407,11 @@ sub nextround : Local {
 	setCookie( $c, %cookhist );
 	$round = $tourney->round;
 	setCookie( $c, "${tourname}_round" => $round );
+	if ( $c->request->params->{pairtable} ) {
+		@playerlist = buildPairingtable( $tourname, @players, 
+			$cookhist, $round );
+		$c->stash->{pairtable} = \@playerlist;
+	}
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
