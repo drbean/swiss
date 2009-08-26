@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 09時10分40秒
+# Last Edit: 2009  8月 24, 09時35分20秒
 # $Id$
 
 use strict;
@@ -93,10 +93,10 @@ sub name : Local {
 	setCookie( $c, tournament => $tourname );
 	if ( @tournames == 0 or none { $tourname eq $_ } @tournames ) {
 		push @tournames, $tourname;
-		my $cookie = $c->model('GTS')->stringifyCookie(@tournames) 
+		my $strungnames = $c->model('GTS')->stringifyCookie(@tournames) 
 			if @tournames;
-		$c->response->cookies->{tournaments} = { value => $cookie };
-		$c->response->cookies->{"${tourname}_round"} = { value => 0 };
+		setCookie( $c, tournaments => $strungnames );
+		setCookie( $c, "${tourname}_round" => 0 );
 		$c->stash->{template} = 'players.tt2';
 		return;
 	}
@@ -134,10 +134,9 @@ sub add_player : Local {
 	else {
 		push @playerlist, \%entrant;
 		$c->stash->{playerlist} = \@playerlist;
-		my %cookies = $c->model('GTS')->turnIntoCookies(
+		my %cookedPlayers = $c->model('GTS')->turnIntoCookies(
 			$tourname, \@playerlist);
-		$c->response->cookies->{$_} = { value => $cookies{$_ } }
-			for keys %cookies;
+		setCookie( $c, %cookedPlayers );
 	}
 	$c->stash->{round} = $round;
 	$c->stash->{template} = 'players.tt2';
@@ -177,10 +176,9 @@ sub edit_players : Local {
 		$c->stash->{playerlist} = \@playerlist;
 	}
 	else {
-		my %cookies = $c->model('GTS')->turnIntoCookies(
+		my %cookedPlayers = $c->model('GTS')->turnIntoCookies(
 			$tourname, \@playerlist);
-		$c->response->cookies->{$_} = { value => $cookies{$_ } }
-			for keys %cookies;
+		setCookie( $c, %cookedPlayers );
 		$c->stash->{playerlist} = \@playerlist;
 	}
 	$c->stash->{round} = $round;
@@ -232,7 +230,7 @@ sub rounds : Local {
 	my $round = $c->request->cookie('round') ?
 				$c->request->cookie('round')->value : 1;
 	my $rounds = $c->request->params->{rounds};
-	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
+	setCookie( $c, "${tourname}_rounds" => $rounds );
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{round} = $round;
@@ -351,9 +349,8 @@ sub preppair : Local {
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, $games );
-	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
-	$c->response->cookies->{$_} = { value => $cookies{$_},
-					expires => '+1M' } for keys %cookies;
+	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
+	setCookie( $c, %cookhist );
 	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
@@ -405,11 +402,10 @@ sub nextround : Local {
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, $games );
-	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
-	$c->response->cookies->{$_} = { value => $cookies{$_},
-					expires => '+1M' } for keys %cookies;
+	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
+	setCookie( $c, %cookhist );
 	$round = $tourney->round;
-	$c->response->cookies->{"${tourname}_round"} = { value => $round };
+	setCookie( $c, "${tourname}_round" => $round );
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
