@@ -4,9 +4,8 @@
 [% secondlast = last - 1 %]
 
 <H2>[% tournament %] Tournament Pairing Table, Round [% round %]</H2>
-<CAPTION>Scores of winners, drawers after round [% round - 1 %]</CAPTION>
 <TABLE>
-<TH><TD>ID       <TD>Opponents <TD>Roles <TD>Floats <TD>Score
+<TH><TD>ID <TD>Opponents <TD>Roles <TD>Floats <TD>Score
 [%- FOREACH player IN pairtable %]
 <TR>
 <TD>[% player.id -%]

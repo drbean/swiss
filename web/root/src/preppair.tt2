@@ -1,4 +1,4 @@
-[% META title = 'Pair Round' -%]
+[% META title = 'Pair Next Round' -%]
 
 [% INCLUDE pairtable.tt2 %]
 
