@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 22時06分25秒
+# Last Edit: 2009  8月 25, 11時02分15秒
 # $Id$
 
 use strict;
@@ -297,12 +297,12 @@ sub preppair : Local {
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
-		$c->request->cookie("${tourname}_round")->value + 1 : 1;
+		$c->request->cookie("${tourname}_round")->value : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => ($round - 1),
+			round => $round,
 			rounds => $rounds,
 			entrants => \@playerlist });
 	my ($games, $latestscores, %pairingtable);
@@ -321,7 +321,7 @@ sub preppair : Local {
 	else {
 		if ( exists $c->request->params->{Submit} and
 			$c->request->params->{Submit} eq
-				"Record Round " . ($round-1) . " results" ) {
+				"Record Round $round results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
 				$tourney, \%pairingtable, $params);
@@ -338,7 +338,6 @@ sub preppair : Local {
 	}
 	if ( ( not defined $latestscores or not all { defined }
 				values %$latestscores ) and $round >= 2 ) {
-		$round--;
 		$games = $c->model('GTS')->postPlayPaperwork(
 			$tourney, \%pairingtable, $round );
 		$c->stash->{round} = $round;
@@ -349,16 +348,17 @@ sub preppair : Local {
 		$c->stash->{template} = "cards.tt2";
 		return;
 	}
-	my $newhistory = $c->model('GTS')->changeHistory(
-			$tourney, \%pairingtable, $games );
+$DB::single=1;
+	my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
+		$c->model('GTS')->changeHistory($tourney, \%pairingtable,
+				$games) : \%pairingtable;
 	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
 	setCookie( $c, %cookhist );
 	@playerlist = buildPairingtable( $c, $tourname, \@playerlist,
 		$newhistory );
 	$c->stash->{pairtable} = \@playerlist;
-	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
-	$c->stash->{round} = $round;
+	$c->stash->{round} = ++$round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
 	$c->stash->{template} = "preppair.tt2";
