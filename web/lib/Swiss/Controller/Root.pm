@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 13時43分45秒
+# Last Edit: 2009  8月 24, 21時12分33秒
 # $Id$
 
 use strict;
@@ -355,7 +355,7 @@ sub preppair : Local {
 	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
 	setCookie( $c, %cookhist );
 	@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
-		\%cookhist, $round );
+		$newhistory, $round );
 	$c->stash->{pairtable} = \@playerlist;
 	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
@@ -414,7 +414,7 @@ sub nextround : Local {
 	setCookie( $c, "${tourname}_round" => $round );
 	if ( $c->request->params->{pairtable} ) {
 		@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
-			\%cookhist, $round );
+			$newhistory, $round );
 		$c->stash->{pairtable} = \@playerlist;
 	}
 	$c->stash->{tournament} = $tourname;
