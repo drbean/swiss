@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 08時49分30秒
+# Last Edit: 2009  8月 24, 09時05分44秒
 # $Id$
 
 use strict;
@@ -90,7 +90,7 @@ sub name : Local {
 		@tournames = $c->model('GTS')->destringCookie($tourneychoice);
 	}
 	$c->stash->{tournament} = $tourname;
-	$c->response->cookies->{tournament} = { value => $tourname };
+	setCookie( tournament => $tourname );
 	if ( @tournames == 0 or none { $tourname eq $_ } @tournames ) {
 		push @tournames, $tourname;
 		my $cookie = $c->model('GTS')->stringifyCookie(@tournames) 
@@ -418,6 +418,18 @@ sub nextround : Local {
 	$c->stash->{template} = "draw.tt2";
 }
 
+
+=head2 setCookie
+
+Used by tournament, player, history actions, interfacing with Catalyst::Response's use of CGI::Simple::Cookie.
+
+=cut
+
+sub setCookie {
+	my %cookies = @_;
+	$c->response->cookies->{$_} = { value => $cookies{$_},
+					expires => '+1M' } for keys %cookies;
+}
 
 =head2 end
 
