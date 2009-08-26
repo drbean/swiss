@@ -2,6 +2,8 @@
 
 <h1>[% tournament %] Tournament Pairing Table, Round [% round %]</h1>
 
+[% INCLUDE pairtable.tt2 %]
+
 <form method="post" action="[% c.uri_for('nextround') %]">
 <fieldset>
 <legend>Output options</legend>

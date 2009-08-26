@@ -3,12 +3,11 @@
 [% last = playerlist.0.float.size - 2 %]
 [% secondlast = last - 1 %]
 
-<h1>[% tournament %] Tournament, Round [% round %] Pairing table</h1>
-
 <form method="post" action="[% c.uri_for('preppair') %]">
 <H3>Edit:</H3>
 <UL>
-<LI>Scores of winners, drawers after round [% round - 1 %]
+<fieldset>
+<legend>Scores of winners, drawers after round [% round - 1 %]</legend>
 <BR><TEXTAREA name="pairingtable" rows = [% playerlist.size %] cols="[% 9 + 9 + 9 + 3 + ( playerlist.0.score.length or 2) + 6 %]">
 ID       Opponents Roles Floats Score
 [%- FOREACH player IN playerlist %]
@@ -19,6 +18,7 @@ ID       Opponents Roles Floats Score
 [% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
 [% player.score %][% END %]</TEXTAREA>
 <input type="submit" name="edit" value="Record updated Round [% round %] Pairing Table">
+</fieldset>
 </form>
 <H3>Other edits:</H3>
 <UL>
