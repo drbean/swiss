@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 23, 14時06分20秒
+# Last Edit: 2009  8月 25, 09時50分27秒
 # $Id$
 
 use strict;
@@ -134,7 +134,7 @@ sub historyCookies {
 		my $historicaltype = $history->{$type};
 		my @historicalvalues;
 		my @typeids = keys %$historicaltype;
-		die "Not all players have a $type history in $tourname Tourney"
+		die "Not all players, @ids have a $type history in $tourname Tourney"
 			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
 		for my $id ( @ids ) {
 			my $values = $historicaltype->{$id};
@@ -328,13 +328,13 @@ sub parsePlayers {
 
 =head2 parseTable
 
-Parse the textarea pairing table and return it in the same format as readHistory above.
+Parse the textarea pairing table and return it in the same format as readHistory above. As a convenience, add pairing number information from the entrants to allow writing this directly back to historyCookies, in the absence of history changes.
 
 =cut
 
 sub parseTable {
 	my ($self, $tourney, $table) = @_;
-	my %pairingtable;;
+	my %pairingtable;
 	my @records = split /\n/, $table;
 	for my $line ( @records ) {
 		next if $line =~ m/^$/;
@@ -342,7 +342,7 @@ sub parseTable {
 		my %player;
 		chomp $line;
 		my @fields = split ' ', $line;
-		die "No spaces allowed between opponents, and between roles. Format is: '2016192 4100026,2805687 BW uD 2'" if @fields > 5;
+		die "No spaces allowed between opponents, and between roles. Format is: '2016192 4100026,2805687 BW uD 2'" if @fields <= 3 or @fields > 5;
 		if ( @fields == 4 ) {
 			$fields[4] = $fields[3];
 			$fields[3] = '';
@@ -360,6 +360,8 @@ sub parseTable {
 		$player{float} = \@floats;
 		$pairingtable{$_}->{$id} = $player{$_} for
 					qw/opponent role float score/;
+		my $entrant = $tourney->ided( $id );
+		$pairingtable{pairingnumber}->{$id} = $entrant->pairingNumber;
 	}
 	return %pairingtable;
 }
