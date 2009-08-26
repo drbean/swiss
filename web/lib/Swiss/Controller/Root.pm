@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 23, 11時00分21秒
+# Last Edit: 2009  8月 24, 08時49分30秒
 # $Id$
 
 use strict;
@@ -319,7 +319,8 @@ sub preppair : Local {
 	}
 	else {
 		if ( exists $c->request->params->{Submit} and
-			$c->request->params->{Submit} eq "Record Round " . ($round-1) . " results" ) {
+			$c->request->params->{Submit} eq
+				"Record Round " . ($round-1) . " results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
 				$tourney, \%pairingtable, $params);
@@ -332,10 +333,6 @@ sub preppair : Local {
 			$scorestring = join '&', map { $latestscores->{$_} }
 				map { $_->{id} } @playerlist if
 				all { defined } values %$latestscores;
-			$c->response->cookies->{"${tourname}_scores"} =
-				{ value => $scorestring } if $scorestring;
-			# $c->response->redirect('nextround');
-			# return;
 		}
 	}
 	if ( ( not defined $latestscores or not all { defined }
@@ -355,7 +352,8 @@ sub preppair : Local {
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, $games );
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
-	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
+	$c->response->cookies->{$_} = { value => $cookies{$_},
+					expires => '+1M' } for keys %cookies;
 	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
@@ -408,7 +406,8 @@ sub nextround : Local {
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, $games );
 	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
-	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
+	$c->response->cookies->{$_} = { value => $cookies{$_},
+					expires => '+1M' } for keys %cookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
 	$c->stash->{tournament} = $tourname;
