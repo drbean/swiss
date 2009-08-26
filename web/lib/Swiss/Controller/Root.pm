@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 26, 17時04分14秒
+# Last Edit: 2009  8月 26, 22時40分20秒
 # $Id$
 
 use strict;
@@ -196,27 +196,20 @@ sub final_players : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
-	my $round = $c->request->cookie("${tourname}_round")->value + 1;
 	my @players = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my $round = $c->request->cookie("${tourname}_round")->value;
 	if ( $c->request->cookie("${tourname}_rounds") and
 		$c->request->cookie("${tourname}_rounds")->isa(
 			'CGI::Simple::Cookie') )
 	{
-		my %histories = $c->model('GTS')->readHistory(
-				$tourname, \@players, $cookies, $round);
-		my @pairingtable = buildPairingtable(
-			$c, $tourname, \@players, \%histories );
-		$c->stash->{tournament} = $tourname;
-		$c->stash->{round} = $round;
-		$c->stash->{playerlist} = \@pairingtable;
-		$c->stash->{template} = "pairtable.tt2";
+		$c->stash->{selected} = 
+			$c->request->cookie("${tourname}_rounds")->value;
 	}
-	else {
-		my $playerNumber = @players % 2? @players: $#players;
-		$c->stash->{tournament} = $tourname;
-		$c->stash->{rounds} = $playerNumber;
-		$c->stash->{template} = 'rounds.tt2';
-	}
+	my $playerNumber = @players % 2? @players: $#players;
+	$c->stash->{tournament} = $tourname;
+	$c->stash->{rounds} = $playerNumber;
+	$c->stash->{round} = $round;
+	$c->stash->{template} = 'rounds.tt2';
 }
 
 
@@ -318,6 +311,16 @@ sub preppair : Local {
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
 		$latestscores = $pairingtable{score};
 	}
+	elsif ( $c->request->args->[0] eq 'editable' ) {
+		@playerlist = buildPairingtable( $c, $tourname, \@playerlist,
+			\%pairingtable );
+		$c->stash->{pairtable} = \@playerlist;
+		$c->stash->{tournament} = $tourname;
+		$c->stash->{round} = ++$round;
+		$c->stash->{roles} = $c->model('GTS')->roles;
+		$c->stash->{template} = 'paireditable.tt2';
+		return;
+	}
 	else {
 		if ( exists $c->request->params->{Submit} and
 			$c->request->params->{Submit} eq
@@ -360,9 +363,7 @@ sub preppair : Local {
 	$c->stash->{round} = ++$round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
-	$c->stash->{template} = "preppair.tt2" unless 
-		 $c->request->args->[0] eq 'editable';
-	$c->stash->{template} = 'paireditable.tt2';
+	$c->stash->{template} = "preppair.tt2";
 }
 
 
