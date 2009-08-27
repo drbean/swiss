@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  8月 06, 21時35分28秒
+# Last Edit: 2009  8月 27, 11時11分12秒
 # $Id: $
 
 use warnings;
@@ -386,7 +386,7 @@ sub play {
 
 	$tourney->entrants
 
-Gets/sets the entrants as an anonymous array of player objects.
+Gets/sets the entrants as an anonymous array of player objects. Users may rely on the original order being maintained in web app cookies. 
 
 =cut
 
