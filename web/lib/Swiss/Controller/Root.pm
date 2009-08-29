@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 26, 22時40分20秒
+# Last Edit: 2009  8月 29, 12時35分34秒
 # $Id$
 
 use strict;
@@ -221,14 +221,41 @@ Number of rounds
 
 sub rounds : Local {
         my ($self, $c) = @_;
-	my $tourname = $c->request->cookie('tournament')->value;
-	my $round = $c->request->cookie('round') ?
-				$c->request->cookie('round')->value : 1;
+	my $cookies = $c->request->cookies;
+	my $tourname = $cookies->{tournament}->value;
+	my $round = $cookies->{"${tourname}_round"}->value;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $rounds = $c->request->params->{rounds};
 	setCookie( $c, "${tourname}_rounds" => $rounds );
 	$c->stash->{tournament} = $tourname;
-	$c->stash->{rounds} = $rounds;
-	$c->stash->{round} = $round;
+	$c->stash->{round} = $round + 1;
+	$c->stash->{playerlist} = \@playerlist;
+	$c->stash->{template} = 'absentees.tt2';
+}
+
+
+=head2 absentees
+
+Withdrawn, absent players who will not be paired.
+
+=cut
+
+sub absentees : Local {
+        my ($self, $c) = @_;
+	my $cookies = $c->request->cookies;
+	my $tourname = $cookies->{tournament}->value;
+	my $round = $cookies->{"${tourname}_round"}->value;
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	for my $player ( @playerlist ) {
+		$player->{absent} = 'Absent' if $c->request->params->{
+			$player->{id} };
+	}
+	my %cookedPlayers = $c->model('GTS')->turnIntoCookies(
+		$tourname, \@playerlist);
+	setCookie( $c, %cookedPlayers );
+	$c->stash->{tournament} = $tourname;
+	$c->stash->{round} = $round + 1;
+	$c->stash->{playerlist} = \@playerlist;
 	$c->stash->{template} = 'preppair.tt2';
 }
 
