@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 29, 12時35分34秒
+# Last Edit: 2009  8月 29, 18時05分07秒
 # $Id$
 
 use strict;
@@ -328,11 +328,6 @@ sub preppair : Local {
 	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
 			$tourname, \@playerlist, $cookies, $round);
-	for my $n ( 0 .. $#playerlist ) {
-		my $id = $playerlist[$n]->{id};
-		$tourney->entrants->[$n]->pairingNumber(
-		$pairingtable{pairingnumber}->{$id} );
-	}
 	if ( $c->request->params->{pairingtable} ) {
 		my $table = $c->request->params->{pairingtable};
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
