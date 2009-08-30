@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 29, 18時39分02秒
+# Last Edit: 2009  8月 29, 19時36分28秒
 # $Id: $
 
 use warnings;
@@ -364,9 +364,12 @@ Returns for the next round a hash of Games::Tournament::Swiss::Bracket objects g
 sub formBrackets {
     my $self    = shift;
     my $players = $self->entrants;
+    my $absentees = $self->absentees;
     my %hashed;
     my %brackets;
     foreach my $player (@$players) {
+	my $id = $player->id;
+	next if any { $id eq $_->id } @$absentees;
         my $score = defined $player->score ? $player->score : 0;
         # die "$player has no score. Give them a zero, perhaps?"
         #   if $score eq "None";
