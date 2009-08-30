@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 29, 18時05分07秒
+# Last Edit: 2009  8月 29, 18時19分41秒
 # $Id$
 
 use strict;
@@ -320,11 +320,15 @@ sub preppair : Local {
 		$c->request->cookie("${tourname}_round")->value : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my @lineup;
+	for my $player ( @playerlist ) {
+		push @lineup, $player unless $player->{absent}; 
+	}
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
 			round => $round,
 			rounds => $rounds,
-			entrants => \@playerlist });
+			entrants => \@lineup });
 	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
 			$tourname, \@playerlist, $cookies, $round);
