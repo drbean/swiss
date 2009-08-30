@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 30, 11時09分50秒
+# Last Edit: 2009  8月 30, 17時51分21秒
 # $Id$
 
 use warnings;
@@ -464,6 +464,8 @@ sub whoPlayedWho {
     my $self    = shift;
     my $players = $self->entrants;
     my @ids     = map { $_->id } @$players;
+    my $absentees = $self->absentees;
+    my @absenteeids     = map { $_->id } @$absentees;
     my $play    = $self->play;
     my $dupes;
     my $lastround = $self->round;
@@ -487,7 +489,8 @@ sub whoPlayedWho {
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
             }
-	    elsif ( $player->firstround > $round ) { next }
+	    elsif ( $player->firstround > $round or
+		any { $id eq $_ } @absenteeids ) { next }
             else { warn "Player ${id} game in round $round?"; }
         }
     }
@@ -538,6 +541,8 @@ sub byesGone {
     my $self    = shift;
     my $players = $self->entrants;
     my @ids     = map { $_->id } @$players;
+    my $absentees = $self->absentees;
+    my @absenteeids     = map { $_->id } @$absentees;
     my $play    = $self->play;
     my $byes = {};
     my $round = $self->round;
@@ -554,7 +559,8 @@ sub byesGone {
                     $byes->{$id} = $round;
                 }
             }
-	    elsif ( $player->firstround > $round ) { next }
+	    elsif ( $player->firstround > $round or
+		any { $id eq $_ } @absenteeids ) { next }
             else { warn "Player ${id} had Bye in round $round?"; }
         }
     }
