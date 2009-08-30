@@ -1,7 +1,7 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 29, 19時36分28秒
-# $Id: $
+# Last Edit: 2009  8月 30, 11時09分50秒
+# $Id$
 
 use warnings;
 use strict;
@@ -149,6 +149,8 @@ sub recreateCards {
     my $floats = $args->{floats};
     my $players = $self->entrants;
     my @ids = map { $_->id } @$players;
+    my $absentees = $self->absentees;
+    my @absenteeids = map { $_->id } @$absentees;
     my $test = sub {
 	my %count = ();
 	$count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
@@ -174,6 +176,7 @@ sub recreateCards {
         if ( $opponentId eq '-' ) {
             croak "Player $id has $role, in round $round?"
               unless $player and $role eq '-';
+	    next;
         }
         elsif ( $opponentId eq 'Bye' ) {
             croak "Player $id has $role role, in round $round?"
