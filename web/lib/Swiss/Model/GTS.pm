@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 30, 21時30分34秒
+# Last Edit: 2009  9月 08, 18時33分10秒
 # $Id$
 
 use strict;
@@ -320,7 +320,7 @@ sub parsePlayers {
 			splice @fields, 1, $n-3, $name;
 		}
 		@player{qw/id name rating firstround/} = @fields;
-		$player{id} = substr $player{id}, 0, 7;
+		$player{id} = substr $player{id}, 0, 10;
 		$player{name} = substr $player{name}, 0, 20;
 		$player{rating} = substr $player{rating}, 0, 4;
 		push @playerlist, \%player;
