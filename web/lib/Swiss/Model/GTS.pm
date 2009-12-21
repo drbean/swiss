@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009 10月 14, 19時32分03秒
+# Last Edit: 2009 10月 17, 21時23分36秒
 # $Id$
 
 use strict;
@@ -482,7 +482,7 @@ sub postPlayPaperwork {
 		@$pairingtable{qw/opponent role float score/};
 	my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
 	my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
-	my %floats = map { $_ => $floats->{$_}->[$round-$lastround-1] } @ids;
+	my %floats = map { $_ => $floats->{$_}->[$round-1] } @ids;
 	my @games = $tourney->recreateCards( {
 		round => $round, opponents => \%opponents,
 		roles => \%roles, floats => \%floats } );
