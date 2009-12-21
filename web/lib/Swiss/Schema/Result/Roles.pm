@@ -32,12 +32,12 @@ __PACKAGE__->add_columns(
   "round",
   {
     data_type => "TINYINT",
-    default_value => 'False',
+    default_value => undef,
     is_nullable => 0,
     size => undef,
   },
 );
-__PACKAGE__->set_primary_key("tournament", "player");
+__PACKAGE__->set_primary_key("tournament", "player", "round");
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-22 15:03:53

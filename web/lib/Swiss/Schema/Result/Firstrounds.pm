@@ -24,8 +24,8 @@ __PACKAGE__->add_columns(
   },
   "firstround",
   {
-    data_type => "BOOL",
-    default_value => 'False',
+    data_type => 'TINYINT',
+    default_value => undef,
     is_nullable => 0,
     size => undef,
   },
