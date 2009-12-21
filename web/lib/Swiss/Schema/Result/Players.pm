@@ -29,13 +29,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => undef,
   },
-  "firstround",
-  {
-    data_type => "TINYINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
-  },
 );
 __PACKAGE__->set_primary_key("id");
 
