@@ -184,7 +184,7 @@ Finish editing players
 sub final_players : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->session->{"${tourid}_round"};
 	my @players = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my $tournament = $c->model('DB::Tournaments')->find({
@@ -207,7 +207,7 @@ Number of rounds
 sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->session->{"${tourid}_round"};
 	my @members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my @players = map { $_->profile } @members;
@@ -230,7 +230,7 @@ Withdrawn, absent players who will not be paired.
 sub absentees : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->session->{"${tourid}_round"};
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	while ( my $member = $members->next ) {

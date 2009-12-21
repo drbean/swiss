@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 14, 11時50分56秒
+# Last Edit: 2009 10月 14, 14時35分14秒
 # $Id$
 
 use strict;
@@ -77,7 +77,8 @@ Prepare to pair next round
 sub preppair : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->session->{"${tourid}_round"};
+	# $round = defined $round? $round: 1;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my $rounds = $c->stash->{rounds};
@@ -190,13 +191,13 @@ sub nextround : Local {
 		push @playerlist, $player;
 		push @absentees, $player if $player->{absent};
 	}
-my $args = {
-			name => $tourid,
-			round => $round,
-			rounds => $rounds,
-			entrants => \@playerlist,
-			absentees => \@absentees,
-		};
+#my $args = {
+#			name => $tourid,
+#			round => $round,
+#			rounds => $rounds,
+#			entrants => \@playerlist,
+#			absentees => \@absentees,
+#		};
 #for my $group ( qw/entrants absentees/ ) {
 #	my $players = $args->{$group};
 #	my @band = map {Games::Tournament::Contestant::Swiss->new(%$_)}
@@ -213,7 +214,6 @@ my $args = {
 #	player => $entrant->id,
 #	pairingnumber => $entrant->pairingNumber } );
 #}
-$DB::single=1;
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
 			round => $round,
@@ -227,6 +227,7 @@ $DB::single=1;
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
+$DB::single=1;
 			my $values = $member->$field->get_column($field);
 			if ( blessed( $values ) and $values->isa(
 					'DBIx::Class::ResultSetColumn') ) {
