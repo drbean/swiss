@@ -1602,7 +1602,7 @@ sub colors {
 	    last if notall { $_->firstround <= $round-$lookback } @pair;
 	    my $s1role = $rolehistory[0]->[-$lookback];
 	    my $s2role = $rolehistory[1]->[-$lookback];
-	    my @ids = map {$_->id} @pair;
+	    my @ids = map {$_->pairingNumber} @pair;
 	    # die "Missing roles for Players @ids in Round " . ($round-$lookback)
 	    last
 	    		    unless $s1role and $s2role;
