@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  8月 29, 19時22分28秒
+# Last Edit: 2009  8月 06, 21時35分28秒
 # $Id: $
 
 use warnings;
@@ -9,7 +9,6 @@ use Carp;
 
 use List::Util qw/first/;
 use List::MoreUtils qw/any all/;
-use Scalar::Util qw/looks_like_number/;
 use Scalar::Util qw/looks_like_number/;
 use Scalar::Util qw/looks_like_number/;
 
@@ -342,7 +341,7 @@ sub updateScores {
           if not $card or $@;
         my $result = $card->myResult($player);
         die "$result result in $card game for player $id in round $round?"
-          unless $result =~ m/^(?:Win|Loss|Draw|Bye|Forfeit)/i;
+          unless $result =~ m/^(?:Win|Loss|Draw|Bye|Absent)/i;
         $$scores{$round} = $result;
         $player->scores($scores) if defined $scores;
         push @scores, $$scores{$round};
@@ -387,7 +386,7 @@ sub play {
 
 	$tourney->entrants
 
-Gets/sets the entrants as an anonymous array of player objects. Users may rely on the original order being maintained in web app cookies. 
+Gets/sets the entrants as an anonymous array of player objects.
 
 =cut
 
@@ -396,22 +395,6 @@ sub entrants {
     my $entrants = shift;
     if ( defined $entrants ) { $self->{entrants} = $entrants; }
     elsif ( $self->{entrants} ) { return $self->{entrants}; }
-}
-
-
-=head2 absentees
-
-	$tourney->absentees
-
-Gets/sets the absentees as an anonymous array of player objects. These players won't be included in the brackets of players who are to be paired.
-
-=cut
-
-sub absentees {
-    my $self     = shift;
-    my $absentees = shift;
-    if ( defined $absentees ) { $self->{absentees} = $absentees; }
-    elsif ( $self->{absentees} ) { return $self->{absentees}; }
 }
 
 

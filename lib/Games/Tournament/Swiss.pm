@@ -1,7 +1,7 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 30, 17時51分21秒
-# $Id$
+# Last Edit: 2009  8月 17, 06時53分13秒
+# $Id: $
 
 use warnings;
 use strict;
@@ -71,21 +71,14 @@ Sets the participants pairing numbers, sorting on rating, title and name, and su
 sub assignPairingNumbers {
     my $self    = shift;
     my @players = @{ $self->entrants };
-    $self->log( 'Pairing numbers' );
-    my $numbers = sub { join ', ',
-	    map { $_->id . ": " . $_->pairingNumber } @players;
-    };
-    if ( all { $_->pairingNumber } @players ) {
-	$self->log( &$numbers );
-	return;
-    }
+    return if all { $_->pairingNumber } @players;
     my @rankings = $self->rank(@players);
     foreach my $n ( 0 .. $#rankings ) {
 	my $id = $rankings[$n]->id;
 	my $player = $self->ided($id);
         $player->pairingNumber( $n+1 );
     }
-    $self->log( &$numbers );
+    $self->log( join ', ', map { $_->pairingNumber . ": " . $_->id } @rankings);
     $self->entrants( \@players );
 }
 
@@ -149,8 +142,6 @@ sub recreateCards {
     my $floats = $args->{floats};
     my $players = $self->entrants;
     my @ids = map { $_->id } @$players;
-    my $absentees = $self->absentees;
-    my @absenteeids = map { $_->id } @$absentees;
     my $test = sub {
 	my %count = ();
 	$count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
@@ -176,7 +167,6 @@ sub recreateCards {
         if ( $opponentId eq '-' ) {
             croak "Player $id has $role, in round $round?"
               unless $player and $role eq '-';
-	    next;
         }
         elsif ( $opponentId eq 'Bye' ) {
             croak "Player $id has $role role, in round $round?"
@@ -251,7 +241,8 @@ sub collectCards {
 		my ( $role, $float );
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
-		$scores->{$round} = $game->{result}->{$role};
+		$scores->{$round} = $role eq 'Bye'? 'Bye':
+				    $game->{result}->{$role};
 		#carp
 		#  "No result on card for player $id as $role in round $round "
 		#	unless $scores->{$round};
@@ -261,11 +252,11 @@ sub collectCards {
 		carp "No record in round $round for player $id $player->{name}"
 		  unless $play->{$round}->{$id};
 		$entrant->roles($role) unless $scores->{round} and
-			$scores->{$round} eq 'Bye'||'Forfeit';
+			$scores->{$round} eq 'Bye'||'Absent';
 		$entrant->floats( $round, $float );
 		$entrant->floating('');
 		$entrant->preference->update( $entrant->roles ) unless
-		    $scores->{round} and $scores->{$round} eq 'Bye'||'Forfeit';
+		    $scores->{round} and $scores->{$round} eq 'Bye'||'Absent';
 ;
 	    }
 	}
@@ -367,12 +358,9 @@ Returns for the next round a hash of Games::Tournament::Swiss::Bracket objects g
 sub formBrackets {
     my $self    = shift;
     my $players = $self->entrants;
-    my $absentees = $self->absentees;
     my %hashed;
     my %brackets;
     foreach my $player (@$players) {
-	my $id = $player->id;
-	next if any { $id eq $_->id } @$absentees;
         my $score = defined $player->score ? $player->score : 0;
         # die "$player has no score. Give them a zero, perhaps?"
         #   if $score eq "None";
@@ -464,8 +452,6 @@ sub whoPlayedWho {
     my $self    = shift;
     my $players = $self->entrants;
     my @ids     = map { $_->id } @$players;
-    my $absentees = $self->absentees;
-    my @absenteeids     = map { $_->id } @$absentees;
     my $play    = $self->play;
     my $dupes;
     my $lastround = $self->round;
@@ -482,15 +468,14 @@ sub whoPlayedWho {
                   . " in round $round?"
                   unless any { $_ eq $role } ROLES, 'Bye';
 		next if $game->result and exists $game->result->{$role} and
-			$game->result->{$role} eq 'Forfeit';
+			$game->result->{$role} eq 'Absent';
                 if ( any { $role eq $_ } ROLES ) {
                     my $otherRole = first { $role ne $_ } ROLES;
                     my $opponent = $game->contestants->{$otherRole};
                     $dupes->{$id}->{ $opponent->id } = $round;
                 }
             }
-	    elsif ( $player->firstround > $round or
-		any { $id eq $_ } @absenteeids ) { next }
+	    elsif ( $player->firstround > $round ) { next }
             else { warn "Player ${id} game in round $round?"; }
         }
     }
@@ -541,8 +526,6 @@ sub byesGone {
     my $self    = shift;
     my $players = $self->entrants;
     my @ids     = map { $_->id } @$players;
-    my $absentees = $self->absentees;
-    my @absenteeids     = map { $_->id } @$absentees;
     my $play    = $self->play;
     my $byes = {};
     my $round = $self->round;
@@ -559,8 +542,7 @@ sub byesGone {
                     $byes->{$id} = $round;
                 }
             }
-	    elsif ( $player->firstround > $round or
-		any { $id eq $_ } @absenteeids ) { next }
+	    elsif ( $player->firstround > $round ) { next }
             else { warn "Player ${id} had Bye in round $round?"; }
         }
     }

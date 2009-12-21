@@ -7,9 +7,9 @@ Number of rounds that will be played:
 <select name="rounds" size="[% rounds %]">
 
 [% FOREACH n IN [1 .. rounds] %]
-<OPTION value="[% n %]" [% IF n == selected %]selected[% END %]>[% n %]</OPTION>
+<OPTION value="[% n %]">[% n %]</OPTION>
 [% END %]
 
 </select>
-<input type="submit" name="Submit" value="Record Number of Rounds">
+<input type="submit" name="Submit" value="Pair Round 1">
 </form>

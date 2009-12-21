@@ -94,13 +94,9 @@ sub RunCheckEnter {
 	my $score = next_block;
 	is_deeply( $score->input, $score->expected, $score->name );
 	$tourney->enter($late[ shift ]);
-	$block = next_block;
-	is_deeply( $block->input, $block->expected, $block->name );
-	$tourney->enter($late[ shift ]);
 }
 RunCheckEnter(1);
 RunCheckEnter(2);
-runAndCheck(3);
 
 =head 3 TODO
 

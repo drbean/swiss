@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  9月 08, 18時33分10秒
+# Last Edit: 2009  8月 17, 12時55分27秒
 # $Id$
 
 use strict;
@@ -25,17 +25,16 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
-my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
 my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
+my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
+	0.5 => 'Draw', '=' => 'Draw'  };
 
 $swiss->frisk($scoring, $roles, $firstround, $algorithm, $abbrev);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
 %Games::Tournament::Swiss::Config::scores = %$scoring;
-%Games::Tournament::Swiss::Config::abbreviation = %$abbrev;
 @Games::Tournament::Swiss::Config::roles = @$roles;
 $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
@@ -59,14 +58,11 @@ Passing round a tournament, with players, is easier.
 
 sub setupTournament {
 	my ($self, $args) = @_;
-	for my $group ( qw/entrants absentees/ ) {
-		my $players = $args->{$group};
-		my @band = map {Games::Tournament::Contestant::Swiss->new(%$_)}
-				@$players;
-		$args->{$group} = \@band;
-	}
+	my $players = $args->{entrants};
+	my @entrants = map { Games::Tournament::Contestant::Swiss->new(%$_) }
+			@$players;
+	$args->{entrants} = \@entrants;
 	my $tournament = Games::Tournament::Swiss->new( %$args );
-	$tournament->assignPairingNumbers;
 	return $tournament;
 }
 
@@ -80,7 +76,7 @@ Prepare cookies for a tournament's players with ids, names, ratings, and perhaps
 sub turnIntoCookies {
 	my ($self, $tourname, $playerlist) = @_;
 	my %cookie;
-	for my $key ( qw/id name rating firstround absent/ ) {
+	for my $key ( qw/id name rating firstround/ ) {
 		my @keylist = map { $_->{$key} } @$playerlist;
 		my $keystring = join "&", map { escape( $_ ) } @keylist;
 		$cookie{$tourname . '_' . $key . 's'} = $keystring;
@@ -120,9 +116,6 @@ Prepare cookies for a tournament's players opponent, preference and float histor
 3%2C1&4%2C2&1%2C3&2%2C4
 3%252C1%264%252C2%261%252C3%262%252C4
 
-2,3,,-, 1,4,,-, -,1,,-, -,2,,-,
-2%2C3%2C%2C-%2C%261%2C4%2C%2C-%2C%26-%2C1%2C%2C-%2C%26-%2C2%2C%2C-%2C
-
 =cut
 
 sub historyCookies {
@@ -130,14 +123,14 @@ sub historyCookies {
 	my %cookie;
 	my $players = $tourney->entrants;
 	my $tourname = $tourney->{name};
-	my $types = [ qw/pairingnumber opponent role float score/ ];
+	my $types = [ qw/opponent role float score/ ];
 	my @ids = map { $_->{id} } @$players;
 	for my $type ( @$types ) {
 		my %expando = reverse %$abbrev if $type eq 'roles';
 		my $historicaltype = $history->{$type};
 		my @historicalvalues;
 		my @typeids = keys %$historicaltype;
-		die "Only @typeids of Players, @ids have a $type history in $tourname Tourney"
+		die "Not all players have a $type history in $tourname Tourney"
 			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
 		for my $id ( @ids ) {
 			my $values = $historicaltype->{$id};
@@ -147,16 +140,12 @@ sub historyCookies {
 					and ref $values eq 'ARRAY';
 			}
 			elsif ( $type eq 'role' or $type eq 'float' ) {
-				$string = join '', map { defined $_ and
-					$_ eq 'Bye'? '-' : substr $_, 0, 1}
+				$string = join '', map
+					{defined $_ and substr $_, 0, 1}
 						@$values if defined $values and
 							ref $values eq 'ARRAY';
 			}
 			elsif( $type eq 'score' ) { $string = $values || 0 }
-			elsif( $type eq 'pairingnumber' ) {
-				my $player = $tourney->ided($id);
-				$string = $player->pairingNumber;
-			}
 			push @historicalvalues, $string;
 		}
 		$cookie{"${tourname}_${type}s"} = join '&', @historicalvalues;
@@ -174,7 +163,7 @@ Inflate a tournament's players' cookies with ids, names, ratings, and perhaps la
 sub turnIntoPlayers {
 	my ($self, $tourney, $cookies) = @_;
 	my @playerlist;
-	my $fields = [ qw/id name rating firstround absent/ ];
+	my $fields = [ qw/id name rating firstround/ ];
 	return $self->breakCookie($tourney, $cookies, $fields);
 }
 
@@ -233,13 +222,8 @@ sub destringCookie {
 
 =head2 readHistory
 
-Inflate a tournament's players' opponent, role and float history and score (and pairing number) cookies, and return arrays of these 5 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
+Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
 
-	pairingnumber:
-	  1: 3
-	  2: 4
-	  3: 1
-	  6: 2
 	opponent:
 	  1: [6 4 2 5] 
 	  2: [7 3 1 4] 
@@ -266,7 +250,7 @@ Inflate a tournament's players' opponent, role and float history and score (and 
 sub readHistory {
 	my ($self, $tourname, $playerlist, $cookies, $round) = @_;
 	my %histories;
-	my $fields = [ qw/pairingnumber opponent role float score/ ];
+	my $fields = [ qw/opponent role float score/ ];
 	my @playerData = $self->breakCookie($tourname, $cookies, $fields);
 	my $n=0;
 	for my $player ( @playerData ) {
@@ -291,8 +275,6 @@ sub readHistory {
 			}
 		}
 		$histories{score}->{$id} = $playerData[$n]->{score};
-		$histories{pairingnumber}->{$id} =
-			$playerData[$n]->{pairingnumber};
 		$n++;
 	}
 	return %histories;
@@ -301,7 +283,7 @@ sub readHistory {
 
 =head2 parsePlayers
 
-Parse the line of ids, names and ratings (AND firstround) into a list of hashes. Any extra fields, 1..n-3 are joined together to make one name. Long IDs, names and ratings are chomped to 7, 20 and 4 characters, respectively.
+Parse the line of ids, names and ratings into a list of hashes.
 
 =cut
 
@@ -315,12 +297,12 @@ sub parsePlayers {
 		chomp $line;
 		my @fields = split ' ', $line;
 		my $n;
-		if ( $n = @fields and $n > 4 ) {
-			my $name = join ' ', @fields[1..$n-3];
-			splice @fields, 1, $n-3, $name;
+		if ( $n = @fields and $n > 3 ) {
+			my $name = join ' ', @fields[1..$n-2];
+			splice @fields, 1, $n-2, $name;
 		}
-		@player{qw/id name rating firstround/} = @fields;
-		$player{id} = substr $player{id}, 0, 10;
+		@player{qw/id name rating/} = @fields;
+		$player{id} = substr $player{id}, 0, 7;
 		$player{name} = substr $player{name}, 0, 20;
 		$player{rating} = substr $player{rating}, 0, 4;
 		push @playerlist, \%player;
@@ -331,13 +313,13 @@ sub parsePlayers {
 
 =head2 parseTable
 
-Parse the textarea pairing table and return it in the same format as readHistory above. As a convenience, add pairing number information from the entrants to allow writing this directly back to historyCookies, in the absence of history changes.
+Parse the textarea pairing table and return it in the same format as readHistory above.
 
 =cut
 
 sub parseTable {
 	my ($self, $tourney, $table) = @_;
-	my %pairingtable;
+	my %pairingtable;;
 	my @records = split /\n/, $table;
 	for my $line ( @records ) {
 		next if $line =~ m/^$/;
@@ -345,7 +327,7 @@ sub parseTable {
 		my %player;
 		chomp $line;
 		my @fields = split ' ', $line;
-		die "No spaces allowed between opponents, and between roles. Format is: '2016192 4100026,2805687 BW uD 2'" if @fields <= 3 or @fields > 5;
+		die "No spaces allowed between opponents, and between roles. Format is: '2016192 4100026,2805687 BW uD 2'" if @fields > 5;
 		if ( @fields == 4 ) {
 			$fields[4] = $fields[3];
 			$fields[3] = '';
@@ -363,8 +345,6 @@ sub parseTable {
 		$player{float} = \@floats;
 		$pairingtable{$_}->{$id} = $player{$_} for
 					qw/opponent role float score/;
-		my $entrant = $tourney->ided( $id );
-		$pairingtable{pairingnumber}->{$id} = $entrant->pairingNumber;
 	}
 	return %pairingtable;
 }
@@ -372,7 +352,7 @@ sub parseTable {
 
 =head2 assignScores
 
-Get results for the last round from the user and compute latest scores, using  history up until the last round. Include old scores of absentees from that history.
+Get results for the last round from the user and compute latest scores, using  history up until the last round.
 
 =cut
 
@@ -380,11 +360,6 @@ sub assignScores {
 	my ($self, $tourney, $history, $params) = @_;
 	my @ids = map { $_->id } @{ $tourney->entrants };
 	my ($scores, %results);
-	my $absentees = $tourney->absentees;
-	my @absenteeids = map { $_->id } @$absentees;
-	for my $id ( @absenteeids ) {
-		$scores->{$id} = $history->{score}->{$id};
-	}
 	PARAM: for my $param ( keys %$params ) {
 		my ( $firstroleplayer, $secondroleplayer);
 		{
@@ -441,19 +416,16 @@ sub pair {
 			$tourney->collectCards( @$games );
 		}
 	}
-	$tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
+	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences if $round == 0;
-	my $log;
-	my %logged = $tourney->catLog;
-	$log .= $logged{ASSIGNPAIRINGNUMBERS};
+	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
 	my $message = $pairing->message;
 	$pairing->round(++$round);
-	$pairing->loggingAll;
+	# $pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
-	$log .= $pairing->{logreport};
 	my $matches = $results->{matches};
 	my @games;
 	my %number = map { $_ => $brackets{$_}->number } keys %brackets;
@@ -464,7 +436,7 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
-	return ($message, $log, \@tables);
+	return ($message, \@tables);
 }
 
 
@@ -513,6 +485,7 @@ sub changeHistory {
 			$history->{opponent}->{$id} = $opponents;
 			my $role = $game->myRole($player);
 			if ( $role eq 'Bye' ) { $role = '-'; }
+			else                  { $role =~ s/^(.).*$/$1/; }
 			my $roles = $history->{role}->{$id};
 			push @$roles, $role;
 			$history->{role}->{$id} = $roles;
@@ -531,8 +504,6 @@ sub changeHistory {
 		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
 		$history->{float}->{$id} = $floats;
 		$history->{score}->{$id} = $player->score;
-		$history->{pairingnumber}->{$id} = $player->pairingNumber ||
-									'-';
 	}
 	return $history;
 }

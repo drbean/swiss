@@ -1,7 +1,7 @@
 [% META title = 'Draw' -%]
 [% n = 1 %]
 
-<form method="post" action="[% c.uri_for('preppair') %]">
+<form method="post" action="[% c.uri_for('nextround') %]">
 <table>
 <caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
   <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
@@ -43,16 +43,8 @@
 </select>
 [% END %]
 [% END %]
-  <TR><TH colspan="8">W: Win, L: Loss, =: draw, F: Forfeit
 </table>
-<input type="submit" name="Submit" value="Record Round [% round  %] results">
 </form>
+W: Win, L: Loss, =: draw, F: Forfeit
 <br>
-
-[%- IF log %]
-<H2>FIDE Pairing Procedure Log</H2>
-
-<PRE>[% log %]</PRE>
-[% END %]
-
-[%- IF pairtable %][% INCLUDE pairtable.tt2 round = round + 1 %][% END %]
+<input type="submit" name="Submit" value="Pair round [% round + 1 %]">
