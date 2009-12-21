@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009 10月 17, 20時20分46秒
+# Last Edit: 2009 10月 17, 20時24分00秒
 # $Id: $
 
 use warnings;
@@ -108,7 +108,7 @@ sub oldId {
 	$member->opponents( 0, 5, 11 )
 	$rolehistory = $member->opponents
 
-If ids are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the id of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, or was unpaired, pass 'Bye' or 'Absence' or 'Unpaired'. TODO: Should absence be 'Forfeit'? Absence can result in being unpaired.
+If ids are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the id of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or no result, or was unpaired, pass 'Bye' or 'Forfeit' or 'Unpaired'.
 
 =cut
 
@@ -126,7 +126,7 @@ sub opponents {
 	$member->roles( 'Black' )
 	$rolehistory = $member->roles
 
-If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or even if they had a game but didn't play it, that is, if they had a bye, or an absence, or were unpaired, pass 'Bye', or 'Absence', or 'Unpaired.' F2,3
+If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or even if they had a game but didn't play it, that is, if they had a bye, or no result, or were unpaired, pass 'Bye', or 'Forfeit', or 'Unpaired.' F2,3
 
 =cut
 
