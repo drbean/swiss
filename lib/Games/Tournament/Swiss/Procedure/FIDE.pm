@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 18, 14時35分40秒
+# Last Edit: 2009 10月 14, 16時15分58秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1460,7 +1460,7 @@ sub c13 {
 
  $self->bye
 
-The last, single, unpairable player is given a bye. B2
+The last, singular, unpairable player is given a bye. B2
 
 =cut 
 
