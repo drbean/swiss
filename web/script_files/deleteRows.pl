@@ -29,11 +29,12 @@ it under the same terms as Perl itself.
 
 use strict;
 use warnings;
-use lib 'lib';
+use FindBin qw/$Bin/;
+use lib "$Bin/../lib";
 
 use Config::General;
 
-my @MyAppConf = glob( '*.conf' );
+my @MyAppConf = glob( "$Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
 			unless @MyAppConf == 1;
 my %config = Config::General->new($MyAppConf[0])->getall;
