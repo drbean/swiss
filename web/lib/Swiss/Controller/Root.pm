@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 12時56分49秒
+# Last Edit: 2009  8月 24, 13時43分45秒
 # $Id$
 
 use strict;
@@ -267,7 +267,7 @@ sub pairingtable : Local {
 
 =head2 buildPairingtable
 
-Common code in pairingtable, final_players actions that converts cookies to player list, opponents, roles, and floats histories and scores and creates an array of hashes with player histories for each individual player, suitable for display as a pairing table. Extracted into a function.
+Common code in pairingtable, final_players, nextround actions that converts player list, pairing numbers, opponents, roles, and floats histories and scores and creates an array of hashes with player histories for each individual player, suitable for display as a pairing table. Extracted into a function.
 
 =cut
 
@@ -354,6 +354,9 @@ sub preppair : Local {
 			$tourney, \%pairingtable, $games );
 	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
 	setCookie( $c, %cookhist );
+	@playerlist = buildPairingtable( $c, $tourname, \@playerlist, 
+		\%cookhist, $round );
+	$c->stash->{pairtable} = \@playerlist;
 	$round = $tourney->round;
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
