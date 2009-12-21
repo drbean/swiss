@@ -29,6 +29,27 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
+  "pairingnumber",
+  {
+    data_type => "TINYINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "firstround",
+  {
+    data_type => "TINYINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
+  "score",
+  {
+    data_type => "TINYINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("tournament", "player");
 
@@ -39,12 +60,12 @@ __PACKAGE__->set_primary_key("tournament", "player");
 __PACKAGE__->belongs_to(
 	tournament => 'Swiss::Schema::Result::Tournaments', 'tournament' );
 __PACKAGE__->belongs_to( profile=>'Swiss::Schema::Result::Players', 'player' );
-__PACKAGE__->has_one( pairingnumber => 'Swiss::Schema::Result::Pairingnumbers',
-				{ 'foreign.tournament' => 'self.tournament',
-				'foreign.player' => 'self.player' } );
-__PACKAGE__->has_one( firstround => 'Swiss::Schema::Result::Firstrounds',
-				{ 'foreign.tournament' => 'self.tournament',
-				'foreign.player' => 'self.player' } );
+#__PACKAGE__->has_one( pairingnumber => 'Swiss::Schema::Result::Pairingnumbers',
+#				{ 'foreign.tournament' => 'self.tournament',
+#				'foreign.player' => 'self.player' } );
+#__PACKAGE__->has_one( firstround => 'Swiss::Schema::Result::Firstrounds',
+#				{ 'foreign.tournament' => 'self.tournament',
+#				'foreign.player' => 'self.player' } );
 __PACKAGE__->has_many( opponent => 'Swiss::Schema::Result::Opponents',
 				{ 'foreign.tournament' => 'self.tournament',
 				'foreign.player' => 'self.player' } );
@@ -54,9 +75,9 @@ __PACKAGE__->has_many( role => 'Swiss::Schema::Result::Roles',
 __PACKAGE__->has_many( float => 'Swiss::Schema::Result::Floats',
 				{ 'foreign.tournament' => 'self.tournament',
 				'foreign.player' => 'self.player' } );
-__PACKAGE__->might_have( score => 'Swiss::Schema::Result::Scores',
-				{ 'foreign.tournament' => 'self.tournament',
-				'foreign.player' => 'self.player' } );
+#__PACKAGE__->might_have( score => 'Swiss::Schema::Result::Scores',
+#				{ 'foreign.tournament' => 'self.tournament',
+#				'foreign.player' => 'self.player' } );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
