@@ -8,7 +8,7 @@
   <form method="post" action="[% c.uri_for('/tournaments/name') %]">
     Tournament Names:
   
-  <select name="id" size="[% tournaments.size %]">
+  <select name="tourid" size="[% tournaments.size %]">
   
   [% FOREACH tournament IN tournaments %]
   <OPTION [% "selected" IF tournament.id == recentone %] value="[% tournament.id %]">[% tournament.id %] [% tournament.name %]</OPTION>
