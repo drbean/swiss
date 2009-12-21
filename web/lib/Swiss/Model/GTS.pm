@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 29, 11時54分29秒
+# Last Edit: 2009  8月 29, 19時40分32秒
 # $Id$
 
 use strict;
@@ -59,10 +59,12 @@ Passing round a tournament, with players, is easier.
 
 sub setupTournament {
 	my ($self, $args) = @_;
-	my $players = $args->{entrants};
-	my @entrants = map { Games::Tournament::Contestant::Swiss->new(%$_) }
-			@$players;
-	$args->{entrants} = \@entrants;
+	for my $group ( qw/entrants absentees/ ) {
+		my $players = $args->{$group};
+		my @band = map {Games::Tournament::Contestant::Swiss->new(%$_)}
+				@$players;
+		$args->{$group} = \@band;
+	}
 	my $tournament = Games::Tournament::Swiss->new( %$args );
 	$tournament->assignPairingNumbers;
 	return $tournament;
