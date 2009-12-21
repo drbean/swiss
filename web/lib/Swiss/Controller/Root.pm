@@ -225,10 +225,13 @@ Number of rounds
 sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = $c->request->cookie('round') ?
+				$c->request->cookie('round')->value : 1;
 	my $rounds = $c->request->params->{rounds};
 	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
+	$c->stash->{round} = $round;
 	$c->stash->{template} = 'pair.tt2';
 }
 

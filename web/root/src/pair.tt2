@@ -1,9 +1,15 @@
-[% META title = 'Pair' -%]
-[% n = 1 %]
+[% META title = 'Pair Round' -%]
 
-<table>
-<caption><h1>[% tournament %] Tournament Pairing Table, Round [% round %]</h1></caption>
-</table>
+<h1>[% tournament %] Tournament Pairing Table, Round [% round %]</h1>
 
-<br>
-<a href="[% c.uri_for('nextround') %]">Round 1</a>
+<form method="post" action="[% c.uri_for('nextround') %]">
+<fieldset>
+<legend>Pairing data choices</legend>
+<ul>
+  <li><input type="checkbox" name="cards" value="Yes"> Score cards
+  <li><input type="checkbox" name="log" value="Yes"> FIDE Procedure log
+  <li><input type="checkbox" name="pairtable" value="Yes"> Round [% round + 1 %] pairing table
+</ul>
+</fieldset>
+<input type="submit" name="add" value="Pair Round [% round %]">
+</form>
