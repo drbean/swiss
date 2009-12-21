@@ -118,8 +118,9 @@ sub edit_players : Local {
 		my $playerSet = $c->model('DB::Players');
 		for my $player ( @playerlist ) {
 			$player->{firstround} ||= $round;
-			$player->{memberships} = [ { tournament=>$tourney } ];
 			$playerSet->update_or_create( $player );
+			$c->model('DB::Members')->update_or_create({ player =>
+				$player->{id}, tournament => $tourid });
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
