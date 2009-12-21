@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009  8月 29, 19時07分03秒
+# Last Edit: 2009 10月 18, 18時19分07秒
 # $Id: $
 
 use warnings;
@@ -28,7 +28,7 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    $action = Games::Tournament:Card->new(round => 1, contestants => {Black => $knicks, White => $deepblue}, result => { Black => 'Win', White => 'Loss' });
+    $game = Games::Tournament:Card->new(round => 1, contestants => {Black => $knicks, White => $deepblue}, result => { Black => 'Win', White => 'Loss' });
 
 =head1 DESCRIPTION
 
@@ -38,7 +38,7 @@ In a tournament, matches take place in rounds between contestants, who are maybe
 
 =head2 new
 
-    $action = Games::Tournament:Card->new(
+    $game = Games::Tournament:Card->new(
 	    round => 1,
 	    contestants => {Black => $knicks, White => $deepblue},
 	    result => { Black => 'Win', White => 'Loss' },
@@ -218,7 +218,7 @@ sub myFloat {
 
 =head2 round
 
- $action->round
+ $game->round
 
 Returns the round in which the match is taking place.
 
@@ -232,7 +232,7 @@ sub round {
 
 =head2 contestants
 
-	$action->contestants
+	$game->contestants
 
 Gets/sets the participants as an anonymous array of player objects.
 
@@ -248,7 +248,7 @@ sub contestants {
 
 =head2 result
 
-	$action->result
+	$game->result
 
 Gets/sets the results of the match.
 
