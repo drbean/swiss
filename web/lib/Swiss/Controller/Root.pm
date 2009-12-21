@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 22, 16時05分49秒
+# Last Edit: 2009  8月 22, 23時22分50秒
 # $Id$
 
 use strict;
@@ -296,12 +296,12 @@ sub preppair : Local {
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
-		$c->request->cookie("${tourname}_round")->value : 1;
+		$c->request->cookie("${tourname}_round")->value + 1 : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => $round,
+			round => ($round - 1),
 			rounds => $rounds,
 			entrants => \@playerlist });
 	my ($games, $latestscores, %pairingtable);
@@ -319,11 +319,15 @@ sub preppair : Local {
 	}
 	else {
 		if ( exists $c->request->params->{Submit} and
-			$c->request->params->{Submit} eq "Record Round $round results" ) {
+			$c->request->params->{Submit} eq "Record Round " . ($round-1) . " results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
 				$tourney, \%pairingtable, $params);
 			$pairingtable{score} = $latestscores;
+			for my $player ( @{ $tourney->entrants } ) {
+				my $id = $player->id;
+				$player->score( $latestscores->{$id} );
+			}
 			my $scorestring;
 			$scorestring = join '&', map { $latestscores->{$_} }
 				map { $_->{id} } @playerlist if
