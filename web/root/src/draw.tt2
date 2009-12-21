@@ -55,4 +55,4 @@
 <PRE>[% log %]</PRE>
 [% END %]
 
-[%- IF pairtable %][% INCLUDE pairtable.tt2 %][% END %]
+[%- IF pairtable %][% INCLUDE pairtable.tt2 round = round + 1 %][% END %]
