@@ -11,5 +11,5 @@ Number of rounds that will be played:
 [% END %]
 
 </select>
-<input type="submit" name="Submit" value="Pair Round [% round + 1 %]">
+<input type="submit" name="Submit" value="Record Number of Rounds">
 </form>
