@@ -4,6 +4,7 @@
 <h1>Unpaired players in [% tournament %] Tournament, Round [% round %]</h1>
 
 <form method="post" action="[% c.uri_for('absentees') %]">
+<input type="submit" name="absent" value="Record Absentees">
 <table>
   <tr><th>Absent<th>Id<th>Name</tr>
 [% FOREACH player IN playerlist %]
@@ -14,5 +15,4 @@
 [% END -%]
 </table>
 <input type="submit" name="absent" value="Record Absentees">
-</table>
 </form>
