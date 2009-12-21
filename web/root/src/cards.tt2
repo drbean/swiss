@@ -1,6 +1,6 @@
 [% META title = 'Games' -%]
 
-<form method="post" action="[% c.uri_for('pairprep') %]">
+<form method="post" action="[% c.uri_for('preppair') %]">
 <table>
 <caption><h1>[% tournament %] Tournament, Round [% round %] Games</h1></caption>
   <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
