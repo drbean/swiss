@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  8月 29, 19時07分20秒
+# Last Edit: 2009  8月 29, 19時22分28秒
 # $Id: $
 
 use warnings;
@@ -395,6 +395,22 @@ sub entrants {
     my $entrants = shift;
     if ( defined $entrants ) { $self->{entrants} = $entrants; }
     elsif ( $self->{entrants} ) { return $self->{entrants}; }
+}
+
+
+=head2 absentees
+
+	$tourney->absentees
+
+Gets/sets the absentees as an anonymous array of player objects. These players won't be included in the brackets of players who are to be paired.
+
+=cut
+
+sub absentees {
+    my $self     = shift;
+    my $absentees = shift;
+    if ( defined $absentees ) { $self->{absentees} = $absentees; }
+    elsif ( $self->{absentees} ) { return $self->{absentees}; }
 }
 
 
