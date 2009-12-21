@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009 10月 14, 19時09分40秒
+# Last Edit: 2009 10月 28, 11時35分49秒
 # $Id: $
 
 use warnings;
@@ -375,7 +375,7 @@ sub firstround {
     $member->absent(1)
     puah @absent if $member->absent
 
-A flag of convenience telling you whether this player is absent and not to be paired in the tournament. This is not the same as a forfeit.
+A flag of convenience telling you whether this player is absent and not to be paired in the tournament. This is not the same as a forfeit. The Games::Tournament::Swiss constructor uses this.
 
 =cut
 
