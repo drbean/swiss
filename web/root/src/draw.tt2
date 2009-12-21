@@ -1,7 +1,7 @@
 [% META title = 'Draw' -%]
 [% n = 1 %]
 
-<form method="post" action="[% c.uri_for('nextround') %]">
+<form method="post" action="[% c.uri_for('pairprep') %]">
 <table>
 <caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
   <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
