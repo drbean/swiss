@@ -25,8 +25,8 @@ __PACKAGE__->add_columns(
   "float",
   {
     data_type => "VARCHAR",
-    default_value => 'False',
-    is_nullable => 0,
+    default_value => undef,
+    is_nullable => 1,
     size => 10,
   },
   "round",
