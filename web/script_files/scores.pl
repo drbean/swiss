@@ -10,7 +10,7 @@ web/script_files/scores.pl FLA0016
 
 =head1 DESCRIPTION
 
-Populate scores using points.yaml files of all conversation of ARGV[0] tournament. If scores exist will not change them.
+Populate scores tables using points.yaml files of all conversations of ARGV[0] tournament, from the 'points.yaml' file of the appropriate directory, as recorded in the 'conversations' sequence of 'league.yaml'. If scores exist will not update them. You will have to delete those rows.
 
 =head1 AUTHOR
 
