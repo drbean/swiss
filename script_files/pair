@@ -109,6 +109,8 @@ my %brackets = $tourney->formBrackets;
 my $pairing = $tourney->pairing( \%brackets );
 $pairing->loggingAll;
 my $results = $pairing->matchPlayers;
+use IO::All;
+io('=')->print($pairing->catLog);
 my $matches = $results->{matches};
 
 my @games;
