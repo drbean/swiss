@@ -15,11 +15,6 @@
   [% END %]
   
   </select>
-
-  <INPUT type=hidden name=tourid value="[% tourid %]">
-  <INPUT type=hidden name=tourname value="[% tourname %]">
-  <INPUT type=hidden name=description value="[% description %]">
-
     <INPUT type="submit" name="old" value="Old">
   </form>
 
