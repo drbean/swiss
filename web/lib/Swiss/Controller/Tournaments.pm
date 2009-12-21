@@ -90,15 +90,21 @@ sub name : Local {
 	$c->session->{tournament} = $tourid;
 	$c->model('DB::Tournament')->update_or_create(
 		{ id => $tourid, arbiter => $arbiter } );
+	my $round;
+	if ( my $resultset =
+		$c->model('DB::Round')->find( { tournament => $tourid } ) ) {
+		$round = $resultset->round;
+	}
+	else { $round = 0; }
 	if ( not $candidate ) {
 		$c->model('DB::Tournaments')->create( { id => $tourid,
 			name => $tourname,
 			description => $description,
 			arbiter => $arbiter,
 			round => { tournament => $tourid,
-					round => 0 }
+					round => $round }
 				} );
-		$c->session->{"${tourid}_round"} = 0;
+		$c->session->{"${tourid}_round"} = $round;
 		$c->stash->{template} = 'players.tt2';
 		return;
 	}
