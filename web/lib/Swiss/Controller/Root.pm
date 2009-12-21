@@ -1,5 +1,8 @@
 package Swiss::Controller::Root;
 
+# Last Edit: 2009  8月 22, 13時41分32秒
+# $Id$
+
 use strict;
 use warnings;
 use parent 'Catalyst::Controller';
@@ -28,12 +31,6 @@ Swiss::Controller::Root - Root Controller for Swiss
 
 =cut
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    # Hello World
-    $c->response->body( $c->welcome_message );
-}
 
 sub default :Path {
     my ( $self, $c ) = @_;
@@ -42,14 +39,14 @@ sub default :Path {
 }
 
 
-=head2 swiss
+=head2 index
 
 Request a pairing of a tournament
 
 =cut 
 
-sub swiss : Local {
-	my ($self, $c) = @_;
+sub index :Path :Args(0) {
+	my ( $self, $c ) = @_;
 	my ($lasttourney, $tourneychoice, @tournaments);
 	if ( $c->request->cookie('tournament') and
 		$c->request->cookie('tournament')->isa('CGI::Simple::Cookie') )
@@ -64,6 +61,10 @@ sub swiss : Local {
 	}
 	$c->stash->{recentone} = $lasttourney;
 	$c->stash->{tournaments} = \@tournaments;
+	$c->stash->{template} = "swiss.tt2";
+	return;
+    # Hello World
+    $c->response->body( $c->welcome_message );
 }
 
 
@@ -163,6 +164,9 @@ sub edit_players : Local {
 		@playerlist = $c->model('GTS')->turnIntoPlayers(
 			$tourname, $cookies);
 	}
+	for my $player ( @playerlist ) {
+		$player->{firstround} ||= $round;
+	}
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck(@playerlist ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -232,7 +236,7 @@ sub rounds : Local {
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{round} = $round;
-	$c->stash->{template} = 'pair.tt2';
+	$c->stash->{template} = 'pairprep.tt2';
 }
 
 
@@ -279,28 +283,28 @@ sub buildPairingtable {
 }
 
 
-=head2 nextround
+=head2 pairprep
 
-Pair first round
+Prepare to pair next round
 
 =cut
 
-sub nextround : Local {
+sub pairprep : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
-		$c->request->cookie("${tourname}_round")->value + 1: 1;
+		$c->request->cookie("${tourname}_round")->value : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => ($round -1),
+			round => $round,
 			rounds => $rounds,
 			entrants => \@playerlist });
-	my ($latestscores, %pairingtable);
+	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
 			$tourname, \@playerlist, $cookies, $round-1);
 	for my $n ( 0 .. $#playerlist ) {
@@ -333,15 +337,59 @@ sub nextround : Local {
 	if ( ( not defined $latestscores or not all { defined }
 				values %$latestscores ) and $round >= 2 ) {
 		$round--;
-		my $games = $c->model('GTS')->postPlayPaperwork(
+		$games = $c->model('GTS')->postPlayPaperwork(
 			$tourney, \%pairingtable, $round );
 		$c->stash->{round} = $round;
 		$c->stash->{roles} = $c->model('GTS')->roles;
 		$c->stash->{games} = $games;
 		$c->stash->{error_msg} = "Can't pair Round " . ($round+1) .
 			" with unfinished games in Round $round.";
-		$c->stash->{template} = "draw.tt2";
+		$c->stash->{template} = "cards.tt2";
 		return;
+	}
+	$tourney->round($round);
+	my $newhistory = $c->model('GTS')->changeHistory(
+			$tourney, \%pairingtable, $games );
+	my %cookies = $c->model('GTS')->historyCookies( $tourney, $newhistory);
+	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
+	$round = $tourney->round;
+	$c->response->cookies->{"${tourname}_round"} = { value => $round };
+	$c->stash->{tournament} = $tourname;
+	$c->stash->{round} = $round;
+	$c->stash->{roles} = $c->model('GTS')->roles;
+	$c->stash->{games} = $games;
+	$c->stash->{template} = "pairprep.tt2";
+}
+
+
+=head2 nextround
+
+Pair first round
+
+=cut
+
+sub nextround : Local {
+        my ($self, $c) = @_;
+	my $cookies = $c->request->cookies;
+	my $tourname = $c->request->cookie('tournament')->value;
+	my $round = ( $c->request->cookie("${tourname}_round") and
+		$c->request->cookie("${tourname}_round")->isa(
+			'CGI::Simple::Cookie') ) ?
+		$c->request->cookie("${tourname}_round")->value + 1: 1;
+	my $rounds = $c->stash->{rounds};
+	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my $tourney = $c->model('GTS')->setupTournament( {
+			name => $tourname,
+			round => ($round -1),
+			rounds => $rounds,
+			entrants => \@playerlist });
+	my ($latestscores, %pairingtable);
+	%pairingtable = $c->model('GTS')->readHistory(
+			$tourname, \@playerlist, $cookies, $round-1);
+	for my $n ( 0 .. $#playerlist ) {
+		my $id = $playerlist[$n]->{id};
+		$tourney->entrants->[$n]->pairingNumber(
+		$pairingtable{pairingnumber}->{$id} );
 	}
 	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
