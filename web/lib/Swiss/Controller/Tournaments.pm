@@ -147,7 +147,7 @@ sub add_player : Local {
 		my $playerSet = $c->model('DB::Players');
 		$playerSet->update_or_create( \%entrant );
 		$memberSet->create({ player => $entrant{id},
-				tournament => $tourid, firstrounds =>
+				tournament => $tourid, firstround =>
 				{ firstround => $round } });
 	}
 	$c->stash->{round} = $round;
@@ -175,7 +175,8 @@ sub edit_players : Local {
 			my $profile = $member->profile;
 			push @playerlist, { id => $profile->id,
 				name => $profile->name,
-				rating => $profile->rating };
+				rating => $profile->rating,
+				firstround => $member->firstround->firstround };
 		}
 	}
 	my $mess;
@@ -200,6 +201,7 @@ sub edit_players : Local {
 			$roundSet->find_or_create({ player => $player->{id},
 				tournament => $tourid,
 				firstround => $firstround || $round });
+			$player->{firstround} = $firstround || $round;
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
