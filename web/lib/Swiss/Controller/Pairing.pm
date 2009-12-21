@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 28, 09時57分56秒
+# Last Edit: 2009 10月 28, 10時29分20秒
 # $Id$
 
 use strict;
@@ -238,7 +238,7 @@ sub nextround : Local {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
 		$player->{firstround} = $member->firstround->firstround;
 		push @playerlist, $player;
-		push @absentees, $player if $player->{absent};
+		push @absentees, $player if $member->absent eq 'True';
 	}
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
@@ -265,7 +265,8 @@ sub nextround : Local {
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
 			my $id = $player->id;
-			my $values = $member->$field;
+			my $values = $member->$field->search(
+				{ tournament => $tourid });
 			while ( my $pair = $values->next ) {
 				my $round = $pair->round;
 				my $value = $pair->$field;
