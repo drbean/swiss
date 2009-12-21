@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 29, 19時36分28秒
+# Last Edit: 2009  8月 30, 10時27分03秒
 # $Id: $
 
 use warnings;
@@ -149,12 +149,11 @@ sub recreateCards {
     my $floats = $args->{floats};
     my $players = $self->entrants;
     my @ids = map { $_->id } @$players;
-    my $test = sub {
-	my %count = ();
-	$count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
-	return grep { $count{$_} != 4 } keys %count;
-	    };
-    carp "Game card not constructable for player $_ in round $round" for &$test;
+    my (%count, @badids);
+    $count{$_}++ for @ids, keys %$opponents, keys %$roles, keys %$floats;
+    for my $id ( keys %count ) { push @badids, $id if $count{$id} != 4; }
+    carp "Game card not constructable for players, @badids in round $round"
+				if @badids;
     my (%games, @games);
     for my $id ( @ids )
     {
