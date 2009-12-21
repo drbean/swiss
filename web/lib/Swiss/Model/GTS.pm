@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 27, 11時20分28秒
+# Last Edit: 2009  8月 29, 11時54分29秒
 # $Id$
 
 use strict;
@@ -78,7 +78,7 @@ Prepare cookies for a tournament's players with ids, names, ratings, and perhaps
 sub turnIntoCookies {
 	my ($self, $tourname, $playerlist) = @_;
 	my %cookie;
-	for my $key ( qw/id name rating firstround/ ) {
+	for my $key ( qw/id name rating firstround absent/ ) {
 		my @keylist = map { $_->{$key} } @$playerlist;
 		my $keystring = join "&", map { escape( $_ ) } @keylist;
 		$cookie{$tourname . '_' . $key . 's'} = $keystring;
@@ -172,7 +172,7 @@ Inflate a tournament's players' cookies with ids, names, ratings, and perhaps la
 sub turnIntoPlayers {
 	my ($self, $tourney, $cookies) = @_;
 	my @playerlist;
-	my $fields = [ qw/id name rating firstround/ ];
+	my $fields = [ qw/id name rating firstround absent/ ];
 	return $self->breakCookie($tourney, $cookies, $fields);
 }
 
