@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 15, 17時47分35秒
+# Last Edit: 2009 10月 20, 08時58分47秒
 # $Id$
 
 use strict;
@@ -97,19 +97,27 @@ sub preppair : Local {
 			absentees => \@absentees,
 		} );
 	my ($games, $latestscores, $pairingtable);
-	for my $field ( qw/pairingnumber opponent role float score/ ) {
+	for my $field ( qw/pairingnumber score firstround/ ) {
 		$members->reset;
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
-			my $values = $member->$field->get_column($field);
-			if ( blessed( $values ) and $values->isa(
-					'DBIx::Class::ResultSetColumn') ) {
-				my @all =$values->all;
-				$fieldhistory->{$member->profile->id} = \@all;
-			}
-			else {
-				$fieldhistory->{$member->profile->id}=$values;
+			my $value = $member->$field->$field;
+			$fieldhistory->{$member->profile->id}=$value;
+		}
+		$pairingtable->{$field} = $fieldhistory;
+	}
+	for my $field ( qw/opponent role float/ ) {
+		$members->reset;
+		my $fieldhistory;
+		while ( my $member = $members->next ) {
+			my $player = $member->profile;
+			my $id = $player->id;
+			my $values = $member->$field;
+			while ( my $pair = $values->next ) {
+				my $round = $pair->round;
+				my $value = $pair->$field;
+				$fieldhistory->{$id}->[$round - 1] = $value;
 			}
 		}
 		$pairingtable->{$field} = $fieldhistory;
@@ -166,7 +174,7 @@ sub preppair : Local {
 	my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
 		$c->model('GTS')->changeHistory($tourney, $pairingtable,
 				$games) : $pairingtable;
-	for my $field ( qw/pairingnumber/ ) {
+	for my $field ( qw/pairingnumber / ) {
 		my $Fields = ucfirst $field . 's';
 		my $fieldset = $c->model( "DB::$Fields" );
 		$members->reset;
@@ -264,19 +272,28 @@ sub nextround : Local {
 			absentees => \@absentees,
 		} );
 	my ($latestscores, $pairingtable);
-	for my $field ( qw/pairingnumber opponent role float score/ ) {
+	for my $field ( qw/score/ ) {
 		$members->reset;
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
-			my $values = $member->$field->get_column($field);
-			if ( blessed( $values ) and $values->isa(
-					'DBIx::Class::ResultSetColumn') ) {
-				my @all =$values->all;
-				$fieldhistory->{$member->profile->id} = \@all;
-			}
-			else {
-				$fieldhistory->{$member->profile->id}=$values;
+			my $row = $member->$field;
+			my $value = $row? $row->$field: 0;
+			$fieldhistory->{$player->id} = $value;
+		}
+		$pairingtable->{$field} = $fieldhistory;
+	}
+	for my $field ( qw/opponent role float/ ) {
+		$members->reset;
+		my $fieldhistory;
+		while ( my $member = $members->next ) {
+			my $player = $member->profile;
+			my $id = $player->id;
+			my $values = $member->$field;
+			while ( my $pair = $values->next ) {
+				my $round = $pair->round;
+				my $value = $pair->$field;
+				$fieldhistory->{$id}->[$round - 1] = $value;
 			}
 		}
 		$pairingtable->{$field} = $fieldhistory;
@@ -299,18 +316,26 @@ sub nextround : Local {
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, $pairingtable, $games );
-	for my $field ( qw/pairingnumber/ ) {
+	for my $field ( qw/score/ ) {
 		my $Fields = ucfirst $field . 's';
 		my $fieldset = $c->model( "DB::$Fields" );
 		$members->reset;
 		while ( my $member = $members->next ) {
 			my $id = $member->profile->id;
-			my $fieldhistory = $newhistory->{$field}->{$id};
-			$fieldset->update_or_create( {
-				tournament => $tourid,
-				player => $id, 
-				$field => $fieldhistory
-			} );
+			my $value = $newhistory->{$field}->{$id};
+			if ( defined $value ) {
+				$fieldset->update_or_create( {
+					tournament => $tourid,
+					player => $id, 
+					$field => $value,
+				} );
+			}
+			else { 
+				$fieldset->update_or_create( {
+					tournament => $tourid,
+					player => $id, 
+				} );
+			}
 		}
 	}
 	for my $field ( qw/opponent role float/ ) {
