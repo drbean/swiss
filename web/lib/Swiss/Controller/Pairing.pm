@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 20, 08時58分47秒
+# Last Edit: 2009 10月 25, 22時04分48秒
 # $Id$
 
 use strict;
@@ -303,6 +303,7 @@ sub nextround : Local {
 		$tourney->entrants->[$n]->pairingNumber(
 		$pairingtable->{pairingnumber}->{$id} );
 	}
+$DB::single=1;
 	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => $pairingtable } );
@@ -359,6 +360,7 @@ sub nextround : Local {
 	}
 	$round = $tourney->round;
 	$c->session->{"${tourid}_round"} = $round;
+	$c->model('DB::Round')->update({ tournament=>$tourid, round=>$round });
 	if ( $c->request->params->{pairtable} ) {
 		@playerlist = buildPairingtable( $c, $tourid, \@playerlist, 
 			$newhistory );
