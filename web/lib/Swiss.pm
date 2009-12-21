@@ -36,7 +36,23 @@ our $VERSION = '0.01';
 # with an external configuration file acting as an override for
 # local deployment.
 
-__PACKAGE__->config( name => 'Swiss' );
+__PACKAGE__->config({
+	name => 'Swiss',
+	'Plugin::Authentication' => {
+		default_realm => 'users',
+		users => {
+			credential => {
+				class => 'Password',
+				password_field => 'password',
+				password_type => 'clear'
+			},
+			store => {
+				class => 'DBIx::Class',
+				user_class => 'DB::Arbiters',
+			}
+		}
+	}
+});
 
 # Start the application
 __PACKAGE__->setup();
