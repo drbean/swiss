@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 25, 09時50分27秒
+# Last Edit: 2009  8月 27, 11時20分28秒
 # $Id$
 
 use strict;
@@ -64,6 +64,7 @@ sub setupTournament {
 			@$players;
 	$args->{entrants} = \@entrants;
 	my $tournament = Games::Tournament::Swiss->new( %$args );
+	$tournament->assignPairingNumbers;
 	return $tournament;
 }
 
