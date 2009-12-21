@@ -14,4 +14,6 @@
 <input type="submit" name="add" value="Pair Round [% round %]">
 </form>
 
-<a href="[% c.uri_for('/') %]">Return to top level</a>
+<a href="[% c.uri_for('/') %]">
+<H3>Return to top level</H3>
+</a>
