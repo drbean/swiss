@@ -271,7 +271,8 @@ sub absentees : Local {
 		{ tournament => $tourid });
 	while ( my $member = $members->next ) {
 		my $absence = $c->request->params->{ $member->profile->id };
-		$member->update( { absent => 'True' } ) if $absence;
+		if ( $absence ) { $member->update( { absent => 'True' } ) }
+		else { $member->update( { absent => 'False' } ) }
 	}
 	$c->stash->{tournament} = $tourid;
 	$c->stash->{round} = $round + 1;
