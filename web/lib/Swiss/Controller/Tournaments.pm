@@ -66,7 +66,7 @@ sub name : Local {
 	my $tourid = $c->request->params->{id};
 	my $tourname = $c->request->params->{name};
 	my $description = $c->request->params->{description};
-	unless ( $tourid and $tourname ) {
+	unless ( $tourid ) {
 		$c->stash->{error_msg} = "What is the tournament's name & id?";
 		$c->stash->{template} = 'swiss.tt2';
 		return;
@@ -108,8 +108,9 @@ sub add_player : Local {
 	my @playerlist;
 	while ( my $member = $memberSet->next )
 	{
-		push @playerlist,
-		{ id => $member->profile->id, name => $member->profile->name, rating => $member->profile->rating };
+		my $profile = $member->profile;
+		push @playerlist, { id => $profile->id,
+			name => $profile->name, rating => $profile->rating };
 	}
 	$c->stash->{tournament} = $tourid;
 	my %entrant = map { $_ => $c->request->params->{$_} }
@@ -151,6 +152,16 @@ sub edit_players : Local {
 	my $round = $c->session->{"${tourid}_round"} + 1;
 	my $newlist = $c->request->params->{playerlist};
 	my @playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist);
+	if ( not $newlist ) {
+		my $memberSet = $tourney->members;
+		while ( my $member = $memberSet->next )
+		{
+			my $profile = $member->profile;
+			push @playerlist, { id => $profile->id,
+				name => $profile->name,
+				rating => $profile->rating };
+		}
+	}
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck(@playerlist ) ) {
 		$c->stash->{error_msg} = $mess;
