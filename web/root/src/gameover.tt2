@@ -9,4 +9,4 @@
 </ul>
 
 <h2>Run a new tournament? Or change the pairing tables of the old tournament, by eg adding more players?
-<a href="[% c.uri_for('swiss') %]">Go!</a>
+<a href="[% c.uri_for('/') %]">Go!</a>

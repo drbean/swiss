@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 22, 14時24分48秒
+# Last Edit: 2009  8月 22, 16時05分49秒
 # $Id$
 
 use strict;
@@ -236,7 +236,7 @@ sub rounds : Local {
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{round} = $round;
-	$c->stash->{template} = 'pairprep.tt2';
+	$c->stash->{template} = 'preppair.tt2';
 }
 
 
@@ -283,13 +283,13 @@ sub buildPairingtable {
 }
 
 
-=head2 pairprep
+=head2 preppair
 
 Prepare to pair next round
 
 =cut
 
-sub pairprep : Local {
+sub preppair : Local {
         my ($self, $c) = @_;
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
@@ -306,7 +306,7 @@ sub pairprep : Local {
 			entrants => \@playerlist });
 	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
-			$tourname, \@playerlist, $cookies, $round-1);
+			$tourname, \@playerlist, $cookies, $round);
 	for my $n ( 0 .. $#playerlist ) {
 		my $id = $playerlist[$n]->{id};
 		$tourney->entrants->[$n]->pairingNumber(
@@ -319,7 +319,7 @@ sub pairprep : Local {
 	}
 	else {
 		if ( exists $c->request->params->{Submit} and
-			$c->request->params->{Submit} eq "Pair round $round" ) {
+			$c->request->params->{Submit} eq "Record Round $round results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
 				$tourney, \%pairingtable, $params);
@@ -358,7 +358,7 @@ sub pairprep : Local {
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
-	$c->stash->{template} = "pairprep.tt2";
+	$c->stash->{template} = "preppair.tt2";
 }
 
 
