@@ -63,25 +63,39 @@ Tournament name. Add 'tournament' and 'tournaments' to session. Set 'tournament_
 
 sub name : Local {
         my ($self, $c) = @_;
-	my $tourid = $c->request->params->{id};
-	my $tourname = $c->request->params->{name};
+	my $tourid = $c->request->params->{tourid};
+	my $tourname = $c->request->params->{tourname};
 	my $description = $c->request->params->{description};
 	unless ( $tourid ) {
 		$c->stash->{error_msg} = "What is the tournament's name & id?";
+		$c->stash->{tourid} = $tourid;
+		$c->stash->{tourname} = $tourname;
+		$c->stash->{description} = $description;
 		$c->stash->{template} = 'swiss.tt2';
 		return;
 	}
 	my $arbiter = $c->session->{arbiter_id};
 	my $tourneyset = $c->model('DB::Tournaments');
-	my @tourids = $tourneyset->search({
-			arbiter => $arbiter })->get_column('id')->all;
+	my $candidate = $tourneyset->find({ id => $tourid });
+	if ( $candidate and $candidate->arbiter ne $arbiter ) {
+		$c->stash->{error_msg} =
+"$tourid tournament id already in use by other arbiter. Choose a different id.";
+		$c->stash->{tourid} = $tourid;
+		$c->stash->{tourname} = $tourname;
+		$c->stash->{description} = $description;
+		$c->stash->{template} = 'swiss.tt2';
+		return;
+	}
+	my @tourids = $tourneyset->get_column('id')->all;
 	$c->stash->{tournament} = $tourid;
 	$c->session->{tournament} = $tourid;
 	if ( @tourids == 0 or none { $tourid eq $_ } @tourids ) {
 		$c->model('DB::Tournaments')->create( { id => $tourid,
 			name => $tourname,
 			description => $description,
-			arbiter => $arbiter } );
+			arbiter => $arbiter,
+			active =>	{ id => $tourid,
+					arbiter => $arbiter } } );
 		$c->session->{"${tourid}_round"} = 0;
 		$c->stash->{template} = 'players.tt2';
 		return;
@@ -205,7 +219,7 @@ sub final_players : Local {
 	my @players = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my $tournament = $c->model('DB::Tournaments')->find({
-		id => $tourid, arbiter => $c->session->{arbiter}});
+		id => $tourid });
 	$c->stash->{selected} = $tournament->rounds if $tournament;
 	my $playerNumber = @players % 2? @players: $#players;
 	$c->stash->{tournament} = $tourid;
