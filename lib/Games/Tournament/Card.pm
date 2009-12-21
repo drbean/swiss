@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009 10月 18, 18時19分07秒
+# Last Edit: 2009 10月 18, 18時26分40秒
 # $Id: $
 
 use warnings;
@@ -262,11 +262,27 @@ sub result {
 }
 
 
+=head2 floats
+
+	$game->floats
+
+Gets/sets the floats of the match. Probably $game->float($player, 'Up') is used however, instead.
+
+=cut
+
+sub floats {
+    my $self   = shift;
+    my $floats = shift;
+    if ( defined $floats ) { $self->{floats} = $floats; }
+    else { return $self->{floats}; }
+}
+
+
 =head2 float
 
 	$card->float($player[,'Up|Down|Not'])
 
-Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated.
+Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated. $player->floats is not changed. This takes place in $tourney->collectCards.
 
 =cut
 
