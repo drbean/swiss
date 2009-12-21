@@ -54,6 +54,7 @@ for my $league ( 'GL00029', 'GL00030', 'GL00031', 'GL00034', 'FLA0016', ) {
 my @officials = ( [ qw/id name password/ ] );
 push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
 193001	DrBean	ok
+greg	greg	ok
 OFFICIALS
 uptodatepopulate( 'Arbiters', \@officials );
 
