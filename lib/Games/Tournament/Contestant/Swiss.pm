@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009 10月 14, 19時01分37秒
+# Last Edit: 2009 10月 17, 20時20分46秒
 # $Id: $
 
 use warnings;
@@ -162,7 +162,7 @@ sub floating {
 	$member->floats( $round, 'Down' )
 	$rolehistory = $member->floats
 
-If a round number and float is passed, inserts this in an anonymous array representing the old floats that $member has had in this tournament. If only a round is passed, returns the float for that round. If no parameter is passed,  returns a anonymous array of all the floats indexed by the round. (Watch out for round 0, there. Heh-hey.) If the player was not floated, pass 'Not'. For convenience, if -1 or -2 are passed for the last round before, or the round 2 rounds ago, and those rounds do not exist (perhaps the tournament only started one round before), 'Not' is returned.
+If a round number and float is passed, inserts this in an anonymous array representing the old floats that $member has had in this tournament. If only a round is passed, returns the float for that round. If no parameter is passed,  returns a anonymous array of all the floats ordered by the round. If the player was not floated, pass 'Not'. For convenience, if -1 or -2 are passed for the last round before, or the round 2 rounds ago, and those rounds do not exist (perhaps the tournament only started one round before), 'Not' is returned.
 
 =cut
 
@@ -172,11 +172,11 @@ sub floats {
     my $round = shift;
     my $float = shift;
     if ( defined $round and defined $float ) {
-        $self->{floats}->[$round] = $float;
+        $self->{floats}->[$round-1] = $float;
 	return;
     }
     elsif ( defined $round ) {
-	if (not exists $self->{floats}->[$round] and ($round==-1 or $round==-2))
+	if (not exists $self->{floats}->[$round-1] and ($round==-1 or $round==-2))
 	{return 'Not'}
 	else { return $self->{floats}->[$round]; }
     }
