@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009 10月 28, 11時05分10秒
+# Last Edit: 2009 11月 25, 09時48分46秒
 # $Id$
 
 use strict;
@@ -25,9 +25,10 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
-my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
-my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
+my $abbrev = { W => 'White', B => 'Black', 5 => 'Win', 3 => 'Loss',
+	4 => 'Draw', '=' => 'Draw'  };
+my $scoring = { win => 5, loss => 3, draw => 4, forfeit => 0, bye => 5,
+	late => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
 
