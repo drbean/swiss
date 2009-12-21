@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009 10月 17, 21時23分36秒
+# Last Edit: 2009 10月 19, 10時30分11秒
 # $Id$
 
 use strict;
@@ -505,31 +505,20 @@ sub changeHistory {
 		my $id = $player->id;
 		my $game = $tourney->myCard(round => $round, player => $id);
 		if ( defined $game ) {
-			my $opponent = $player->myOpponent($game)
-			|| Games::Tournament::Contestant->new(
-				name => "Bye", id => "Bye" );
-			my $opponents = $history->{opponent}->{$id};
-			push @$opponents, $opponent->id;
-			$history->{opponent}->{$id} = $opponents;
-			my $role = $game->myRole($player);
-			if ( $role eq 'Bye' ) { $role = 'Bye'; }
-			my $roles = $history->{role}->{$id};
-			push @$roles, $role;
-			$history->{role}->{$id} = $roles;
+			for my $field ( qw/opponent role float/ ) {
+				my $myField = 'my' . ucfirst $field;
+				my $gamevalue = $game->$myField($player);
+				$gamevalue = $gamevalue->id if $field eq 
+					'opponent';
+				my $allvalues = $history->{$field}->{$id};
+				push @$allvalues, $gamevalue;
+				$history->{$field}->{$id} = $allvalues;
+			}
 		}
 		else {
 			push @{ $history->{opponent}->{$id} }, "Unpaired,";
 			push @{ $history->{role}->{$id} }, "Unpaired";
 		}
-		my $floats = $player->floats;
-		my $float = '';
-		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
-		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
-		$float = 'n' if $floats->[-2] and $floats->[-2] eq 'Not';
-		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
-		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
-		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
-		$history->{float}->{$id} = $floats;
 		$history->{score}->{$id} = $player->score;
 		$history->{pairingnumber}->{$id} = $player->pairingNumber ||
 									'-';
