@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 29, 18時05分07秒
+# Last Edit: 2009  8月 29, 20時39分31秒
 # $Id$
 
 use strict;
@@ -320,11 +320,17 @@ sub preppair : Local {
 		$c->request->cookie("${tourname}_round")->value : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my @absentees;
+	for my $player ( @playerlist ) {
+		push @absentees, $player if $player->{absent};
+	}
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
 			round => $round,
 			rounds => $rounds,
-			entrants => \@playerlist });
+			entrants => \@playerlist,
+			absentees => \@absentees,
+		} );
 	my ($games, $latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
 			$tourname, \@playerlist, $cookies, $round);
@@ -405,11 +411,17 @@ sub nextround : Local {
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my @absentees;
+	for my $player ( @playerlist ) {
+		push @absentees, $player if $player->{absent};
+	}
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
 			round => ($round -1),
 			rounds => $rounds,
-			entrants => \@playerlist });
+			entrants => \@playerlist,
+			absentees => \@absentees,
+		});
 	my ($latestscores, %pairingtable);
 	%pairingtable = $c->model('GTS')->readHistory(
 			$tourname, \@playerlist, $cookies, $round-1);
@@ -422,7 +434,7 @@ sub nextround : Local {
 			tournament => $tourney,
 			history => \%pairingtable } );
 	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
-		@$games * 2 < @playerlist ) {
+		@$games * 2 < @playerlist - @absentees ) {
 		$c->stash->{error_msg} = $mess;
 		$c->stash->{round} = $round - 1;
 		$c->stash->{template}  = "gameover.tt2";
