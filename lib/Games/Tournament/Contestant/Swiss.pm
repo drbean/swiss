@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009 10月 17, 20時24分00秒
+# Last Edit: 2009 10月 17, 20時30分48秒
 # $Id: $
 
 use warnings;
@@ -178,7 +178,7 @@ sub floats {
     elsif ( defined $round ) {
 	if (not exists $self->{floats}->[$round-1] and ($round==-1 or $round==-2))
 	{return 'Not'}
-	else { return $self->{floats}->[$round]; }
+	else { return $self->{floats}->[$round-1]; }
     }
     elsif ( $self->{floats} ) { return $self->{floats}; }
     else { return; }
