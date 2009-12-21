@@ -31,7 +31,7 @@ __PACKAGE__->add_columns(
   },
   "firstround",
   {
-    data_type => "SMALLINT",
+    data_type => "TINYINT",
     default_value => undef,
     is_nullable => 1,
     size => undef,

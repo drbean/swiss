@@ -1,4 +1,4 @@
-package Swiss::Schema::Result::Members;
+package Swiss::Schema::Result::Pairingnumbers;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("members");
+__PACKAGE__->table("pairingnumbers");
 __PACKAGE__->add_columns(
   "tournament",
   {
@@ -22,10 +22,10 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
-  "absent",
+  "pairingnumber",
   {
-    data_type => "BOOL",
-    default_value => 'False',
+    data_type => "TINYINT",
+    default_value => undef,
     is_nullable => 0,
     size => undef,
   },
@@ -38,7 +38,7 @@ __PACKAGE__->set_primary_key("tournament", "player");
 
 __PACKAGE__->belongs_to(
 	tournament => 'Swiss::Schema::Result::Tournaments', 'tournament' );
-__PACKAGE__->belongs_to( profile=>'Swiss::Schema::Result::Players', 'player' );
+__PACKAGE__->belongs_to( profile =>'Swiss::Schema::Result::Players', 'player' );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

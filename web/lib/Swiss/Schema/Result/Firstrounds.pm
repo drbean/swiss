@@ -1,4 +1,4 @@
-package Swiss::Schema::Result::Floats;
+package Swiss::Schema::Result::Firstrounds;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("floats");
+__PACKAGE__->table("firstrounds");
 __PACKAGE__->add_columns(
   "tournament",
   {
@@ -22,16 +22,9 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
-  "float",
+  "firstround",
   {
-    data_type => "VARCHAR",
-    default_value => 'False',
-    is_nullable => 0,
-    size => 10,
-  },
-  "round",
-  {
-    data_type => "TINYINT",
+    data_type => "BOOL",
     default_value => 'False',
     is_nullable => 0,
     size => undef,
@@ -44,8 +37,10 @@ __PACKAGE__->set_primary_key("tournament", "player");
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gJHWIeNlHGuuGlCZHyMJSQ
 
 __PACKAGE__->belongs_to(
-	tournament => 'Swiss::Schema::Result::Tournaments', 'tournament' );
-__PACKAGE__->belongs_to( profile =>'Swiss::Schema::Result::Players', 'player' );
+	player => 'Swiss::Schema::Result::Members', 
+				{ 'foreign.tournament' => 'self.tournament',
+				'foreign.player' => 'self.player' } );
+__PACKAGE__->belongs_to( profile=>'Swiss::Schema::Result::Players', 'player' );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
