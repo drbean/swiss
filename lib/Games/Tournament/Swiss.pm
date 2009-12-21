@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009 10月 28, 11時06分30秒
+# Last Edit: 2009 10月 28, 12時17分31秒
 # $Id$
 
 use warnings;
@@ -169,13 +169,13 @@ sub recreateCards {
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
 "Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
-          unless $opponentId eq 'Bye' or $opponentId eq '-'
+          unless $opponentId eq 'Bye' or $opponentId eq 'Unpaired'
               or $opponentsOpponent eq $id;
         my $role         = $roles->{$id};
         my $opponentRole = $roles->{$opponentId};
-        if ( $opponentId eq '-' ) {
+        if ( $opponentId eq 'Unpaired' ) {
             croak "Player $id has $role, in round $round?"
-              unless $player and $role eq '-';
+              unless $player and $role eq 'Unpaired';
 	    next;
         }
         elsif ( $opponentId eq 'Bye' ) {
