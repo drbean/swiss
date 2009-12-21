@@ -32,7 +32,7 @@ sub index :Path :Args(0)  {
         if ( $c->authenticate( { id => $id, password => $password } ) ) {
             $c->session->{arbiter_id} = $id;
 	    my $arbiter = $c->model('DB::Arbiters')->find( { id => $id } );
-	    my $tournament = $arbiter->tournament;
+	    my $tournament = $arbiter->active;
 	    my $tourid = $tournament->id if $tournament;
 	    my @tournaments = $arbiter->tournaments;
 	    $c->stash->{id}         = $id;
