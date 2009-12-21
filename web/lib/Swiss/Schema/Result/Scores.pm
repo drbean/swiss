@@ -24,8 +24,8 @@ __PACKAGE__->add_columns(
   },
   "score",
   {
-    data_type => "FLOAT",
-    default_value => 'False',
+    data_type => "TINYINT",
+    default_value => 0,
     is_nullable => 0,
     size => undef,
   },
