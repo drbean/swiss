@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 27, 21時17分39秒
+# Last Edit: 2009 10月 28, 09時57分56秒
 # $Id$
 
 use strict;
@@ -240,29 +240,6 @@ sub nextround : Local {
 		push @playerlist, $player;
 		push @absentees, $player if $player->{absent};
 	}
-#my $args = {
-#			name => $tourid,
-#			round => $round,
-#			rounds => $rounds,
-#			entrants => \@playerlist,
-#			absentees => \@absentees,
-#		};
-#for my $group ( qw/entrants absentees/ ) {
-#	my $players = $args->{$group};
-#	my @band = map {Games::Tournament::Contestant::Swiss->new(%$_)}
-#			@$players;
-#	$args->{$group} = \@band;
-#}
-#my $tourney = Games::Tournament::Swiss->new( %$args );
-#$tourney->assignPairingNumbers;
-#my $numberset = $c->model('DB::Pairingnumbers')->search( {
-#		tournament => $tourid } );
-#my $entrants = $tourney->entrants;
-#for my $entrant ( @$entrants ) {
-#	$numberset->update_or_create( { tournament => $tourid, 
-#	player => $entrant->id,
-#	pairingnumber => $entrant->pairingNumber } );
-#}
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
 			round => ( $round - 1 ),
