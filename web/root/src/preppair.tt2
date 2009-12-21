@@ -13,3 +13,5 @@
 </fieldset>
 <input type="submit" name="add" value="Pair Round [% round %]">
 </form>
+
+<a href="[% c.uri_for('/') %]">Return to top level</a>
