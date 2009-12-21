@@ -39,7 +39,7 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->has_many(
 	memberships => 'Swiss::Schema::Result::Members', 'player');
 __PACKAGE__->has_many(
-	firstround => 'Swiss::Schema::Result::Firstrounds', 'player');
+	firstrounds => 'Swiss::Schema::Result::Firstrounds', 'player');
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
