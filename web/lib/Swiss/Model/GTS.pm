@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 30, 10時06分16秒
+# Last Edit: 2009  8月 30, 21時30分34秒
 # $Id$
 
 use strict;
@@ -513,7 +513,6 @@ sub changeHistory {
 			$history->{opponent}->{$id} = $opponents;
 			my $role = $game->myRole($player);
 			if ( $role eq 'Bye' ) { $role = '-'; }
-			else                  { $role =~ s/^(.).*$/$1/; }
 			my $roles = $history->{role}->{$id};
 			push @$roles, $role;
 			$history->{role}->{$id} = $roles;
