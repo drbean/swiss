@@ -105,6 +105,7 @@ sub name : Local {
 					round => $round }
 				} );
 		$c->session->{"${tourid}_round"} = $round;
+		$c->stash->{round} = $round + 1;
 		$c->stash->{template} = 'players.tt2';
 		return;
 	}
@@ -124,7 +125,8 @@ sub add_player : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $tourney = $c->model('DB::Tournaments')->find({ id=>$tourid });
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my $memberSet = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my @playerlist;
@@ -137,7 +139,7 @@ sub add_player : Local {
 	$c->stash->{tournament} = $tourid;
 	my %entrant = map { $_ => $c->request->params->{$_} }
 							qw/id name rating/;
-	$entrant{firstround} = $round;
+	$entrant{firstround} = $round+1;
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -154,9 +156,9 @@ sub add_player : Local {
 		$playerSet->update_or_create( \%entrant );
 		$memberSet->create({ player => $entrant{id},
 				tournament => $tourid, firstround =>
-				{ firstround => $round } });
+				{ firstround => $round+1 } });
 	}
-	$c->stash->{round} = $round;
+	$c->stash->{round} = $round+1;
 	$c->stash->{template} = 'players.tt2';
 }
 
@@ -171,7 +173,8 @@ sub edit_players : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $tourney = $c->model('DB::Tournaments')->find({ id=>$tourid });
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my $newlist = $c->request->params->{playerlist};
 	my @playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist);
 	if ( not $newlist ) {
@@ -200,7 +203,7 @@ sub edit_players : Local {
 		my $roundSet = $c->model('DB::Firstrounds');
 		for my $player ( @playerlist ) {
 			my $firstround = defined $player->{firstround}?
-						$player->{firstround}: $round;
+					$player->{firstround}: $round+1;
 			delete $player->{firstround};
 			$playerSet->update_or_create( $player );
 			$memberSet->update_or_create({ player => $player->{id},
@@ -212,7 +215,7 @@ sub edit_players : Local {
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
-	$c->stash->{round} = $round;
+	$c->stash->{round} = $round+1;
 	$c->stash->{template} = 'players.tt2';
 }
 
@@ -226,7 +229,8 @@ Finish editing players
 sub final_players : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"};
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my @players = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my $tournament = $c->model('DB::Tournaments')->find({
@@ -249,7 +253,8 @@ Number of rounds
 sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"};
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my @members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my @players = map { $_->profile } @members;
@@ -272,7 +277,8 @@ Withdrawn, absent players who will not be paired.
 sub absentees : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"};
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	while ( my $member = $members->next ) {
