@@ -53,7 +53,7 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->has_many(
 	members => 'Swiss::Schema::Result::Members', 'tournament' );
 __PACKAGE__->has_one(
-	active => 'Swiss::Schema::Result::Tournament', 'id' );
+	round => 'Swiss::Schema::Result::Round', 'tournament' );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

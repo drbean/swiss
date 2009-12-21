@@ -38,8 +38,7 @@ __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->has_many( tournaments => 'Swiss::Schema::Result::Tournaments', 
 	'arbiter' );
-__PACKAGE__->might_have( tournament => 'Swiss::Schema::Result::Tournament', 
-	'arbiter' );
+__PACKAGE__->has_one( active => 'Swiss::Schema::Result::Tournament', 'arbiter');
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
