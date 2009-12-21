@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 28, 11時18分29秒
+# Last Edit: 2009 10月 28, 13時53分43秒
 # $Id$
 
 use strict;
@@ -87,7 +87,7 @@ sub preppair : Local {
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
 		push @playerlist, $player;
-		push @absentees, $player if $player->{absent};
+		push @absentees, $player if $member->absent eq 'True';
 	}
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
@@ -147,6 +147,7 @@ sub preppair : Local {
 			$pairingtable->{score} = $latestscores;
 			my $scoreset = $c->model('DB::Scores');
 			for my $player ( @{ $tourney->entrants } ) {
+				next if $player->absent;
 				my $id = $player->id;
 				$player->score( $latestscores->{$id} );
 				$scoreset->update_or_create( {
@@ -207,6 +208,7 @@ sub preppair : Local {
 			}
 		}
 	}
+$DB::single=1;
 	@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
 		$newhistory );
 	$c->stash->{pairtable} = \@playerlist;
