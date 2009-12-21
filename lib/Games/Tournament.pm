@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009  8月 27, 11時11分12秒
+# Last Edit: 2009  8月 29, 19時07分20秒
 # $Id: $
 
 use warnings;
@@ -341,7 +341,7 @@ sub updateScores {
           if not $card or $@;
         my $result = $card->myResult($player);
         die "$result result in $card game for player $id in round $round?"
-          unless $result =~ m/^(?:Win|Loss|Draw|Bye|Absent)/i;
+          unless $result =~ m/^(?:Win|Loss|Draw|Bye|Forfeit)/i;
         $$scores{$round} = $result;
         $player->scores($scores) if defined $scores;
         push @scores, $$scores{$round};

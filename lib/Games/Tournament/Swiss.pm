@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 20, 10時05分52秒
+# Last Edit: 2009  8月 29, 18時39分02秒
 # $Id: $
 
 use warnings;
@@ -258,11 +258,11 @@ sub collectCards {
 		carp "No record in round $round for player $id $player->{name}"
 		  unless $play->{$round}->{$id};
 		$entrant->roles($role) unless $scores->{round} and
-			$scores->{$round} eq 'Bye'||'Absent';
+			$scores->{$round} eq 'Bye'||'Forfeit';
 		$entrant->floats( $round, $float );
 		$entrant->floating('');
 		$entrant->preference->update( $entrant->roles ) unless
-		    $scores->{round} and $scores->{$round} eq 'Bye'||'Absent';
+		    $scores->{round} and $scores->{$round} eq 'Bye'||'Forfeit';
 ;
 	    }
 	}
@@ -474,7 +474,7 @@ sub whoPlayedWho {
                   . " in round $round?"
                   unless any { $_ eq $role } ROLES, 'Bye';
 		next if $game->result and exists $game->result->{$role} and
-			$game->result->{$role} eq 'Absent';
+			$game->result->{$role} eq 'Forfeit';
                 if ( any { $role eq $_ } ROLES ) {
                     my $otherRole = first { $role ne $_ } ROLES;
                     my $opponent = $game->contestants->{$otherRole};
