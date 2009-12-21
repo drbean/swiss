@@ -3,8 +3,7 @@ package Swiss::Controller::Tournaments;
 use Moose;
 BEGIN { extends 'Catalyst::Controller'; }
 
-use Lingua::Stem qw/stem/;
-use Net::FTP;
+use List::MoreUtils qw/none/;
 
 =head1 NAME
 
@@ -47,7 +46,7 @@ sub list : Local {
     my $tournament = $c->model('DB::Tournaments')->find({id=>$tournamentid});
     # Retrieve all of the text records as text model objects and store in
     # stash where they can be accessed by the TT template
-    $c->stash->{tournament} = [$c->model('DB::Tournament')->search(
+    $c->stash->{tournament} = [$c->model('DB::Tournaments')->search(
 	    { arbiter => $arbiterid })];
     # Set the TT template to use.  You will almost always want to do this
     # in your action methods (actions methods respond to user input in
@@ -56,24 +55,145 @@ sub list : Local {
 }
 
 
-=head2 create
+=head2 name
 
-http://server.school.edu/dic/exercises/create/textId/exerciseType/exerciseId
-
-Create comprehension questions and cloze exercise. If 2 different leagues have the same genre, ie their texts are the same, will creating an exercise for one league also create it for the other? Apparently, so. Also, can leagues with different genres use the same texts? Remember texts have genres assigned to them.
+Tournament name. Add 'tournament' and 'tournaments' to session. Set 'tournament_round' session to 0 if new tournament. But remember, Not everyone agrees about what round it is.
 
 =cut
 
-sub create : Local {
-	my ($self, $c, $textId, $exerciseType, $exerciseId) = @_;
-	my $text = $c->model('DB::Text')->find( { id=>$textId } );
-	my $genre = $text->genre;
-	$c->stash->{text} = $text;
-	$c->stash->{genre} = $genre;
-	$c->forward('clozecreate');
-	$c->forward('questioncreate');
-	$c->stash->{exercise_id} = $exerciseId;
-	$c->stash->{template} = 'exercises/list.tt2';
+sub name : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->request->params->{id};
+	my $tourname = $c->request->params->{name};
+	my $description = $c->request->params->{description};
+	unless ( $tourid and $tourname ) {
+		$c->stash->{error_msg} = "What is the tournament's name & id?";
+		$c->stash->{template} = 'swiss.tt2';
+		return;
+	}
+	my $arbiter = $c->session->{arbiter_id};
+	my $tourneyset = $c->model('DB::Tournaments');
+	my @tourids = $tourneyset->search({
+			arbiter => $arbiter })->get_column('id')->all;
+	$c->stash->{tournament} = $tourid;
+	$c->session->{tournament} = $tourid;
+	if ( @tourids == 0 or none { $tourid eq $_ } @tourids ) {
+		$c->model('DB::Tournaments')->create( { id => $tourid,
+			name => $tourname,
+			description => $description,
+			arbiter => $arbiter } );
+		$c->session->{"${tourid}_round"} = 0;
+		$c->stash->{template} = 'players.tt2';
+		return;
+	}
+	else {
+		$c->detach( 'edit_players' );
+	}
+}
+
+
+=head2 edit_players
+
+Later rounds, players
+
+=cut
+
+sub edit_players : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $tourney = $c->model('DB::Tournaments')->find({ id=>$tourid });
+	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $newlist = $c->request->params->{playerlist};
+	my @playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist);
+	my $mess;
+	if ( $mess = $c->model('GTS')->allFieldCheck(@playerlist ) ) {
+		$c->stash->{error_msg} = $mess;
+		$c->stash->{playerlist} = \@playerlist;
+	}
+	elsif ( $mess = $c->model('GTS')->idDupe(@playerlist ) ) {
+		$c->stash->{error_msg} = $mess;
+		$c->stash->{playerlist} = \@playerlist;
+	}
+	else {
+		my $playerSet = $c->model('DB::Players');
+		for my $player ( @playerlist ) {
+			$player->{firstround} ||= $round;
+			$player->{memberships} = [ { tournament=>$tourney } ];
+			$playerSet->update_or_create( $player );
+		}
+		$c->stash->{playerlist} = \@playerlist;
+	}
+	$c->stash->{round} = $round;
+	$c->stash->{template} = 'players.tt2';
+}
+
+
+=head2 final_players
+
+Finish editing players
+
+=cut
+
+sub final_players : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $round = $c->session->{"${tourid}_round"} + 1;
+	my @players = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	my $tournament = $c->model('DB::Tournaments')->find({
+		id => $tourid, arbiter => $c->session->{arbiter}});
+	$c->stash->{selected} = $tournament->rounds if $tournament;
+	my $playerNumber = @players % 2? @players: $#players;
+	$c->stash->{tournament} = $tourid;
+	$c->stash->{rounds} = $playerNumber;
+	$c->stash->{round} = $round;
+	$c->stash->{template} = 'rounds.tt2';
+}
+
+
+=head2 rounds
+
+Number of rounds
+
+=cut
+
+sub rounds : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $round = $c->session->{"${tourid}_round"} + 1;
+	my @members = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	my @players = map { $_->profile } @members;
+	my $rounds = $c->request->params->{rounds};
+	$c->model('DB::Tournaments')->find( { id => $tourid } )
+				->update( { rounds => $rounds } );
+	$c->stash->{tournament} = $tourid;
+	$c->stash->{round} = $round + 1;
+	$c->stash->{playerlist} = \@players;
+	$c->stash->{template} = 'absentees.tt2';
+}
+
+
+=head2 absentees
+
+Withdrawn, absent players who will not be paired.
+
+=cut
+
+sub absentees : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $members = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	while ( my $member = $members->next ) {
+		my $absence = $c->request->params->{ $member->profile->id };
+		$member->update( { absent => 'True' } ) if $absence;
+	}
+	$c->stash->{tournament} = $tourid;
+	$c->stash->{round} = $round + 1;
+	# $c->stash->{playerlist} = \@playerlist;
+	$c->stash->{template} = 'preppair.tt2';
 }
 
 
@@ -86,8 +206,8 @@ Delete an tournament.
 sub delete : Local {
 	my ($self, $c, $id) = @_;
 	my $tournament = $c->model('DB::Tournaments')->find({id => $id})->
-			delete_all;;
-       $c->response->redirect($c->uri_for('list',
+			delete;
+       $c->response->redirect($c->uri_for('/swiss',
                    {status_msg => "Tournament deleted."}));
 }
 
