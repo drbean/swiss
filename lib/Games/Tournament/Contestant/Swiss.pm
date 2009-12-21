@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009  7月 21, 11時20分09秒
+# Last Edit: 2009 10月 14, 19時01分37秒
 # $Id: $
 
 use warnings;
@@ -108,7 +108,7 @@ sub oldId {
 	$member->opponents( 0, 5, 11 )
 	$rolehistory = $member->opponents
 
-If ids are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the id of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, or was unpaired, pass 'Bye' or 'Absence' or 'Unpaired'.
+If ids are passed, adds them to the end of the list representing the latest opponents that $member has had in this tournament. (Normally one and only one parameter, the id of the opponent in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or played no game, because of a bye, or an absence, or was unpaired, pass 'Bye' or 'Absence' or 'Unpaired'. TODO: Should absence be 'Forfeit'? Absence can result in being unpaired.
 
 =cut
 
