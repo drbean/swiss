@@ -1,6 +1,6 @@
 package Swiss::Model::SetupTournament;
 
-# Last Edit: 2009 10月 14, 12時09分11秒
+# Last Edit: 2009 10月 28, 10時35分38秒
 # $Id$
 
 use strict;
@@ -38,9 +38,10 @@ sub build_per_context_instance {
 	my (@entrants, @absentees);
 	delete $args->{$absentees};
 	my @absentids = map { $_->{id} } @$absentees;
-	for my $entrant ( @$entrants ) {
-		push @entrants,
-			Games::Tournament::Contestant::Swiss->new( %$entrant );
+	for my $profile ( @$entrants ) {
+		my $entrant = Games::Tournament::Contestant::Swiss->new(
+			%$profile );
+		push @entrants, $entrant;
 		push @absentees, $entrant if 
 			any { $_ eq $entrant->id } @absentids;
 	}
