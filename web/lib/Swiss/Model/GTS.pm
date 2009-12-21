@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 29, 19時40分32秒
+# Last Edit: 2009  8月 30, 10時06分16秒
 # $Id$
 
 use strict;
@@ -137,7 +137,7 @@ sub historyCookies {
 		my $historicaltype = $history->{$type};
 		my @historicalvalues;
 		my @typeids = keys %$historicaltype;
-		die "Not all players, @ids have a $type history in $tourname Tourney"
+		die "Only @typeids of Players, @ids have a $type history in $tourname Tourney"
 			unless all { my $id=$_; any {$_ eq $id} @typeids } @ids;
 		for my $id ( @ids ) {
 			my $values = $historicaltype->{$id};
@@ -372,7 +372,7 @@ sub parseTable {
 
 =head2 assignScores
 
-Get results for the last round from the user and compute latest scores, using  history up until the last round.
+Get results for the last round from the user and compute latest scores, using  history up until the last round. Include old scores of absentees from that history.
 
 =cut
 
@@ -380,6 +380,11 @@ sub assignScores {
 	my ($self, $tourney, $history, $params) = @_;
 	my @ids = map { $_->id } @{ $tourney->entrants };
 	my ($scores, %results);
+	my $absentees = $tourney->absentees;
+	my @absenteeids = map { $_->id } @$absentees;
+	for my $id ( @absenteeids ) {
+		$scores->{$id} = $history->{score}->{$id};
+	}
 	PARAM: for my $param ( keys %$params ) {
 		my ( $firstroleplayer, $secondroleplayer);
 		{
