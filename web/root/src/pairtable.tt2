@@ -10,7 +10,7 @@
 <TR>
 <TD>[% player.id -%]
 <TD>[% player.opponent.join(',') %]
-<TD>[% player.role.substrs(0,1).join('') %]
+<TD>[% player.role.abbrevs( roles.0, roles.1 ).join('') %]
 <TD>[% IF player.float.$secondlast == 'N' %][% space %][% ELSE %][% player.float.$secondlast.lc %][% END -%]
 [% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
 <TD>[% player.score %][% END %]</TABLE>
