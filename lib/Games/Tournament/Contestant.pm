@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009  7月 23, 10時43分21秒
+# Last Edit: 2009 10月 14, 19時09分40秒
 # $Id: $
 
 use warnings;
@@ -368,6 +368,25 @@ sub firstround {
     if ( defined $firstround ) { $self->{firstround} = $firstround; }
     elsif ( exists $self->{firstround} ) { return $self->{firstround}; }
 }
+
+
+=head2 absent
+
+    $member->absent(1)
+    puah @absent if $member->absent
+
+A flag of convenience telling you whether this player is absent and not to be paired in the tournament. This is not the same as a forfeit.
+
+=cut
+
+sub absent {
+    my $self = shift;
+    my $absent = shift;
+    if ( $absent ) { $self->{absent} = 1; return }
+    elsif ( defined $self->{absent} ) { return $self->{absent}; }
+    else { return; }
+}
+
 
 =head1 AUTHOR
 
