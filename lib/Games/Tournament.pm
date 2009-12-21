@@ -11,6 +11,7 @@ use List::Util qw/first/;
 use List::MoreUtils qw/any all/;
 use Scalar::Util qw/looks_like_number/;
 use Scalar::Util qw/looks_like_number/;
+use Scalar::Util qw/looks_like_number/;
 
 use Games::Tournament::Swiss::Config;
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
