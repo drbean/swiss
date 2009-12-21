@@ -26,9 +26,12 @@
 
 <form method="post" action="[% c.uri_for('/tournaments/name') %]">
   <table>
-    <tr><td>Id:<td>  <INPUT type="text" name="id" size="10">
-    <tr><td>Name:<td>  <INPUT type="text" name="name" size="35">
-    <tr><td>Description:<td> <INPUT type="text" name="description" size="58">
+    <tr><td>Id:<td>
+	    <INPUT type="text" name="tourid" size="10" value="[% tourid %]">
+    <tr><td>Name:<td>
+	    <INPUT type="text" name="tourname" size="35" value="[% tourname %]">
+    <tr><td>Description:<td>
+	    <INPUT type="text" name="description" size="58" value="[% description %]">
   </ul>
   <INPUT type="submit" name="new" value="New">
 </form>
