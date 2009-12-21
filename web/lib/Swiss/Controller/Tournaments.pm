@@ -92,6 +92,51 @@ sub name : Local {
 }
 
 
+=head2 add_player
+
+First round, players. IDs, names and ratings are limited to 7, 20 and 4 characters, respectively.
+
+=cut
+
+sub add_player : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $tourney = $c->model('DB::Tournaments')->find({ id=>$tourid });
+	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $memberSet = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	my @playerlist;
+	while ( my $member = $memberSet->next )
+	{
+		push @playerlist,
+		{ id => $member->profile->id, name => $member->profile->name, rating => $member->profile->rating };
+	}
+	$c->stash->{tournament} = $tourid;
+	my %entrant = map { $_ => $c->request->params->{$_} }
+							qw/id name rating/;
+	$entrant{firstround} = $round;
+	my $mess;
+	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
+		$c->stash->{error_msg} = $mess;
+		$c->stash->{playerlist} = \@playerlist;
+	}
+	elsif ( $mess = $c->model('GTS')->idDupe(@playerlist, \%entrant ) ) {
+		$c->stash->{error_msg} = $mess;
+		$c->stash->{playerlist} = \@playerlist;
+	}
+	else {
+		push @playerlist, \%entrant;
+		$c->stash->{playerlist} = \@playerlist;
+		my $playerSet = $c->model('DB::Players');
+		$playerSet->update_or_create( \%entrant );
+		$memberSet->update_or_create({ player => $entrant{id},
+				tournament => $tourid });
+	}
+	$c->stash->{round} = $round;
+	$c->stash->{template} = 'players.tt2';
+}
+
+
 =head2 edit_players
 
 Later rounds, players
@@ -116,11 +161,12 @@ sub edit_players : Local {
 	}
 	else {
 		my $playerSet = $c->model('DB::Players');
+		my $memberSet = $c->model('DB::Members');
 		for my $player ( @playerlist ) {
 			$player->{firstround} ||= $round;
 			$playerSet->update_or_create( $player );
-			$c->model('DB::Members')->update_or_create({ player =>
-				$player->{id}, tournament => $tourid });
+			$memberSet->update_or_create({ player => $player->{id},
+					tournament => $tourid });
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
