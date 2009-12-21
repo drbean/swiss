@@ -5,7 +5,7 @@
 
 <H2>[% tournament %] Tournament Pairing Table, Round [% round %]</H2>
 <TABLE>
-<TH><TD>ID <TD>Opponents <TD>Roles <TD>Floats <TD>Score
+<TR><TH>ID <TH>Opponents <TH>Roles <TH>Floats <TH>Score
 [%- FOREACH player IN pairtable %]
 <TR>
 <TD>[% player.id -%]
