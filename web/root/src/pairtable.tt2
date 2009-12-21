@@ -2,8 +2,8 @@
 [% space = ' ' %]
 [% last = pairtable.0.float.size - 2 %]
 [% secondlast = last - 1 %]
-[% round = round + 1 %]
 
+<H2>[% tournament %] Tournament Pairing Table, Round [% round %]</H2>
 <form method="post" action="[% c.uri_for('preppair') %]">
 <H3>Edit Pairing Table:</H3>
 <UL>
