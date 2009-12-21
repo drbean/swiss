@@ -1,6 +1,6 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009  8月 24, 21時26分37秒
+# Last Edit: 2009  8月 24, 22時06分25秒
 # $Id$
 
 use strict;
@@ -349,7 +349,6 @@ sub preppair : Local {
 		$c->stash->{template} = "cards.tt2";
 		return;
 	}
-	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, \%pairingtable, $games );
 	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
