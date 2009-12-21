@@ -52,9 +52,11 @@ for my $league ( 'GL00029', 'GL00030', 'GL00031', 'GL00034', 'FLA0016', ) {
 					@{$leaguefile->{member}};
 }
 
-push @{$players->{officials}}, [split] for <<OFFICIALS =~ m/^.*$/gm;
-193001	DrBean	5000
+my @officials = ( [ qw/id name password/ ] );
+push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
+193001	DrBean	ok
 OFFICIALS
+uptodatepopulate( 'Arbiters', \@officials );
 
 my %players;
 foreach my $league ( 'officials', @leagueids )
