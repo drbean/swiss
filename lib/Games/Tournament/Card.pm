@@ -1,13 +1,13 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009 10月 18, 18時26分40秒
+# Last Edit: 2009 10月 19, 10時56分14秒
 # $Id: $
 
 use warnings;
 use strict;
 use Carp;
 
-use List::Util qw/min reduce sum/;
+use List::Util qw/min reduce sum first/;
 use List::MoreUtils qw/any all/;
 
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
@@ -161,6 +161,36 @@ sub myPlayers {
     }
     push @players, $contestants->{Bye} if exists $contestants->{Bye};
     return @players;
+}
+
+
+=head2 myOpponent
+
+    $game->myOpponent($player)
+
+Returns the opponent of $player from $game. If $player has a Bye, return a Games::Tournament::Contestant::Swiss object with name 'Bye', and id 'Bye'.
+
+=cut 
+
+sub myOpponent {
+    my $self       = shift;
+    my $contestant = shift;
+    my $id = $contestant->id;
+    my $contestants = $self->contestants;
+    my @contestants = values %$contestants;
+    my %dupes;
+    for my $contestant ( @contestants )
+    {
+	die "Player $contestant isn't a contestant"
+	unless $contestant and
+		$contestant->isa('Games::Tournament::Contestant::Swiss');
+    }
+    my @dupes = grep { $dupes{$_->id}++ } @contestants;
+    croak "Players @dupes had more than one role" if @dupes;
+    my $opponent = first { $id ne $_->id } @contestants;
+    $opponent = Games::Tournament::Contestant::Swiss->new(
+	name => "Bye", id => "Bye") if $self->isBye;
+    return $opponent;
 }
 
 
