@@ -50,7 +50,9 @@
 <br>
 
 [%- IF log %]
-<H2>Log</H2>
+<H2>FIDE Pairing Procedure Log</H2>
 
 <PRE>[% log %]</PRE>
 [% END %]
+
+[%- IF pairtable %][% INCLUDE pairtable.tt2 %][% END %]
