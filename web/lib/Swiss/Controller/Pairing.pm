@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 14, 14時35分14秒
+# Last Edit: 2009 10月 15, 17時47分35秒
 # $Id$
 
 use strict;
@@ -81,40 +81,47 @@ sub preppair : Local {
 	# $round = defined $round? $round: 1;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
+	my @columns = Swiss::Schema::Result::Players->columns;
 	my $rounds = $c->stash->{rounds};
 	my (@playerlist, @absentees);
 	while ( my $member = $members->next ) {
-		my $player = {
-			map { $_ => $member->profile->$_ }
-				$members->result_source->columns };
-		#my $player = $member->profile->$_;
+		my $player = { map { $_ => $member->profile->$_ } @columns };
 		push @playerlist, $player;
 		push @absentees, $player if $player->{absent};
 	}
-$DB::single=1;
-	my $tourney = $c->forward( 'setupTournament', {
+	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
 			round => $round,
 			rounds => $rounds,
 			entrants => \@playerlist,
 			absentees => \@absentees,
 		} );
-	my ($games, $latestscores, %pairingtable);
+	my ($games, $latestscores, $pairingtable);
 	for my $field ( qw/pairingnumber opponent role float score/ ) {
 		$members->reset;
+		my $fieldhistory;
 		while ( my $member = $members->next ) {
-			$pairingtable{$field}->{$member->id} =
-				$member->$field->get_column($field)->all;
+			my $player = $member->profile;
+			my $values = $member->$field->get_column($field);
+			if ( blessed( $values ) and $values->isa(
+					'DBIx::Class::ResultSetColumn') ) {
+				my @all =$values->all;
+				$fieldhistory->{$member->profile->id} = \@all;
+			}
+			else {
+				$fieldhistory->{$member->profile->id}=$values;
+			}
 		}
+		$pairingtable->{$field} = $fieldhistory;
 	}
 	if ( $c->request->params->{pairingtable} ) {
 		my $table = $c->request->params->{pairingtable};
-		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
-		$latestscores = $pairingtable{score};
+		$pairingtable = $c->model('GTS')->parseTable($tourney, $table);
+		$latestscores = $pairingtable->{score};
 	}
 	elsif ( $c->request->args->[0] eq 'editable' ) {
 		@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
-			\%pairingtable );
+			$pairingtable );
 		$c->stash->{pairtable} = \@playerlist;
 		$c->stash->{tournament} = $tourid;
 		$c->stash->{round} = ++$round;
@@ -128,11 +135,15 @@ $DB::single=1;
 				"Record Round $round results" ) {
 			my $params = $c->request->params;
 			$latestscores = $c->model('GTS')->assignScores(
-				$tourney, \%pairingtable, $params);
-			$pairingtable{score} = $latestscores;
+				$tourney, $pairingtable, $params);
+			$pairingtable->{score} = $latestscores;
+			my $scoreset = $c->model('DB::Scores');
 			for my $player ( @{ $tourney->entrants } ) {
 				my $id = $player->id;
 				$player->score( $latestscores->{$id} );
+				$scoreset->update_or_create( {
+					tournament => $tourid, player => $id,
+					score => $latestscores->{$id} } );
 			}
 			my $scorestring;
 			$scorestring = join '&', map { $latestscores->{$_} }
@@ -143,7 +154,7 @@ $DB::single=1;
 	if ( ( not defined $latestscores or not all { defined }
 				values %$latestscores ) and $round >= 2 ) {
 		$games = $c->model('GTS')->postPlayPaperwork(
-			$tourney, \%pairingtable, $round );
+			$tourney, $pairingtable, $round );
 		$c->stash->{round} = $round;
 		$c->stash->{roles} = $c->model('GTS')->roles;
 		$c->stash->{games} = $games;
@@ -153,10 +164,41 @@ $DB::single=1;
 		return;
 	}
 	my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
-		$c->model('GTS')->changeHistory($tourney, \%pairingtable,
-				$games) : \%pairingtable;
-	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
-	setCookie( $c, %cookhist );
+		$c->model('GTS')->changeHistory($tourney, $pairingtable,
+				$games) : $pairingtable;
+	for my $field ( qw/pairingnumber/ ) {
+		my $Fields = ucfirst $field . 's';
+		my $fieldset = $c->model( "DB::$Fields" );
+		$members->reset;
+		while ( my $member = $members->next ) {
+			my $id = $member->profile->id;
+			my $fieldhistory = $newhistory->{$field}->{$id};
+			$fieldset->update_or_create( {
+				tournament => $tourid,
+				player => $id, 
+				$field => $fieldhistory
+			} );
+		}
+	}
+	for my $field ( qw/opponent role float/ ) {
+		my $Fields = ucfirst $field . 's';
+		my $fieldset = $c->model( "DB::$Fields" );
+		$members->reset;
+		while ( my $member = $members->next ) {
+			my $id = $member->profile->id;
+			my $fieldhistory = $newhistory->{$field}->{$id};
+			my %series = map { ($_+1) => $fieldhistory->[$_] }
+					0 .. $#$fieldhistory;
+			for my $round ( keys %series ) {
+				$fieldset->update_or_create( {
+					tournament => $tourid,
+					player => $id, 
+					round => $round,
+					$field => $series{$round}
+				} );
+			}
+		}
+	}
 	@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
 		$newhistory );
 	$c->stash->{pairtable} = \@playerlist;
@@ -216,7 +258,7 @@ sub nextround : Local {
 #}
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
-			round => $round,
+			round => ( $round - 1 ),
 			rounds => $rounds,
 			entrants => \@playerlist,
 			absentees => \@absentees,
@@ -227,7 +269,6 @@ sub nextround : Local {
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
-$DB::single=1;
 			my $values = $member->$field->get_column($field);
 			if ( blessed( $values ) and $values->isa(
 					'DBIx::Class::ResultSetColumn') ) {
@@ -258,10 +299,41 @@ $DB::single=1;
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, $pairingtable, $games );
-	my %cookhist = $c->model('GTS')->historyCookies($tourney, $newhistory);
-	setCookie( $c, %cookhist );
+	for my $field ( qw/pairingnumber/ ) {
+		my $Fields = ucfirst $field . 's';
+		my $fieldset = $c->model( "DB::$Fields" );
+		$members->reset;
+		while ( my $member = $members->next ) {
+			my $id = $member->profile->id;
+			my $fieldhistory = $newhistory->{$field}->{$id};
+			$fieldset->update_or_create( {
+				tournament => $tourid,
+				player => $id, 
+				$field => $fieldhistory
+			} );
+		}
+	}
+	for my $field ( qw/opponent role float/ ) {
+		my $Fields = ucfirst $field . 's';
+		my $fieldset = $c->model( "DB::$Fields" );
+		$members->reset;
+		while ( my $member = $members->next ) {
+			my $id = $member->profile->id;
+			my $fieldhistory = $newhistory->{$field}->{$id};
+			my %series = map { ($_+1) => $fieldhistory->[$_] }
+					0 .. $#$fieldhistory;
+			for my $round ( keys %series ) {
+				$fieldset->update_or_create( {
+					tournament => $tourid,
+					player => $id, 
+					round => $round,
+					$field => $series{$round}
+				} );
+			}
+		}
+	}
 	$round = $tourney->round;
-	setCookie( $c, "${tourid}_round" => $round );
+	$c->session->{"${tourid}_round"} = $round;
 	if ( $c->request->params->{pairtable} ) {
 		@playerlist = buildPairingtable( $c, $tourid, \@playerlist, 
 			$newhistory );
@@ -273,35 +345,6 @@ $DB::single=1;
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
-}
-
-
-=head2 setupTournament
-
-Passing round a tournament, with players, is easier.
-
-=cut
-
-sub setupTournament {
-	my ($self, $c, $args) = @_;
-	for my $group ( qw/entrants absentees/ ) {
-		my $players = $args->{$group};
-		my @band = map {Games::Tournament::Contestant::Swiss->new(%$_)}
-				@$players;
-		$args->{$group} = \@band;
-	}
-	my $tournament = Games::Tournament::Swiss->new( %$args );
-	$tournament->assignPairingNumbers;
-	my $tourid = $c->session->{tournament};
-	my $numberset = $c->model('DB::Pairingnumbers')->search( {
-			tournament => $tourid } );
-	my $entrants = $tournament->entrants;
-	for my $entrant ( @$entrants ) {
-		$numberset->update_or_create( { tournament => $tourid, 
-		player => $entrant->id,
-		pairingnumber => $entrant->pairingnumber } );
-	}
-	return $tournament;
 }
 
 
