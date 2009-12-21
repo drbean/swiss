@@ -129,8 +129,9 @@ sub add_player : Local {
 		$c->stash->{playerlist} = \@playerlist;
 		my $playerSet = $c->model('DB::Players');
 		$playerSet->update_or_create( \%entrant );
-		$memberSet->update_or_create({ player => $entrant{id},
-				tournament => $tourid });
+		$memberSet->create({ player => $entrant{id},
+				tournament => $tourid, firstrounds =>
+				{ firstround => $round } });
 	}
 	$c->stash->{round} = $round;
 	$c->stash->{template} = 'players.tt2';
@@ -162,11 +163,16 @@ sub edit_players : Local {
 	else {
 		my $playerSet = $c->model('DB::Players');
 		my $memberSet = $c->model('DB::Members');
+		my $roundSet = $c->model('DB::Firstrounds');
 		for my $player ( @playerlist ) {
-			$player->{firstround} ||= $round;
+			my $firstround = $player->{firstround};
+			delete $player->{firstround};
 			$playerSet->update_or_create( $player );
 			$memberSet->update_or_create({ player => $player->{id},
 					tournament => $tourid });
+			$roundSet->find_or_create({ player => $player->{id},
+				tournament => $tourid,
+				firstround => $firstround || $round });
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
