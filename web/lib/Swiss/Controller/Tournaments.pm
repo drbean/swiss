@@ -193,15 +193,16 @@ sub edit_players : Local {
 		my $memberSet = $c->model('DB::Members');
 		my $roundSet = $c->model('DB::Firstrounds');
 		for my $player ( @playerlist ) {
-			my $firstround = $player->{firstround};
+			my $firstround = defined $player->{firstround}?
+						$player->{firstround}: $round;
 			delete $player->{firstround};
 			$playerSet->update_or_create( $player );
 			$memberSet->update_or_create({ player => $player->{id},
 					tournament => $tourid });
 			$roundSet->find_or_create({ player => $player->{id},
 				tournament => $tourid,
-				firstround => $firstround || $round });
-			$player->{firstround} = $firstround || $round;
+				firstround => $firstround });
+			$player->{firstround} = $firstround;
 		}
 		$c->stash->{playerlist} = \@playerlist;
 	}
