@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 17, 12時55分27秒
+# Last Edit: 2009  8月 20, 14時03分36秒
 # $Id$
 
 use strict;
@@ -25,16 +25,17 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
+my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
+	0.5 => 'Draw', '=' => 'Draw'  };
 my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
-my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
 
 $swiss->frisk($scoring, $roles, $firstround, $algorithm, $abbrev);
 
 $Games::Tournament::Swiss::Config::firstround = $firstround;
 %Games::Tournament::Swiss::Config::scores = %$scoring;
+%Games::Tournament::Swiss::Config::abbreviation = %$abbrev;
 @Games::Tournament::Swiss::Config::roles = @$roles;
 $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
@@ -123,7 +124,7 @@ sub historyCookies {
 	my %cookie;
 	my $players = $tourney->entrants;
 	my $tourname = $tourney->{name};
-	my $types = [ qw/opponent role float score/ ];
+	my $types = [ qw/pairingnumber opponent role float score/ ];
 	my @ids = map { $_->{id} } @$players;
 	for my $type ( @$types ) {
 		my %expando = reverse %$abbrev if $type eq 'roles';
@@ -140,12 +141,16 @@ sub historyCookies {
 					and ref $values eq 'ARRAY';
 			}
 			elsif ( $type eq 'role' or $type eq 'float' ) {
-				$string = join '', map
-					{defined $_ and substr $_, 0, 1}
+				$string = join '', map { defined $_ and
+					$_ eq 'Bye'? '-' : substr $_, 0, 1}
 						@$values if defined $values and
 							ref $values eq 'ARRAY';
 			}
 			elsif( $type eq 'score' ) { $string = $values || 0 }
+			elsif( $type eq 'pairingnumber' ) {
+				my $player = $tourney->ided($id);
+				$string = $player->pairingNumber;
+			}
 			push @historicalvalues, $string;
 		}
 		$cookie{"${tourname}_${type}s"} = join '&', @historicalvalues;
@@ -222,8 +227,13 @@ sub destringCookie {
 
 =head2 readHistory
 
-Inflate a tournament's players' opponent, role and float history and score cookies, and return arrays of these 4 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
+Inflate a tournament's players' opponent, role and float history and score (and pairing number) cookies, and return arrays of these 5 items over the rounds of the tournament indexed by player id. For example, represented as a YAML structure:
 
+	pairingnumber:
+	  1: 3
+	  2: 4
+	  3: 1
+	  6: 2
 	opponent:
 	  1: [6 4 2 5] 
 	  2: [7 3 1 4] 
@@ -250,7 +260,7 @@ Inflate a tournament's players' opponent, role and float history and score cooki
 sub readHistory {
 	my ($self, $tourname, $playerlist, $cookies, $round) = @_;
 	my %histories;
-	my $fields = [ qw/opponent role float score/ ];
+	my $fields = [ qw/pairingnumber opponent role float score/ ];
 	my @playerData = $self->breakCookie($tourname, $cookies, $fields);
 	my $n=0;
 	for my $player ( @playerData ) {
@@ -275,6 +285,8 @@ sub readHistory {
 			}
 		}
 		$histories{score}->{$id} = $playerData[$n]->{score};
+		$histories{pairingnumber}->{$id} =
+			$playerData[$n]->{pairingnumber};
 		$n++;
 	}
 	return %histories;
@@ -416,16 +428,19 @@ sub pair {
 			$tourney->collectCards( @$games );
 		}
 	}
-	# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
+	$tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences if $round == 0;
-	# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
+	my $log;
+	my %logged = $tourney->catLog;
+	$log .= $logged{ASSIGNPAIRINGNUMBERS};
 	my %brackets = $tourney->formBrackets;
 	my $pairing = $tourney->pairing( \%brackets );
 	my $message = $pairing->message;
 	$pairing->round(++$round);
-	# $pairing->loggingAll;
+	$pairing->loggingAll;
 	my $results = $pairing->matchPlayers;
+	$log .= $pairing->{logreport};
 	my $matches = $results->{matches};
 	my @games;
 	my %number = map { $_ => $brackets{$_}->number } keys %brackets;
@@ -436,7 +451,7 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
-	return ($message, \@tables);
+	return ($message, $log, \@tables);
 }
 
 
@@ -504,6 +519,8 @@ sub changeHistory {
 		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
 		$history->{float}->{$id} = $floats;
 		$history->{score}->{$id} = $player->score;
+		$history->{pairingnumber}->{$id} = $player->pairingNumber ||
+									'-';
 	}
 	return $history;
 }

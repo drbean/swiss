@@ -200,10 +200,16 @@ sub final_players : Local {
 		$c->request->cookie("${tourname}_rounds")->isa(
 			'CGI::Simple::Cookie') )
 	{
+		my @pairingtable = buildPairingtable(
+			$c, $tourname, $cookies, $round );
+		$c->stash->{tournament} = $tourname;
+		$c->stash->{round} = $round;
+		$c->stash->{playerlist} = \@pairingtable;
 		$c->stash->{template} = "pairtable.tt2";
 	}
 	else {
-		my $playerNumber = @players / 2? @players: $#players;
+		my $playerNumber = @players % 2? @players: $#players;
+		$c->stash->{tournament} = $tourname;
 		$c->stash->{rounds} = $playerNumber;
 		$c->stash->{template} = 'rounds.tt2';
 	}
@@ -221,6 +227,7 @@ sub rounds : Local {
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $rounds = $c->request->params->{rounds};
 	$c->response->cookies->{"${tourname}_rounds"} = { value => $rounds };
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{rounds} = $rounds;
 	$c->stash->{template} = 'pair.tt2';
 }
@@ -240,6 +247,21 @@ sub pairingtable : Local {
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
 		$c->request->cookie("${tourname}_round")->value + 1: 1;
+	my @pairingtable = buildPairingtable($c, $tourname, $cookies, $round );
+	$c->stash->{tournament} = $tourname;
+	$c->stash->{round} = $round;
+	$c->stash->{playerlist} = \@pairingtable;
+	$c->stash->{template} = "pairtable.tt2";
+}
+
+=head2 buildPairingtable
+
+Common code in pairingtable, final_players actions that converts cookies to player list, opponents, roles, and floats histories and scores and creates an array of hashes with player histories for each individual player, suitable for display as a pairing table. Extracted into a function.
+
+=cut
+
+sub buildPairingtable {
+	my ($c, $tourname, $cookies, $round) = @_; 
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my %pairingtable = $c->model('GTS')->readHistory(
 				$tourname, \@playerlist, $cookies, $round);
@@ -250,9 +272,7 @@ sub pairingtable : Local {
 			$player->{$historytype} = $run;
 		}
 	}
-	$c->stash->{round} = $round;
-	$c->stash->{playerlist} = \@playerlist;
-	$c->stash->{template} = "pairtable.tt2";
+	return @playerlist;
 }
 
 
@@ -278,14 +298,19 @@ sub nextround : Local {
 			rounds => $rounds,
 			entrants => \@playerlist });
 	my ($latestscores, %pairingtable);
+	%pairingtable = $c->model('GTS')->readHistory(
+			$tourname, \@playerlist, $cookies, $round-1);
+	for my $n ( 0 .. $#playerlist ) {
+		my $id = $playerlist[$n]->{id};
+		$tourney->entrants->[$n]->pairingNumber(
+		$pairingtable{pairingnumber}->{$id} );
+	}
 	if ( $c->request->params->{pairingtable} ) {
 		my $table = $c->request->params->{pairingtable};
 		%pairingtable = $c->model('GTS')->parseTable($tourney, $table);
 		$latestscores = $pairingtable{score};
 	}
 	else {
-		%pairingtable = $c->model('GTS')->readHistory(
-				$tourname, \@playerlist, $cookies, $round-1);
 		if ( exists $c->request->params->{Submit} and
 			$c->request->params->{Submit} eq "Pair round $round" ) {
 			my $params = $c->request->params;
@@ -315,7 +340,7 @@ sub nextround : Local {
 		$c->stash->{template} = "draw.tt2";
 		return;
 	}
-	my ($mess, $games) = $c->model('GTS')->pair( {
+	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
 			history => \%pairingtable } );
 	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
@@ -332,9 +357,11 @@ sub nextround : Local {
 	$c->response->cookies->{$_} = {value => $cookies{$_}} for keys %cookies;
 	$round = $tourney->round;
 	$c->response->cookies->{"${tourname}_round"} = { value => $round };
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
+	$c->stash->{log} = $log;
 	$c->stash->{template} = "draw.tt2";
 }
 

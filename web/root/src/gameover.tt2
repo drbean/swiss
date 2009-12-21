@@ -8,5 +8,5 @@
 <li>Games::Tournament::Swiss fails to implement the FIDE Rules correctly.
 </ul>
 
-<h2>Try another tournament? Or change the pairing tables of the tournament, by eg adding more players?
+<h2>Run a new tournament? Or change the pairing tables of the old tournament, by eg adding more players?
 <a href="[% c.uri_for('swiss') %]">Go!</a>

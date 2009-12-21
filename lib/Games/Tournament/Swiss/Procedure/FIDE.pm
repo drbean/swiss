@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009  8月 17, 08時05分49秒
+# Last Edit: 2009  8月 18, 14時35分40秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -138,7 +138,7 @@ sub matchPlayers {
 	if ( any { $_ eq $oldState } $self->loggedProcedures )
 	{
 	    my %log = $self->tailLog($oldState);
-	    print $oldState . "," . $log{$oldState} if %log;
+	    $self->logreport( $oldState . "," . $log{$oldState} ) if %log;
 	}
         if ( $state eq ERROR ) {
             die
@@ -169,6 +169,20 @@ sub message {
 }
 
 
+=head2 logreport
+
+ $pairing->logreport('C6: Pairing S1 and S2');
+
+Accumulates a log in string form, of the progress of the players in their brackets through the FIDE pairing procedure, using the logging methods of Games::Tournament, and returning the log accumulated if no arguments are passed.
+
+=cut 
+
+sub logreport {
+    my $self = shift;
+    my $logreport = shift;
+    if ( defined $logreport ) { $self->{logreport} .= $logreport; }
+    elsif ( $self->{logreport} ) { return $self->{logreport}; }
+}
 
 
 =head2 start
@@ -679,6 +693,7 @@ sub c6others {
 	my $next = $self->nextBracket;
 	my $nextBracket = $groups->{$next};
 	my $nextNumber = $nextBracket->number;
+	my @nextMembers = map {$_->pairingNumber} @{$nextBracket->members};
         for my $evacuee (@$nonpaired) {
             $group->exit($evacuee);
             $evacuee->floating('Down');
@@ -686,9 +701,8 @@ sub c6others {
         }
 	my @floaters = map {$_->pairingNumber} @$nonpaired;
 	my @pairIds = map {$_->pairingNumber} @{$group->members};
-	my @next = map {$_->pairingNumber} @{$nextBracket->members};
         $self->log(
-"Floating remaining @floaters Down. [$number] @pairIds & [$nextNumber] @next" );
+"Floating remaining @floaters Down. [$number] @pairIds. @floaters => [$nextNumber] @nextMembers" );
         return NEXT;
     }
     else {
@@ -992,9 +1006,9 @@ sub c10 {
 			    @wellpairedS2, $lastShufflePossibility;
 	    $heteroBracket->{lastC10Alternate} = \@lastIds;
 	    my $lowest = $s1->[-1];
-	    my $id = $lowest->id;
+	    my $id = $lowest->pairingNumber;
 	    my $match = $matches->[-1];
-	    my $partner = first { $_->id != $id } $match->myPlayers;
+	    my $partner = $lowest->myOpponent($match);
 	    my $partnerId = $partner->pairingNumber;
 	    $self->log(
 "Unpairing lowest downfloater, $id and $partnerId in $index-Bracket [$number]

@@ -109,8 +109,6 @@ my %brackets = $tourney->formBrackets;
 my $pairing = $tourney->pairing( \%brackets );
 $pairing->loggingAll;
 my $results = $pairing->matchPlayers;
-use IO::All;
-io('=')->print($pairing->catLog);
 my $matches = $results->{matches};
 
 my @games;
@@ -155,7 +153,6 @@ for my $table (@tables) {
 	@scores = map { $table->contestants->{$_}->score || 0 } @$roles;
     }
     write REP;
-    $template->{$n++} = { reverse %group };
 }
 
 if ( $lateEntries ) {
