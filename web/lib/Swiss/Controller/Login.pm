@@ -37,7 +37,7 @@ sub index :Path :Args(0)  {
 	    my @tournaments = $arbiter->tournaments;
 	    $c->stash->{id}         = $id;
 	    $c->stash->{name}       = $name;
-	    $c->stash->{recentone}   = $tournament;
+	    $c->stash->{recentone}   = $tourid;
 	    $c->stash->{tournaments}   = \@tournaments;
 	    $c->stash->{template}   = 'swiss.tt2';
 	    return;
