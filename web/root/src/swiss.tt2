@@ -5,7 +5,7 @@
   <H1>Either,</H1>
   <H2>Continue old tournament:</H2>
   
-  <form method="post" action="[% c.uri_for('name') %]">
+  <form method="post" action="[% c.uri_for('/tournaments/name') %]">
     Tournament Names:
   
   <select name="tournament" size="[% tournaments.size %]">
@@ -24,8 +24,11 @@
 
 <H2>Start new tournament</H2>
 
-<form method="post" action="[% c.uri_for('/name') %]">
-  Tournament Name:</td><td>
-  <INPUT type="text" name="tournament" size="15">
+<form method="post" action="[% c.uri_for('/tournaments/name') %]">
+  <table>
+    <tr><td>Id:<td>  <INPUT type="text" name="id" size="10">
+    <tr><td>Name:<td>  <INPUT type="text" name="name" size="35">
+    <tr><td>Description:<td> <INPUT type="text" name="description" size="58">
+  </ul>
   <INPUT type="submit" name="new" value="New">
 </form>

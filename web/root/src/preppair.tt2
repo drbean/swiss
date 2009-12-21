@@ -2,7 +2,7 @@
 
 [% INCLUDE pairtable.tt2 %]
 
-<form method="post" action="[% c.uri_for('nextround') %]">
+<form method="post" action="[% c.uri_for('/pairing/nextround') %]">
 <fieldset>
 <legend>Output options</legend>
 <ul>

@@ -40,16 +40,18 @@ __PACKAGE__->add_columns(
   {
     data_type => "SMALLINT",
     default_value => undef,
-    is_nullable => 0,
+    is_nullable => 1,
     size => undef,
   },
 );
-__PACKAGE__->set_primary_key("id", "arbiter");
+__PACKAGE__->set_primary_key("id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-22 15:03:53
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gy+JKFpLh9KriN3D4enzJw
 
+__PACKAGE__->has_many(
+	members => 'Swiss::Schema::Result::Members', 'tournament' );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

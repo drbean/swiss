@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  9月 08, 18時33分10秒
+# Last Edit: 2009 10月 05, 17時43分19秒
 # $Id$
 
 use strict;
@@ -310,7 +310,7 @@ sub parsePlayers {
 	my @playerlist;
 	my @records = split /\n/, $records;
 	for my $line ( @records ) {
-		next if $line =~ m/^$/;
+		next if $line =~ m/^\s*$/;
 		my %player;
 		chomp $line;
 		my @fields = split ' ', $line;
