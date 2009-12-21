@@ -11,9 +11,9 @@
 <TD>[% player.id -%]
 <TD>[% player.opponent.join(',') %]
 <TD>[% player.role.abbrevs( roles.0, roles.1 ).join('') %]
-<TD>[% IF player.float.$secondlast == 'N' %][% space %][% ELSE %][% player.float.$secondlast.lc %][% END -%]
-[% IF player.float.$last == 'N' %][% space %][% ELSE %][% player.float.$last %][% END %][% space -%]
-<TD>[% player.score %][% END %]</TABLE>
+<TD align=right>[% IF player.float.$secondlast == 'Not' %][% space %][% ELSE %][% player.float.$secondlast.initial.lc %][% END -%]
+[% IF player.float.$last == 'Not' %][% space %][% ELSE %][% player.float.$last.initial %][% END %][% space -%]
+<TD align=center>[% player.score %][% END %]</TABLE>
 <a href="[% c.uri_for('preppair') _ '/editable' %]">
 <H3>Edit Pairing Table</H3>
 </a>
