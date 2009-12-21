@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 10月 28, 13時53分43秒
+# Last Edit: 2009 11月 25, 12時04分02秒
 # $Id$
 
 use strict;
@@ -77,8 +77,8 @@ Prepare to pair next round
 sub preppair : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"};
-	# $round = defined $round? $round: 1;
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my @columns = Swiss::Schema::Result::Players->columns;
@@ -229,7 +229,9 @@ Pair first round
 sub nextround : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->session->{"${tourid}_round"} + 1;
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
+	$round++;
 	my $tournament = $c->model('DB::Tournaments')->find(
 		{ id => $tourid });
 	my $members = $tournament->members;
