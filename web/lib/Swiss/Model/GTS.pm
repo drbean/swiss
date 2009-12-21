@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009 10月 05, 17時43分19秒
+# Last Edit: 2009 10月 14, 19時32分03秒
 # $Id$
 
 use strict;
@@ -366,7 +366,7 @@ sub parseTable {
 		my $entrant = $tourney->ided( $id );
 		$pairingtable{pairingnumber}->{$id} = $entrant->pairingNumber;
 	}
-	return %pairingtable;
+	return \%pairingtable;
 }
 
 
@@ -430,10 +430,10 @@ sub pair {
 	my $pairingtable = $args->{history};
 	if ( $pairingtable ) {
 		my $scores = $pairingtable->{score};
-        for my $player ( @$entrants ) {
-                my $id = $player->id;
-                $player->score( $scores->{$id} );
-        }
+		for my $player ( @$entrants ) {
+			my $id = $player->id;
+			$player->score( $scores->{$id} );
+		}
 		my $lastround = $round;
 		for my $round ( 1..$lastround ) {
 			my $games = $self->postPlayPaperwork(
@@ -512,14 +512,14 @@ sub changeHistory {
 			push @$opponents, $opponent->id;
 			$history->{opponent}->{$id} = $opponents;
 			my $role = $game->myRole($player);
-			if ( $role eq 'Bye' ) { $role = '-'; }
+			if ( $role eq 'Bye' ) { $role = 'Bye'; }
 			my $roles = $history->{role}->{$id};
 			push @$roles, $role;
 			$history->{role}->{$id} = $roles;
 		}
 		else {
-			push @{ $history->{opponent}->{$id} }, "-,";
-			push @{ $history->{role}->{$id} }, "-";
+			push @{ $history->{opponent}->{$id} }, "Unpaired,";
+			push @{ $history->{role}->{$id} }, "Unpaired";
 		}
 		my $floats = $player->floats;
 		my $float = '';
