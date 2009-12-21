@@ -88,16 +88,16 @@ sub name : Local {
 	}
 	$c->stash->{tournament} = $tourid;
 	$c->session->{tournament} = $tourid;
+	$c->model('DB::Tournament')->update_or_create(
+		{ id => $tourid, arbiter => $arbiter } );
 	if ( not $candidate ) {
 		$c->model('DB::Tournaments')->create( { id => $tourid,
 			name => $tourname,
 			description => $description,
 			arbiter => $arbiter,
-			active =>	{ id => $tourid,
-					arbiter => $arbiter,
-					round => { tournament => $tourid,
-							round => 0 }
-				} } );
+			round => { tournament => $tourid,
+					round => 0 }
+				} );
 		$c->session->{"${tourid}_round"} = 0;
 		$c->stash->{template} = 'players.tt2';
 		return;
