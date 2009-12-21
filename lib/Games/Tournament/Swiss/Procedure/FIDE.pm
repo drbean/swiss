@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009 10月 14, 16時15分58秒
+# Last Edit: 2009 10月 18, 18時43分25秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1476,12 +1476,13 @@ sub bye {
     my $round = $self->round;
     my $matches = $self->matches;
     my $byeindex = $index . 'Bye';
-    $matches->{$byeindex} = [
+    my $game = 
       Games::Tournament::Card->new(
 	round       => $round,
 	result      => undef,
-	contestants => { Bye => $byer } )
-      ];
+	contestants => { Bye => $byer } );
+    $game->float($byer, 'Down');
+    $matches->{$byeindex} = [ $game ];
     $self->log( "OK." );
     $byes->{$id} = $round;
     return LAST;
@@ -1695,15 +1696,14 @@ sub colors {
         $message .=  $rule . ' ' .
 	    $contestants->{ (ROLES)[0] }->pairingNumber . "&" .
 	    $contestants->{ (ROLES)[1] }->pairingNumber . ' ';
-        my %floats =
-          map { (ROLES)[$_] => $contestants->{ (ROLES)[$_] }->floating } 0 .. 1;
-        push @bracketMatches,
-          Games::Tournament::Card->new(
+        my $game = Games::Tournament::Card->new(
             round       => $self->round,
             result      => undef,
             contestants => $contestants,
-            floats      => \%floats
           );
+	$game->float($contestants->{$_}, $contestants->{$_}->floating || 'Not')
+			    for ROLES;
+        push @bracketMatches, $game;
     }
     # $self->previousBracket($group);
     return $message, @bracketMatches;
