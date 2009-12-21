@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009 10月 19, 10時30分11秒
+# Last Edit: 2009 10月 28, 11時05分10秒
 # $Id$
 
 use strict;
@@ -516,7 +516,7 @@ sub changeHistory {
 			}
 		}
 		else {
-			push @{ $history->{opponent}->{$id} }, "Unpaired,";
+			push @{ $history->{opponent}->{$id} }, "Unpaired";
 			push @{ $history->{role}->{$id} }, "Unpaired";
 		}
 		$history->{score}->{$id} = $player->score;
