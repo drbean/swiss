@@ -43,10 +43,10 @@
 </select>
 [% END %]
 [% END %]
+  <TR><TH colspan="8">W: Win, L: Loss, =: draw, F: Forfeit
 </table>
 <input type="submit" name="Submit" value="Record Round [% round  %] results">
 </form>
-W: Win, L: Loss, =: draw, F: Forfeit
 <br>
 
 [%- IF log %]
