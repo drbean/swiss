@@ -1,13 +1,11 @@
 package Swiss::Controller::Root;
 
-# Last Edit: 2009 10月 19, 11時36分43秒
+# Last Edit: 2009 10月 19, 11時40分12秒
 # $Id$
 
 use strict;
 use warnings;
 use parent 'Catalyst::Controller';
-
-use List::MoreUtils qw/none any all notall/;
 
 #
 # Sets the actions in this controller to be registered with no prefix
