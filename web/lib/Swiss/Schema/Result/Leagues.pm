@@ -1,4 +1,4 @@
-package Web::Schema::Result::Leagues;
+package Swiss::Schema::Result::Leagues;
 
 use strict;
 use warnings;

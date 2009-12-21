@@ -1,4 +1,4 @@
-package Web::Schema;
+package Swiss::Schema;
 
 use strict;
 use warnings;

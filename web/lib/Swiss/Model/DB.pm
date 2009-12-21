@@ -1,19 +1,19 @@
-package Web::Model::DB;
+package Swiss::Model::DB;
 
 use strict;
 use base 'Catalyst::Model::DBIC::Schema';
 
 use Catalyst;
-use Web;
+use Swiss;
 
-my $name = Web->config->{database};
-my $db = Web->path_to( '../' x 2, 'dic', 'db', $name );
+my $name = Swiss->config->{database};
+my $db = Swiss->path_to( '../' x 2, 'dic', 'db', $name );
 
 my $connect_info;
 if ( $^O eq 'linux' ) { $connect_info = [ "dbi:SQLite:$db", '', '', ]; }
 
 __PACKAGE__->config(
-    schema_class => 'Web::Schema',
+    schema_class => 'Swiss::Schema',
     connect_info =>  $connect_info,
 		        # connect_info => ['dbi:SQLite:db/demo','','']
 );
