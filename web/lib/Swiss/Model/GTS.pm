@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  8月 23, 10時56分59秒
+# Last Edit: 2009  8月 23, 14時06分20秒
 # $Id$
 
 use strict;
@@ -116,6 +116,9 @@ Prepare cookies for a tournament's players opponent, preference and float histor
 3,1 4,2 1,3 2,4
 3%2C1&4%2C2&1%2C3&2%2C4
 3%252C1%264%252C2%261%252C3%262%252C4
+
+2,3,,-, 1,4,,-, -,1,,-, -,2,,-,
+2%2C3%2C%2C-%2C%261%2C4%2C%2C-%2C%26-%2C1%2C%2C-%2C%26-%2C2%2C%2C-%2C
 
 =cut
 
