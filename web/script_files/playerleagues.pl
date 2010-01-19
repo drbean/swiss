@@ -30,17 +30,17 @@ my $connect_info = "${::name}::Model::DB"->config->{connect_info};
 my $schema = "${::name}::Schema"->connect( @$connect_info );
 use strict;
 
-my $leagues = [
-		[ qw/id name field/ ],
-	[ "GL00029", "GL00029日語文共同學制虛擬班二", "中級英文聽說訓練" ],
-	[ "GL00030", "GL00030日語文共同學制虛擬班二", "中級英文聽說訓練" ],
-	[ "GL00031", "GL00031日語文共同學制虛擬班二", "中級英文聽說訓練" ],
-	[ "GL00034", "GL00034日語文共同學制虛擬班二", "中級英文聽說訓練" ],
-	[ "FLA0016", "FLA0016夜應外大學二甲", "英語會話" ],
-	[ "access", "Self-Access Learning", "Listening" ],
+my $tournaments = [
+		[ qw/id name description arbiter rounds/ ],
+	[ "GL00029", "GL00029日語文共同學制虛擬班二", "中級英文聽說訓練", 193001, 6 ],
+	[ "GL00030", "GL00030日語文共同學制虛擬班二", "中級英文聽說訓練", 193001, 6 ],
+	[ "GL00031", "GL00031日語文共同學制虛擬班二", "中級英文聽說訓練", 193001, 6 ],
+	[ "GL00034", "GL00034日語文共同學制虛擬班二", "中級英文聽說訓練", 193001, 6 ],
+	[ "FLA0016", "FLA0016夜應外大學二甲", "英語會話", 193001, 6 ],
+	[ "access", "Self-Access Learning", "Listening", 193001, 6 ],
 	];
 
-uptodatepopulate( 'Leagues', $leagues );
+uptodatepopulate( 'Tournaments', $tournaments );
 
 my ($leaguefile, $players);
 
