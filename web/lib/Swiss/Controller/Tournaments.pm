@@ -257,7 +257,8 @@ sub rounds : Local {
 			->round;
 	my @members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
-	my @players = map { $_->profile } @members;
+	my @players = map { { id => $_->player, name => $_->profile->name,
+				absent => $_->absent } } @members;
 	my $rounds = $c->request->params->{rounds};
 	$c->model('DB::Tournaments')->find( { id => $tourid } )
 				->update( { rounds => $rounds } );
