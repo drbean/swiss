@@ -1,8 +1,8 @@
 # DESCRIPTION:  Check that late entering players get assimilated
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009 12月 30, 15時47分47秒
+# Last Edit: 2009 12月 30, 16時17分14秒
 
-our $VERSION =  0.1;
+our $VERSION =  0.2;
 
 use lib qw/t lib/;
 
@@ -300,57 +300,3 @@ C: 3
 c: 1
 D: 3
 d: 0
-
-
-=== Round 4 pairingnumbers
---- input chomp numbercheck
-3
---- expected yaml
-A: 1
-a: 2
-B: 3
-b: 4
-C: 5
-c: 6
-D: 7
-d: 8
-
-=== Post-Round 4 prefs
---- input chomp prefcheck
-3
---- expected yaml
-A: [ White, Mild ]
-a: [ Black, Mild ]
-B: [ Black, Mild ]
-b: [ White, Strong ]
-C: [ Black, Absolute ]
-c: [ White, Strong ]
-D: [ Black, Strong ]
-d: [ White, Strong ]
-
-=== Post-Round 4 floats
---- input chomp floatcheck
-3
---- expected yaml
-A: [ Not, Not, Not, Not ]
-a: [ Not, Not, Not, Down ]
-B: [ Not, Up, Down, Not ]
-b: [ ~, Not, Up, Up ]
-C: [ Not, Down, Up, Not ]
-c: [ ~, ~, Down, Up ]
-D: [ Down, Not, Down, Down ]
-d: [ ~, ~, ~, Up ]
-
-=== Post-Round 4 score
---- input chomp scorecheck
-3
---- expected yaml
-A: 2
-a: 2
-B: 2
-b: 1
-C: 3
-c: 1
-D: 3
-d: 0
-
