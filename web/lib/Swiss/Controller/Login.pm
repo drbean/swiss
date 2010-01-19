@@ -65,35 +65,6 @@ sub index :Path :Args(0)  {
     $c->stash->{template} = 'login.tt2';
 }
 
-=head2 official
-
-Set league official is organizing. Use session player_id to authenticate the participant.
-
-=cut
-
-sub official : Local {
-	my ($self, $c) = @_;
-	my $league = $c->request->params->{league} || "";
-	my $password = lc $c->request->params->{password} || "";
-        my $username = $c->session->{player_id};
-        if ( $c->authenticate( {id =>$username, password=>$password} ) ) {
-		# my $officialrole = "official";
-		my $officialrole = 1;
-		if ( $c->check_user_roles($officialrole) ) {
-			$c->session->{league} = $league;
-			$c->response->redirect($c->uri_for("/exercises/list"));
-			return;
-		}
-		else {
-		# Set an error message
-		$c->stash->{error_msg} = "Bad username or password?";
-		$c->stash->{template} = 'login.tt2';
-		}
-	}
-	$c->stash->{template} = 'login.tt2';
-}
-
-
 =head2 tournament
 
 Find tournament multi-tournament arbiter is arbiting.
@@ -123,3 +94,5 @@ it under the same terms as Perl itself.
 =cut
 
 1;
+
+# vim: set ts=8 sts=4 sw=4 noet:
