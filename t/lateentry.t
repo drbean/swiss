@@ -1,6 +1,6 @@
 # DESCRIPTION:  Check that late entering players get assimilated
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009  7月 23, 17時23分30秒
+# Last Edit: 2009 12月 30, 09時40分21秒
 
 our $VERSION =  0.1;
 
@@ -46,14 +46,20 @@ sub runRound {
 	my $matches = $pairing->{matches};
 	$tourney->{matches}->{$round} = $matches;
 	my @games;
-	for my $bracket ( keys %$matches )
-	{
+	for my $bracket ( keys %$matches ) {
 		my $tables = $matches->{$bracket};
-		$_->result( {
-			$Games::Tournament::Swiss::Config::roles[0] => 'Win',
-			$Games::Tournament::Swiss::Config::roles[1] => 'Loss',
-			} ) for @$tables;
-		push @games, @$tables;
+		for my $match ( @$tables ) {
+			if ( $match->isBye ) {
+				$match->result( { Bye => 'Bye' } );
+			}
+			else {
+				$match->result( {
+					$Games::Tournament::Swiss::Config::roles[0] => 'Win',
+					$Games::Tournament::Swiss::Config::roles[1] => 'Loss',
+				} );
+			}
+			push @games, @$tables;
+		}
 	}
 	$tourney->collectCards( @games );
 	$tourney->round(++$round);
