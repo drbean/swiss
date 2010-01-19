@@ -1,6 +1,6 @@
 # DESCRIPTION:  Check that late entering players get assimilated
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009 12月 30, 09時40分21秒
+# Last Edit: 2009 12月 30, 13時26分30秒
 
 our $VERSION =  0.1;
 
@@ -141,11 +141,11 @@ D: [ ~,     Mild ]
 --- input chomp floatcheck
 0
 --- expected yaml
-A: [ ~, Not ]
-a: [ ~, Not ]
-B: [ ~, Not ]
-C: [ ~, Not ]
-D: [ ~, Down ]
+A: [ Not ]
+a: [ Not ]
+B: [ Not ]
+C: [ Not ]
+D: [ Down ]
 
 === Post-Round 1 score
 --- input chomp scorecheck
@@ -183,12 +183,12 @@ D: [ Black, Strong ]
 --- input chomp floatcheck
 1
 --- expected yaml
-A: [ ~, Not, Not ]
-a: [ ~, Not, Not ]
-B: [ ~, Not, Up ]
-b: [ ~, ~, Not ]
-C: [ ~, Not, Down ]
-D: [ ~, Down, Not ]
+A: [ Not, Not ]
+a: [ Not, Not ]
+B: [ Not, Up ]
+b: [ ~, Not ]
+C: [ Not, Down ]
+D: [ Down, Not ]
 
 === Post-Round 2 score
 --- input chomp scorecheck
@@ -229,13 +229,13 @@ D: [ White, Mild ]
 --- input chomp floatcheck
 2
 --- expected yaml
-A: [ ~, Not, Not, Not ]
-a: [ ~, Not, Not, Not ]
-B: [ ~, Not, Up, Down ]
-b: [ ~, ~, Not, Up ]
-C: [ ~, Not, Down, Up ]
-c: [ ~, ~, ~, Down ]
-D: [ ~, Down, Not, Down ]
+A: [ Not, Not, Not ]
+a: [ Not, Not, Not ]
+B: [ Not, Up, Down ]
+b: [ ~, Not, Up ]
+C: [ Not, Down, Up ]
+c: [ ~, ~, Down ]
+D: [ Down, Not, Down ]
 
 === Post-Round 3 score
 --- input chomp scorecheck
@@ -279,14 +279,14 @@ d: [ White, Strong ]
 --- input chomp floatcheck
 3
 --- expected yaml
-A: [ ~, Not, Not, Not, Not ]
-a: [ ~, Not, Not, Not, Down ]
-B: [ ~, Not, Up, Down, Not ]
-b: [ ~, ~, Not, Up, Up ]
-C: [ ~, Not, Down, Up, Not ]
-c: [ ~, ~, ~, Down, Up ]
-D: [ ~, Down, Not, Down, Down ]
-d: [ ~, ~, ~, ~, Up ]
+A: [ Not, Not, Not, Not ]
+a: [ Not, Not, Not, Down ]
+B: [ Not, Up, Down, Not ]
+b: [ ~, Not, Up, Up ]
+C: [ Not, Down, Up, Not ]
+c: [ ~, ~, Down, Up ]
+D: [ Down, Not, Down, Down ]
+d: [ ~, ~, ~, Up ]
 
 === Post-Round 4 score
 --- input chomp scorecheck
