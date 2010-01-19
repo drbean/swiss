@@ -1,10 +1,17 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2009 10月 17, 20時30分48秒
+# Last Edit: 2010  1月 01, 13時00分30秒
 # $Id: $
 
 use warnings;
 use strict;
+
+use List::MoreUtils qw/any/;
+
+use Games::Tournament::Swiss::Config;
+use constant ROLES => @Games::Tournament::Swiss::Config::roles?
+			@Games::Tournament::Swiss::Config::roles:
+			Games::Tournament::Swiss::Config->roles;
 
 use base qw/Games::Tournament::Contestant/;
 
@@ -123,19 +130,44 @@ sub opponents {
 
 =head2 roles
 
-	$member->roles( 'Black' )
-	$rolehistory = $member->roles
+	$member->roles( 1, 'Black' )
+	$member->roles( 1 ) # 'Black'
+	$rolehistory = $member->roles # { 1 => 'Black' }
 
-If parameters are passed, adds them to the end of the list representing the latest roles that $member has had in this tournament. (Normally one and only one parameter, the role in the latest round, will be passed.) If no parameter is passed, returns a reference to the list. If the member had no game or even if they had a game but didn't play it, that is, if they had a bye, or no result, or were unpaired, pass 'Bye', or 'Forfeit', or 'Unpaired.' F2,3
+If a round and role are passed, adds them to the roles that $member has had in this tournament. If the member had no game (or had a game but didn't play it), that is, if they had a bye, or no result, or were unpaired, pass 'Bye', or 'Forfeit', or 'Unpaired.' F2,3
 
 =cut
 
 sub roles {
     my $self = shift;
-    my @roles = @_;
-    if ( @roles ) { push @{ $self->{roles} }, @roles; return }
+    my $round = shift;
+    my $role = shift;
+    if ( defined $role and defined $round ) {
+	my $oldrole = $self->{roles}->{$round};
+	warn "$oldrole role replaced by $role" if defined $oldrole;
+	$self->{roles}->{$round} = $role;
+    }
+    elsif ( $self->{roles} and $round ) { return $self->{roles}->{$round}; }
     elsif ( $self->{roles} ) { return $self->{roles}; }
-    else { return []; }
+    else { return {}; }
+}
+
+
+=head2 rolesPlayedList
+
+A list, in round order, of the roles played against other players.
+
+=cut
+
+sub rolesPlayedList {
+    my $self = shift;
+    my $roles = $self->roles;
+    my @rounds = sort { $a <=> $b } keys %$roles;
+    my $last = $rounds[-1];
+    my @playrounds = grep { my $role = $roles->{$_};
+			    any { $role eq $_ } ROLES } @rounds;
+    my @playroles = map { $roles->{$_} } @playrounds;
+    return \@playroles;
 }
 
 
