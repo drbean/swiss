@@ -314,6 +314,6 @@ push @tests,
 plan tests => $#tests + 1;
 
 ok( $_->[0], $_->[ 1, ], ) for @tests[0..9];
-is( $_->[0], $_->[ 1, ], $_->[ 2, ], ) for @tests[10..$#tests];
+is_deeply( $_->[0], $_->[ 1, ], $_->[ 2, ], ) for @tests[10..$#tests];
 
 # vim: set ts=8 sts=4 sw=4 noet:
