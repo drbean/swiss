@@ -85,4 +85,10 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 	$s->populate( \@newmembers );
 }
 
+my @officials = ( [ qw/id name password/ ] );
+push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
+193001	DrBean	ok
+greg	greg	ok
+OFFICIALS
+$s->populate( 'Arbiters', \@officials );
 
