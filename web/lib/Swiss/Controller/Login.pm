@@ -1,4 +1,4 @@
-package dic::Controller::Login;
+package Swiss::Controller::Login;
 
 use strict;
 use warnings;
@@ -19,7 +19,7 @@ Catalyst Controller.
 
 =head2 index
 
-Login logic. We used to let "guest"s in without a password, or ID and also redirect to exercise list. Now we redirect to the exercise, if it appears as the one argument.
+Arbiter login. If arbiter has more than one tournament, find out the one being arbited now.
 
 =cut
 
@@ -31,32 +31,19 @@ sub index :Path :Args(0)  {
     if ( $id && $name && $password ) {
         my $username = $id;
         if ( $c->authenticate( { id => $username, password => $password } ) ) {
-            $c->session->{player_id} = $id;
-            $c->session->{question} = undef;
-            my $officialrole = 1;
-            if ( $c->check_user_roles($officialrole) ) {
-                $c->stash->{id}   = $id;
-                $c->stash->{name} = $name;
-                $c->stash->{leagues} =
-                  [ $c->model('DB::League')->search( {} ) ];
-                $c->stash->{template} = 'official.tt2';
-                return;
-            }
-            my @memberships =
-              $c->model("DB::Member")->search( { player => $id } );
-            my @leagues;
-            for my $membership (@memberships) {
-                push @leagues, $membership->league;
-            }
-            unless ( @leagues == 1 ) {
+            $c->session->{arbiter_id} = $id;
+            my @tournaments =
+              $c->model("DB::Tournaments")->search( { arbiter => $id } )->
+	      	get_column('id');
+            unless ( @tournaments <= 1 ) {
                 $c->stash->{id}         = $id;
                 $c->stash->{name}       = $name;
-                $c->stash->{leagues}   = \@leagues;
-                $c->stash->{template}   = 'membership.tt2';
+                $c->stash->{tournaments}   = \@tournaments;
+                $c->stash->{template}   = 'tournaments.tt2';
                 return;
             }
             else {
-                $c->session->{league}   = $leagues[0]->id;
+                $c->session->{tournament}   = $tournaments[0];
 		if ( defined $c->session->{exercise}) {
 			my $exercise = $c->session->{exercise};
 			$c->response->redirect(
@@ -107,13 +94,13 @@ sub official : Local {
 }
 
 
-=head2 membership
+=head2 tournament
 
-Set league multi-membership player is participating in.
+Find tournament multi-tournament arbiter is arbiting.
 
 =cut
 
-sub membership : Local {
+sub tournaments : Local {
 	my ($self, $c) = @_;
 	my $league = $c->request->params->{league} || "";
 	my $password = $c->request->params->{password} || "";
