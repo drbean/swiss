@@ -6,45 +6,24 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("exercises");
+__PACKAGE__->table("tournaments");
 __PACKAGE__->add_columns(
-  "genre",
+  "name",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
     size => 15,
   },
-  "id",
+  "rounds",
   {
-    data_type => "VARCHAR",
+    data_type => "SMALLINT",
     default_value => undef,
     is_nullable => 0,
-    size => 15,
-  },
-  "text",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 15,
-  },
-  "description",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 50,
-  },
-  "type",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 15,
+    size => undef,
   },
 );
-__PACKAGE__->set_primary_key("genre", "id");
+__PACKAGE__->set_primary_key("name", );
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-09-22 15:03:53
