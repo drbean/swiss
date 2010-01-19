@@ -22,12 +22,12 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 15,
   },
-  "password",
+  "rating",
   {
-    data_type => "VARCHAR",
+    data_type => "SMALLINT",
     default_value => undef,
-    is_nullable => 0,
-    size => 50,
+    is_nullable => 1,
+    size => undef,
   },
 );
 __PACKAGE__->set_primary_key("id");
