@@ -59,7 +59,6 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 	my $members = $league->members;
 	my @members = map { { tournament => $tournament, player => $_->{id}, absent => 'False' } } @$members;
 	my $grades = Grades->new( league => $league );
-	my $id = $league->id;
 	my $name = $league->name;
 	my $description = $league->field;
 	my $arbiter = '193001';
@@ -70,7 +69,7 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 		description => $description,
 		arbiter => $arbiter,
 		rounds => 6,
-		round => { round => 0, tournament => $id },
+		round => { round => 0, tournament => $tournament },
 		members => \@members,
 		};
 	push @newtournaments, $newtournament;
