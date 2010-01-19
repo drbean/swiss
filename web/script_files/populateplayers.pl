@@ -10,6 +10,6 @@ my $io = io '-';
 for my $member ( @$members ) {
 	my $name = $member->{name};
 	my $rating = $member->{rating};
-	$io->append( "$member->{id}\t$name\t$rating\t1\n") if
+	$io->print( "$member->{id}\t$name\t$rating\t1\n") if
 		$name =~ m/^[A-Za-z'-]+$/;
 }
