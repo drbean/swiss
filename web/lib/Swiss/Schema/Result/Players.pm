@@ -1,4 +1,4 @@
-package Web::Schema::Result::Players;
+package Swiss::Schema::Result::Players;
 
 use strict;
 use warnings;
