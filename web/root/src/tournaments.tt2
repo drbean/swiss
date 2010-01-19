@@ -1,0 +1,17 @@
+[% META title = 'Membership' %]
+
+[% name %], [% id %]! You are in a number of leagues. Which league are you participating in now?
+
+<!-- Membership form -->
+<form method="post" action=" [% Catalyst.uri_for('/login/membership') %] ">
+  <select name="league" size="[% leagues.size %]">
+      [% FOR league IN leagues -%]
+      <option value="[% league.id %]">[% league.name %] [% league.field %]</option>
+      [% END -%]
+  </select>
+
+<p>
+  <INPUT type="submit" value="Submit">
+</p>
+
+</form>
