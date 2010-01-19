@@ -44,10 +44,10 @@ sub index :Path :Args(0)  {
             }
             else {
                 $c->session->{tournament}   = $tournaments[0];
-		if ( defined $c->session->{exercise}) {
-			my $exercise = $c->session->{exercise};
+		if ( defined $c->session->{round}) {
+			my $round = $c->session->{round};
 			$c->response->redirect(
-				$c->uri_for( "/play/update/$exercise" ) );
+				$c->uri_for( "/play/update/$round" ) );
 		}
 		else {
 			$c->response->redirect( $c->uri_for("/exercises/list") );
