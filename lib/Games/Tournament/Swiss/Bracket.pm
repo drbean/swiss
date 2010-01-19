@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009 12月 23, 11時03分55秒
+# Last Edit: 2009 12月 23, 11時25分57秒
 # $Id: $
 
 use warnings;
@@ -196,10 +196,10 @@ Returns the members includeable in pairing procedures for this bracket because t
 
 sub residents {
     my $self    = shift;
-    my @members = @{ $self->{members} };
+    my $members = $self->members;
     my @residents;
     my $floated = $self->emigrants;
-    for my $member (@members) {
+    for my $member (@$members) {
         push @residents, $member
           unless any { $member->pairingNumber == $_->pairingNumber } @$floated;
     }
