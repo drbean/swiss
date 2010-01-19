@@ -148,7 +148,8 @@ my $runRound = sub {
     my @games = $tourney->recreateCards( {
        round => $round, opponents => \%opponents,
 	roles => \%roles, floats => \%floats } );
-   $tourney->collectCards( @games );
+    local $SIG{__WARN__} = sub {};
+    $tourney->collectCards( @games );
     my %b = $tourney->formBrackets;
     my $pairing  = $tourney->pairing( \%b );
     my $p        = $pairing->matchPlayers;

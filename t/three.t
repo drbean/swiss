@@ -70,6 +70,7 @@ sub runRound {
 		$_->result( $results->{$bracket} ) for @$tables;
 		push @games, @$tables;
 	}
+	local $SIG{__WARN__} = sub {};
 	$tourney->collectCards( @games );
 	$tourney->round($round);
 };

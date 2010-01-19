@@ -146,6 +146,7 @@ for my $round ( 1..$lastround )
     my @games = $tourney->recreateCards( {
        round => $round, opponents => \%opponents,
 	roles => \%roles, floats => \%floats } );
+   local $SIG{__WARN__} = sub {};
    $tourney->collectCards( @games );
 }
 
