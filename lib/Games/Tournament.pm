@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009 10月 28, 11時43分30秒
+# Last Edit: 2009 12月 23, 11時23分25秒
 # $Id: $
 
 use warnings;
@@ -78,7 +78,9 @@ sub enter {
     die "Player " . $player->id . " entering in Round $round + 1?" unless
 			looks_like_number($round);
     $player->firstround($round+1) unless $player->firstround;
-    my @absentids = map { $_->id } @{ $self->absentees };
+    my $absent = $self->absentees;
+    my @absentids;
+    @absentids = map { $_->id } @$absent if $absent and ref $absent eq 'ARRAY';
     $player->absent(1) if any { $_ eq $player->id } @absentids;
     my $entrants = $self->entrants;
     for my $required ( qw/id name/ ) {
