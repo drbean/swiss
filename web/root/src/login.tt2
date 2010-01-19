@@ -1,7 +1,7 @@
 [% META title = 'Login' %]
 
 <!-- Login form -->
-<form method="post" action=" [% Catalyst.uri_for('/login') %] ">
+<form method="post" action=" [% c.uri_for('/login') %] ">
   <table>
     <tr>
       <td>Username:</td>
@@ -26,9 +26,9 @@
    # This code illustrates how certain parts of the TT 
    # template will only be shown to users who have logged in
 %]
-[% IF Catalyst.user_exists %]
-    Please Note: You are already logged in as '[% Catalyst.user.name %]'.
-    You can <a href="[% Catalyst.uri_for('/logout') %]">logout</a> here.
+[% IF c.user_exists %]
+    Please Note: You are already logged in as '[% c.user.name %]'.
+    You can <a href="[% c.uri_for('/logout') %]">logout</a> here.
 [% ELSE %]
     You need to log in to use this application.
 [% END %]
