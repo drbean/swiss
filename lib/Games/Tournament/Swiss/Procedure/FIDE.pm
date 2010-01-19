@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009 12月 31, 09時47分48秒
+# Last Edit: 2010  1月 01, 19時37分05秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -111,7 +111,7 @@ sub matchPlayers {
         C4,      [ \&c4,      C5 ],
         C5,      [ \&c5,      C6PAIRS ],
         C6PAIRS, [ \&c6pairs, C6OTHERS, C7, NEXT ],
-        C6OTHERS, [ \&c6others, NEXT, C1, C2, C10, BYE ],
+        C6OTHERS, [ \&c6others, NEXT, C1, C2, C10, BYE, C13 ],
         C7, [ \&c7, C6PAIRS, C8, C9, C10, C11 ],
         C8,  [ \&c8,  C5, C9,  C10 ],
         C9,  [ \&c9,  C4, C10 ],
@@ -684,10 +684,13 @@ sub c6others {
     die "Unpaired players are: $nonpaired?" unless defined $nonpaired and
 							    @$nonpaired;
     if ( @$nonpaired == 1 and $index eq $self->lastBracket ) {
-	my $id = $nonpaired->[0]->pairingNumber;
-	$self->log( "One unpaired player, $id in last bracket $number." );
-	$self->byer($nonpaired->[0]);
-	return BYE;
+	my $pairingN = $nonpaired->[0]->pairingNumber;
+	my $id = $nonpaired->[0]->id;
+	$self->log( "One unpaired player, $pairingN in last bracket $number." );
+	my $byeGone = $self->byes->{$id};
+	unless ( $byeGone) { $self->byer($nonpaired->[0]); return BYE; }
+	$self->log( "B1b: But that player, id $id had Bye in round $byeGone." );
+	return C13;
     }
     if ( not $group->hetero or @$nonpaired == 1 ) {
 	my $next = $self->nextBracket;
@@ -1362,7 +1365,7 @@ sub c12 {
 
  Games::Tournament::Swiss::Procedure->c13
 
-If the lowest score group contains a player who cannot be paired without violating B1 or B2 or who, if they are the only player in the group, cannot be given a bye (B2b), the pairing of the penultimate score bracket is undone.  Try to find another pairing in the penultimate score bracket which will allow a pairing in the lowest score bracket. If in the penultimate score bracket p becomes zero (i.e. no pairing can be found which will allow a correct pairing for the lowest score bracket) then the two lowest score brackets are joined into a new lowest score bracket. Because now another score bracket is the penultimate one C13 can be repeated until an acceptable pairing is obtained.  XXX  Perhaps all the players from the old penultimate bracket were floated down. eg, t/cc6619.t. As a hack unfloat only those with the same score as the new penultimate bracket.
+If the lowest score group contains a player who cannot be paired without violating B1 or B2 or who, if they are the only player in the group, cannot be given a bye (B1b), the pairing of the penultimate score bracket is undone.  Try to find another pairing in the penultimate score bracket which will allow a pairing in the lowest score bracket. If in the penultimate score bracket p becomes zero (i.e. no pairing can be found which will allow a correct pairing for the lowest score bracket) then the two lowest score brackets are joined into a new lowest score bracket. Because now another score bracket is the penultimate one C13 can be repeated until an acceptable pairing is obtained.  XXX  Perhaps all the players from the old penultimate bracket were floated down. eg, t/cc6619.t. As a hack unfloat only those with the same score as the new penultimate bracket.
 
 TODO not finding a pairing is not a program ERROR, but a LAST state.
 
@@ -1381,7 +1384,7 @@ sub c13 {
 	$self->log("$index-Bracket [$number] not last group. Passing to C14" ) ;
 	return C14;
     }
-    if ( @$members == 1 and not $self->byes->{$members->[0]->pairingNumber} ) {
+    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
 	$self->byer($members->[0]);
 	return BYE;
     }
@@ -1395,7 +1398,7 @@ sub c13 {
     my $penultimateNumber = $penultimateBracket->number;
     my $penultScore = $penultimateBracket->score;
     # $penultimateBracket->floatCheckWaive('None');
-    if ( @$members == 1 and not $self->byes->{$members->[0]->pairingNumber} ) {
+    if ( @$members == 1 and not $self->byes->{$members->[0]->id} ) {
 	$self->byer($members->[0]);
 	return BYE;
     }
