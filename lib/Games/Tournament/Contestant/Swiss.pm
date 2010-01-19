@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2010  1月 01, 13時00分30秒
+# Last Edit: 2010  1月 01, 16時49分05秒
 # $Id: $
 
 use warnings;
@@ -155,7 +155,7 @@ sub roles {
 
 =head2 rolesPlayedList
 
-A list, in round order, of the roles played against other players.
+A list, in round order, of the roles played against other players. Byes and other non-partnership roles are not included.
 
 =cut
 
