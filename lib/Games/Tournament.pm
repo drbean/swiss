@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2009 12月 23, 11時23分25秒
+# Last Edit: 2010  1月 01, 16時13分02秒
 # $Id: $
 
 use warnings;
@@ -662,7 +662,7 @@ sub loggedProcedures {
     my @states = @_;
     unless ( @states ) { return keys %{ $self->{logged} }; }
     my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 20;
+    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 BYE MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 21;
     for my $state (@states)
     {   
 	carp "$state is unloggable procedure" if not exists $logged{$state};
@@ -684,7 +684,7 @@ Adds messages generated in all the procedures to a reportable log
 sub loggingAll {
     my $self = shift;
     my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 20;
+    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 BYE MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 21;
     for my $state ( keys %logged )
     {   
 	# carp "$state is unloggable procedure" if not exists $logged{$state};
@@ -712,7 +712,7 @@ sub disloggedProcedures {
 	@{$self->{logged}}{@methods} = (0) x @methods;
     }
     my %logged;
-    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 20;
+    @logged{qw/START NEXT PREV C1 C2 C3 C4 C5 C6PAIRS C6OTHERS C7 C8 C9 C10 C11 C12 C13 C14 BYE MATCHPLAYERS ASSIGNPAIRINGNUMBERS/} = (1) x 21;
     for my $state (@states)
     {   
 	carp "$state is unloggable procedure" if not defined $logged{$state};
