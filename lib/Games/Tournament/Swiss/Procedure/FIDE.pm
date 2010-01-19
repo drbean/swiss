@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2009 10月 18, 18時43分25秒
+# Last Edit: 2009 12月 31, 09時47分48秒
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1596,7 +1596,7 @@ sub colors {
     my ($message, @bracketMatches);
     for my $pair ( @$pairs ) {
         my @pair = @$pair;
-        my @rolehistory = ( map { $pair[$_]->roles } 0, 1 );
+        my @rolehistory = ( map { $pair[$_]->rolesPlayedList } 0, 1 );
 	my @lastdiff;
 	for my $lookback ( 1 .. $round - FIRSTROUND )
 	{

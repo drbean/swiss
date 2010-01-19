@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009 12月 28, 16時23分19秒
+# Last Edit: 2009 12月 31, 10時03分21秒
 # $Id$
 
 use warnings;
@@ -248,25 +248,25 @@ sub collectCards {
 		my $entrant = $self->ided($id);
 		my $oldroles = $player->roles;
 		my $scores   = $player->scores;
-		my ( $role, $float );
+		my ( $role, $float, $score );
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
 		$scores->{$round} = ref $game->result eq 'HASH'? 
 			    $game->result->{$role}: undef;
+		$score = $scores->{$round};
 		carp
 		  "No result on card for player $id as $role in round $round,"
-			unless $scores->{$round};
+			unless $score;
 		$game ||= "No game";
 		$play->{$round}->{$id} = $game;
 		$entrant->scores($scores);
 		carp "No record in round $round for player $id $player->{name},"
 		  unless $play->{$round}->{$id};
-		$entrant->roles($role) unless $scores->{round} and
-			$scores->{$round} eq 'Bye'||'Forfeit';
+		$entrant->roles( $round, $role );
 		$entrant->floats( $round, $float );
 		$entrant->floating('');
-		$entrant->preference->update( $entrant->roles ) unless
-		    $scores->{round} and $scores->{$round} eq 'Bye'||'Forfeit';
+		$entrant->preference->update( $entrant->rolesPlayedList ) unless
+		    $score and $score eq 'Bye' or $score eq 'Forfeit';
 ;
 	    }
 	}

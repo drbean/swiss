@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss::Preference;
 
-# Last Edit: 2009  8月 06, 07時57分01秒
+# Last Edit: 2009 12月 31, 15時27分34秒
 # $Id: $
 
 use warnings;
@@ -75,8 +75,7 @@ sub update {
     my $roles = shift;
     my $message = "Preference update: ";
     return unless any { $roles->[-1] eq $_ } ROLES;
-    my @noplayOut = grep { my $role = $_; any { $role eq $_ } ROLES } @$roles;
-    my @reverseRoles = reverse @noplayOut;
+    my @reverseRoles = reverse @$roles;
     my $lastRole       = $reverseRoles[0];
     my $before         = $reverseRoles[1];
     my $oneBeforeThat = $reverseRoles[2];
