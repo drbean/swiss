@@ -24,7 +24,7 @@
 
 <H2>Start new tournament</H2>
 
-<form method="post" action="[% c.uri_for('name') %]">
+<form method="post" action="[% c.uri_for('/name') %]">
   Tournament Name:</td><td>
   <INPUT type="text" name="tournament" size="15">
   <INPUT type="submit" name="new" value="New">
