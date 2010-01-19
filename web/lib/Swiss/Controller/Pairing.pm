@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2009 11月 25, 12時04分02秒
+# Last Edit: 2010  1月 01, 20時01分11秒
 # $Id$
 
 use strict;
@@ -76,6 +76,7 @@ Prepare to pair next round
 
 sub preppair : Local {
         my ($self, $c) = @_;
+	my $requestargs = $c->request->args;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->round;
@@ -127,7 +128,7 @@ sub preppair : Local {
 		$pairingtable = $c->model('GTS')->parseTable($tourney, $table);
 		$latestscores = $pairingtable->{score};
 	}
-	elsif ( $c->request->args->[0] eq 'editable' ) {
+	elsif ( $requestargs and $requestargs->[0] eq 'editable' ) {
 		@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
 			$pairingtable );
 		$c->stash->{pairtable} = \@playerlist;
@@ -208,7 +209,6 @@ sub preppair : Local {
 			}
 		}
 	}
-$DB::single=1;
 	@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
 		$newhistory );
 	$c->stash->{pairtable} = \@playerlist;
