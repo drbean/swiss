@@ -29,31 +29,16 @@ sub index :Path :Args(0)  {
     my $name     = $c->request->params->{name}     || "";
     my $password = lc $c->request->params->{password} || "";
     if ( $id && $name && $password ) {
-        my $username = $id;
-        if ( $c->authenticate( { id => $username, password => $password } ) ) {
+        if ( $c->authenticate( { id => $id, password => $password } ) ) {
             $c->session->{arbiter_id} = $id;
             my @tournaments =
               $c->model("DB::Tournaments")->search( { arbiter => $id } )->
-	      	get_column('id');
-            unless ( @tournaments <= 1 ) {
-                $c->stash->{id}         = $id;
-                $c->stash->{name}       = $name;
-                $c->stash->{tournaments}   = \@tournaments;
-                $c->stash->{template}   = 'tournaments.tt2';
-                return;
-            }
-            else {
-                $c->session->{tournament}   = $tournaments[0];
-		if ( defined $c->session->{round}) {
-			my $round = $c->session->{round};
-			$c->response->redirect(
-				$c->uri_for( "/play/update/$round" ) );
-		}
-		else {
-			$c->response->redirect( $c->uri_for("/exercises/list") );
-		}
-                return;
-            }
+	      	get_column('id')->all;
+	    $c->stash->{id}         = $id;
+	    $c->stash->{name}       = $name;
+	    $c->stash->{tournaments}   = \@tournaments;
+	    $c->stash->{template}   = 'swiss.tt2';
+	    return;
         }
         else {
             $c->stash->{error_msg} = "Bad username or password.";
