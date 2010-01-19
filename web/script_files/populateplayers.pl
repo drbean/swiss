@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-#!/usr/bin/perl
 
 =head1 NAME
 
@@ -69,7 +68,6 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 			$rating += $grades->points( $comp )->{$id};
 			use warnings 'uninitialized';
 		}
-		$member->{newrating} = $rating;
 		push @newmembers, {
 			name => $name,
 			id => $id,
@@ -80,15 +78,5 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 				firstround => 1, }
 		};
 	}
-	@newmembers = sort { $b->{newrating} <=> $a->{newrating} } @newmembers;
-	# $io->print( "$_->{id}\t$_->{name}\t$_->{newrating}\t1\n") for @newmembers;
 	$s->populate( \@newmembers );
 }
-
-my @officials = ( [ qw/id name password/ ] );
-push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
-193001	DrBean	ok
-greg	greg	ok
-OFFICIALS
-$s->populate( 'Arbiters', \@officials );
-

@@ -57,6 +57,7 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 	my $league = League->new( id =>
 		"/home/drbean/class/$tournament" );
 	my $members = $league->members;
+	@$members = grep { $_->{name} =~ m/^[0-9a-zA-Z'-]*$/ } @$members;
 	my @members = map { { tournament => $tournament, player => $_->{id}, absent => 'False' } } @$members;
 	my $grades = Grades->new( league => $league );
 	my $name = $league->name;
@@ -76,4 +77,12 @@ for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
 }
 $s->populate( \@newtournaments );
 
+$s = $d->resultset('Arbiters');
+
+my @officials = ( [ qw/id name password/ ] );
+push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
+193001	DrBean	ok
+greg	greg	ok
+OFFICIALS
+$s->populate( \@officials );
 
