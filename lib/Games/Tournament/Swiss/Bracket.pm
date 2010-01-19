@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2009 12月 23, 11時25分57秒
+# Last Edit: 2009 12月 30, 15時23分00秒
 # $Id: $
 
 use warnings;
@@ -265,7 +265,7 @@ sub entry {
     my $self   = shift;
     my $members = $self->residents;
     my $enterer = shift;
-    my $myId = $enterer->pairingNumber;
+    my $myId = $enterer->id;
     my $number = $self->number;
     croak "Player $myId cannot enter Bracket $number. Is already there." if 
 	any { $_->{id} eq $myId } @$members;
