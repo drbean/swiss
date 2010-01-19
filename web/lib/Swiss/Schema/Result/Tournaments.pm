@@ -1,4 +1,4 @@
-package Web::Schema::Result::Exercises;
+package Swiss::Schema::Result::Tournaments;
 
 use strict;
 use warnings;
