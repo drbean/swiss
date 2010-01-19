@@ -2,7 +2,8 @@
 
 use strict;
 use warnings;
-use lib 'lib';
+use FindBin qw/$Bin/;
+use lib "$Bin/../lib";
 
 use Config::General;
 use Cwd;
@@ -11,7 +12,7 @@ use List::MoreUtils qw/all/;
 use YAML qw/LoadFile/;
 
 BEGIN {
-	my @MyAppConf = glob( '*.conf' );
+	my @MyAppConf = glob( "$Bin/../*.conf" );
 	die "Which of @MyAppConf is the configuration file?"
 				unless @MyAppConf == 1;
 	my %config = Config::General->new($MyAppConf[0])->getall;
@@ -69,7 +70,7 @@ foreach my $league ( 'officials', @leagueids )
 	}
 }
 my $playerpopulator = [ [ qw/id name rating/ ], values %players ];
-uptodatepopulate( 'Players', $playerpopulator );
+# uptodatepopulate( 'Players', $playerpopulator );
 
 my @allLeaguePlayers;
 foreach my $league ( @leagueids )
@@ -83,8 +84,7 @@ foreach my $league ( @leagueids )
 	}
 	push @allLeaguePlayers, values %members;
 }
-uptodatepopulate( 'Members', [ [ qw/league player/ ], 
-				@allLeaguePlayers ] );
+# uptodatepopulate( 'Members', [ [ qw/league player/ ], @allLeaguePlayers ] );
 
 sub uptodatepopulate
 {
