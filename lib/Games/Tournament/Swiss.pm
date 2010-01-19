@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009 10月 28, 12時17分31秒
+# Last Edit: 2009 12月 23, 12時03分06秒
 # $Id$
 
 use warnings;
@@ -251,7 +251,7 @@ sub collectCards {
 		my ( $role, $float );
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
-		$scores->{$round} = $game->{result}->{$role};
+		$scores->{$round} = $game->result->{$role};
 		#carp
 		#  "No result on card for player $id as $role in round $round "
 		#	unless $scores->{$round};
