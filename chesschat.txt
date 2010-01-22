@@ -1,7 +1,3 @@
-At http://chesschat.org/showthread.php?t=10334, there was a discussion of how late entries would require a reassignment of pairing numbers.
-
-Meanwhile, at http://chesschat.org/showthread.php?t=10112, there was discussion of puzzling behavior by Swiss Master with a player's "Prefixed Theoretical Color" (or default) preference.
-
 At http://chesschat.org/showpost.php?p=241948&postcount=38,
 losboba said:
 [QUOTE=losboba]
@@ -16,19 +12,25 @@ To my astonishment, SM considered 105 as expecting White and therefore put x=1. 
 I would have generated: 76-110 123-77 87-116 101-126 103-130 125-104 131-105 132-107. Anything wrong with that?
 [/QUOTE]
 
-I don't know whether the second pairing is correct or not. It looks 
+Another easy way to generate the same mistaken behavior, and one that Games::Tournament::Swiss was guilty of, is to take a shortcut and calculate the number of players with one preference by subtracting the number with the other preference from the total number of players in the bracket.
 
-However, even if one late player does get a determined PTC preference, it is clear that late entries cannot require a redetermination by lot of all other players' preferences too, in distinction from the the pattern established by reassignment of pairing numbers, where everyone gets a new number.
+If every player has a preference, no error is generated. But in the case above, if we calculate b as 7 and then assume w is 16-7, or 9, we conclude x=1.
 
-But what about determination of preferences before the first round?
+The FIDE calculation actually allows the possibility of negative x.
 
-I am assuming in the first round, preferences are determined before pairings are made, because this is how it happens in later rounds. The preferences for the next round are the consequence of the pairings (as realized) in the previous round.
+[QUOTE=Rules]
+A.8 Definition of "x"
+The number of pairings which can be made in a score bracket, either
+homogeneous or heterogeneous, not fulfilling all colour preferences,
+is represented by the symbol x.
+x can be calculated as follows:
+w = number of players having a colour preference white.
+b = number of players having a colour preference black.
+q = number of players in the score bracket divided by 2, rounded
+upwards.
+If b >> w then x = b-q, else x = w-q.
+[/QUOTE]
 
-Consider the case of a new player turning up before the first round has been played, in the very short instance of time BEFORE pairings have been decided, but AFTER pairing numbers have been assigned and preferences have been determined by lot?
+If there are 5 players in the bracket, and w=2, b=2 and q=3, ie, there is one late entry, then x=-1.
 
-Here, I think it is clear that preferences WOULD be redetermined for all players.
-
-I'm making a point of this because Games::Tournament::Swiss, as I have written it, is pairing a latecomer in the first round as
-
-
-
+So, we have to 'round up' to zero.
