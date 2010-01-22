@@ -51,9 +51,9 @@ my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
 my $s = $d->resultset('Players');
 
-for my $tournament ( qw/GL00029 GL00030 GL00031 FLA0016/ ) {
+for my $tournament ( "beans/t/emile" ) {
 	my $league = League->new( id =>
-		"/home/drbean/class/$tournament" );
+		"$config{leagues}/$tournament" );
 	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
 	my $comps = $grades->conversations;
