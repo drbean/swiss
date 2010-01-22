@@ -282,6 +282,8 @@ sub rounds : Local {
 	my $tourname = $cookies->{tournament}->value;
 	my $round = $cookies->{"${tourname}_round"}->value;
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
+	my $round = $c->request->cookie('round') ?
+				$c->request->cookie('round')->value : 1;
 	my $rounds = $c->request->params->{rounds};
 	setCookie( $c, "${tourname}_rounds" => $rounds );
 	$c->stash->{tournament} = $tourname;
@@ -509,6 +511,7 @@ sub nextround : Local {
 			$newhistory );
 		$c->stash->{pairtable} = \@playerlist;
 	}
+	$c->stash->{tournament} = $tourname;
 	$c->stash->{tournament} = $tourname;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $c->model('GTS')->roles;

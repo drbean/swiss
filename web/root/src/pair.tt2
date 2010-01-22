@@ -1,9 +1,0 @@
-[% META title = 'Pair' -%]
-[% n = 1 %]
-
-<table>
-<caption><h1>[% tournament %] Tournament Pairing Table, Round [% round %]</h1></caption>
-</table>
-
-<br>
-<a href="[% c.uri_for('nextround') %]">Round 1</a>
