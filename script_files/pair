@@ -64,7 +64,7 @@ for my $member ( @{ $league->{member} } ) {
 }
 
 my $tourney = Games::Tournament::Swiss->new(
-		round => 0,
+		round => $round,
 		entrants => $lineup );
 
 my $lateEntries = $league->{late};
