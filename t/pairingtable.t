@@ -59,7 +59,7 @@ title: Unknown
 DumpFile './league.yaml', {member => \@members};
 mkdir '1';
 chdir '1' or warn "No round 1 directory: $!";
-system "$secure_perl_path ../script_files/pair";
+system "$secure_perl_path ../script_files/pairstately";
 
 chdir '..' or warn "No tourney directory: $!";
 mkdir './scores';
