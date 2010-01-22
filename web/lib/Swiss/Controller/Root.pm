@@ -208,7 +208,6 @@ Later rounds, players
 
 sub edit_players : Local {
         my ($self, $c) = @_;
-	my $tournament = $c->stash->{tournament};
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $round = $c->request->cookie("${tourname}_round")->value + 1;
