@@ -3,10 +3,11 @@
 
 <h1>[% tournament %] Tournament, Round [% round %]</h1>
 
+<h2><a href="[% c.uri_for('final_players') %]">No more players</a></h2>
+
 <form method="post" action="[% c.uri_for('add_player') %]">
 <table>
   <TR><TH colspan="3"><H2>Add player</H2>
-  <tr><td colspan="2"><input type="submit" name="stop" value="No more players">
   <tr><th>Id<th>Name<th>Rating</tr>
   <tr>
     <td><input type="text" name="id" size="8" maxlength="8">
@@ -14,7 +15,18 @@
     <td><input type="text" name="rating" size="4" maxlength="4">
   <tr>
     <td colspan="2"><input type="submit" name="add" value="Add player">
+</table>
 </form>
+
+<table>
+  <TR><TH colspan="3"><H2>Entry list</H2>
+  <tr><th class="playerid">Id<th class="playername">Name<th class="playerrating">Rating</tr>
+[% FOREACH player IN playerlist %]
+  <tr>
+    <td style="width: 5em">[% player.id %]
+    <td style="width: 11em">[% player.name %]
+    <td style="width: 2em">[% player.rating %]
+[% END -%]
 </table>
 
 <form method="post" action="[% c.uri_for('edit_players') %]">
