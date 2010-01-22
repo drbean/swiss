@@ -9,6 +9,7 @@ use Carp;
 
 use List::Util qw/min reduce sum first/;
 use List::MoreUtils qw/any all/;
+use List::MoreUtils qw/any all/;
 
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
 			@Games::Tournament::Swiss::Config::roles:

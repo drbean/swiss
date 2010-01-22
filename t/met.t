@@ -63,15 +63,6 @@ $t->round(3);
 
 $t->collectCards(@g);
 
-for my $game ( @g ) {
-	my $round = $game->round;
-	my $contestants = $game->contestants;
-	for my $role ( keys %$contestants ) {
-		my $contestant = $contestants->{$role};
-		$contestant->play({ $round => $game });
-	}
-}
-
 my $play = $t->play;
 
 sub player {
