@@ -1,45 +1,12 @@
-[% META title = 'Entrants' -%]
-[% space=' '%]
+[% META title = 'First Round' -%]
 
-<h1>[% tournament %] Tournament, Round [% round %]</h1>
-
-<h2><a href="[% c.uri_for('final_players') %]">No more players</a></h2>
-
-<form method="post" action="[% c.uri_for('add_player') %]">
+<form method="post" action="[% c.uri_for('first') %]">
 <table>
-  <TR><TH colspan="3"><H2>Add player</H2>
-  <tr><th>Id<th>Name<th>Rating</tr>
-  <tr>
-    <td><input type="text" name="id" size="12" maxlength="8">
-    <td><input type="text" name="name" size="30" maxlength="20">
-    <td><input type="text" name="rating" size="8" maxlength="4">
-  <tr>
-    <td colspan="2"><input type="submit" name="add" value="Add player">
-</table>
-</form>
-
-<table>
-  <TR><TH colspan="3"><H2>Entry list</H2>
-  <tr><th>Id<th>Name<th>Rating<th>First round</tr>
-[% FOREACH player IN playerlist %]
-  <tr>
-    <td style="width: 5em">[% player.id %]
-    <td style="width: 11em">[% player.name %]
-    <td style="width: 2em">[% player.rating %]
-    <td style="width: 1em">[% player.firstround %]
-[% END -%]
-</table>
-
-<form method="post" action="[% c.uri_for('edit_players') %]">
-<table>
-  <TR><TH colspan="3"><H2>Edit entry list</H2>
-  <tr><th>Id<th>Name<th>Rating<th>First round</tr>
-  <tr>
-<td colspan="4"><TEXTAREA name="playerlist" rows = [% playerlist.size %] cols="65">
-[% FOREACH player IN playerlist %]
-[%- player.id %][% space.repeat(9-player.id.length) %][% player.name %][% space.repeat(21-player.name.length) %][% player.rating %]  [% player.firstround %]
-[% END -%]
-</TEXTAREA>
-<input type="submit" name="edit" value="Save">
-</table>
-</form>
+  <tr><td>Tournament name:</td><td><input type="text" name="tournament"></td></tr>
+  <tr><td>Players</tr>
+  <tr><td>Id:</td><td><input type="text" name="id"></td></tr>
+  <tr><td>Name:</td><td><input type="text" name="player"></td></tr>
+  <tr><td>Rating:</td><td><input type="text" name="rating"></td></tr>
+	  </table>
+	  <input type="submit" name="Submit" value="Submit">
+	  </form>
