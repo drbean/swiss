@@ -54,10 +54,10 @@ if ( $nextRound and $nextRound =~ /^\d+$/ ) {
 elsif ( $nextRound ) { die "Round \"$nextRound\" not a round number"; }
 else {
     for my $number ( glob ('./*') ) {
-	push @rounds, $number
-	    if -d $number and $number =~ m/\/(\d+)$/
+	push @rounds, $1 if -d $number and $number =~ m/\/(\d+)$/
 		and -e "./scores/$number.yaml";
     }
+    $nextRound = $#rounds;
 }
 
 my $previous = $nextRound-1;
