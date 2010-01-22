@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  7月 28, 12時34分04秒
+# Last Edit: 2009  7月 30, 22時14分13秒
 # $Id: $
 
 use warnings;
