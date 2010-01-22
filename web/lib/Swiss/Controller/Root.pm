@@ -376,7 +376,7 @@ sub preppair : Local {
 	my $round = ( $c->request->cookie("${tourname}_round") and
 		$c->request->cookie("${tourname}_round")->isa(
 			'CGI::Simple::Cookie') ) ?
-		$c->request->cookie("${tourname}_round")->value + 1 : 1;
+		$c->request->cookie("${tourname}_round")->value : 1;
 	my $rounds = $c->stash->{rounds};
 	my @playerlist = $c->model('GTS')->turnIntoPlayers($tourname, $cookies);
 	my @absentees;
@@ -385,7 +385,7 @@ sub preppair : Local {
 	}
 	my $tourney = $c->model('GTS')->setupTournament( {
 			name => $tourname,
-			round => ($round - 1),
+			round => $round,
 			rounds => $rounds,
 			entrants => \@playerlist,
 			absentees => \@absentees,

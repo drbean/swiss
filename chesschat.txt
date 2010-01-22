@@ -1,21 +1,30 @@
-Web pairing application user interface
+FIDE pairing via web
 
-I'm thinking about the interface that a pairing program presents to the arbiter using it. 
+Following the lead of bartolin, http://cpanforum.com/posts/11228, I have written a web interface to Games::Tournament::Swiss and put it on the web, at http://e_learning.nuu.edu.tw/swiss/
 
-Before the first round, how does the arbiter input the information about entrants and other things like the number of rounds?
+There are still a number of sharp edges to the interface as well as to Games::Tournament::Swiss itself, so I'm not taking any responsibility for what it does to your tournament.
 
-After pairing the players, how does the program tell the arbiter what the pairings are? What format does the arbiter expect them in? And should it show standings in the tournament? Or is this something the arbiter should already be expected to know? How much information does it provide about how the pairings were produced? Does it show a log of which individual FIDE rules determined the pairing, for example?
+What I can say is, the greater the number of players and the fewer the number of rounds, the less likely you will have problems.
 
-Finally, how does the arbiter enter the information the program requires to pair the next round? This involves, at a minimum, keying in the results of the matches, or clicking one of 6 possible alternative results, Win:Loss, Loss:Win, Draw:Draw, Win:Forfeit, Forfeit:Win, Forfeit:Forfeit presented to the arbiter by the progam. But it could also include late entries and withdrawals.
+My main purpose in putting it up for free, open use now is to hammer out bugs before I start using it this semester in discussion (ie, non-chess) competitions at school.
 
-The special context that I am thinking of is a non-commercial web application freely available over the Internet. The server could store information about whole tournaments in the form of crosstables which it updates on input about the match results from the user, accessing the program from a web browser. This represents a burden for the server, although it does ensure the integrity of the data.
+So I welcome reports of problems, perhaps here in reply to this post.  Although I can't promise to do anything about the reports.
 
-Another alternative is to store no information about tournaments on the server and expect arbiters to input pairing tables, or their equivalent, for each new round. This minimizes the immediate burden on the server, but increases the burden on the arbiter and, at the same time, the risk of bad data, which may result in more work for the server down the line. (Actually, perhaps parsing the pairing table is more of a significant burden than accessing databases for the same data?).
+The problems I am particularly interested in are adding and deleting players after the first round. It is important that this be possible without damaging the integrity of the pairing process.
 
-I think the second alternative is cleaner. It leaves the data in the hands of the arbiter, rather than in those of the server. The burden on the arbiter can be lightened by outputting a form containing a provisional pairing table for the next round, which the arbiter updates by adding to the scores of winners and drawers, moving players into their new brackets in order of their pairing numbers, deleting withdrawals and adding late entries at the bottom.
+Another thing I am interested in is the smoothness, informativeness and intuitiveness of the interface. You may find it changing as I continue to refine it. :-)
 
-This is still something that it will be easy for the arbiter to get wrong in the rush before a round starts. Late entries and withdrawals are the main concern at the last minute, aren't they?
+The problem of the pairing process not terminating, or taking very long periods of time, either because of bugs in Games::Tournament::Swiss or the FIDE Rules is something I want to do something about too. bartolin's application apparently terminated the pairing process if it did not return in some fixed length of time. I need to investigate how he did this.
 
-Untypically for a web application. rather than interaction with the web server being steady and rhythmical, access will be marked by long periods (days? weeks?) of inactivity. It will be easy for arbiters to lose all their data about the tournament by closing their web browsers.
+Problems of fidelity to the Rules are less important to me at this point. Games::Tournament::Swiss doesn't implement C12 properly. And the non-application of B2, B5 and B6 in the last round is not respected. These are 
+things I want to look at in the long-term.
 
-How can the interface avoid being a mental burden for the arbiter at the same time as the least work is required of the server? Pointing and clicking rather than use of the keyboard I guess is one point that needs to be kept in mind.
+Feel free to report those and other problems however.
+
+The application maintains state from one round to the next by placing player and history cookies on your computer. These have validity for one month, and then expire. That seems long enough to me for the length between the rounds of any competition. 
+
+Don't rely on these cookies to preserve the records of your tournament. You need to independently back up your tournament data in case of cookie corruption.
+
+This opening up of Games::Tournament::Swiss to any one who wants to pair a tournament is an experiment. I wouldn't mind leaving it up permanently if it weren't going to use up server resources. But I've got other things going on on the server, and I'll probably take it down when the semester starts.
+
+The Games::Tournament::Swiss code will remain available at http://search.cpan.org/dist/Games-Tournament-Swiss/ and the web interface will be available in the web directory of the subversion repository at http://svn.openfoundry.org/swiss. You can set this up on your own server, with a little knowledge of perl and web servers. This is Free Software.

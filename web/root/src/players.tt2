@@ -10,9 +10,9 @@
   <TR><TH colspan="3"><H2>Add player</H2>
   <tr><th>Id<th>Name<th>Rating</tr>
   <tr>
-    <td><input type="text" name="id" size="8" maxlength="8">
-    <td><input type="text" name="name" size="20" maxlength="20">
-    <td><input type="text" name="rating" size="4" maxlength="4">
+    <td><input type="text" name="id" size="12" maxlength="8">
+    <td><input type="text" name="name" size="30" maxlength="20">
+    <td><input type="text" name="rating" size="8" maxlength="4">
   <tr>
     <td colspan="2"><input type="submit" name="add" value="Add player">
 </table>
@@ -20,23 +20,24 @@
 
 <table>
   <TR><TH colspan="3"><H2>Entry list</H2>
-  <tr><th class="playerid">Id<th class="playername">Name<th class="playerrating">Rating</tr>
+  <tr><th>Id<th>Name<th>Rating<th>First round</tr>
 [% FOREACH player IN playerlist %]
   <tr>
     <td style="width: 5em">[% player.id %]
     <td style="width: 11em">[% player.name %]
     <td style="width: 2em">[% player.rating %]
+    <td style="width: 1em">[% player.firstround %]
 [% END -%]
 </table>
 
 <form method="post" action="[% c.uri_for('edit_players') %]">
 <table>
   <TR><TH colspan="3"><H2>Edit entry list</H2>
-  <tr><th>Id<th>Name<th>Rating</tr>
+  <tr><th>Id<th>Name<th>Rating<th>First round</tr>
   <tr>
-<td td colspan="3"><TEXTAREA name="playerlist" rows = [% playerlist.size %] cols="35">
+<td colspan="4"><TEXTAREA name="playerlist" rows = [% playerlist.size %] cols="65">
 [% FOREACH player IN playerlist %]
-[%- player.id %][% space.repeat(9-player.id.length) %][% player.name %][% space.repeat(21-player.name.length) %][% player.rating %]
+[%- player.id %][% space.repeat(9-player.id.length) %][% player.name %][% space.repeat(21-player.name.length) %][% player.rating %]  [% player.firstround %]
 [% END -%]
 </TEXTAREA>
 <input type="submit" name="edit" value="Save">
