@@ -509,7 +509,6 @@ sub c5 {
     $self->log( "ordered: @s1ids\n\t       & @s2ids" );
     $group->s1( \@s1 );
     $group->s2( \@s2 );
-$DB::single=1;
     for my $member ( @{ $group->s2 } ) {
         die "$member->{id} was in ${number}th bracket more than once"
           if ( grep { $_->id eq $member->id } @{ $group->s2 } ) > 1;
