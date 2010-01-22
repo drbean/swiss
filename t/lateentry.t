@@ -1,6 +1,6 @@
 # DESCRIPTION:  Check that late entering players get assimilated
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009  7月 23, 08時07分12秒
+# Last Edit: 2009  7月 23, 17時23分30秒
 
 our $VERSION =  0.1;
 
@@ -100,12 +100,14 @@ RunCheckEnter(2);
 
 =head 3 TODO
 
-After round 2, the pairings of the script differ from those of pair. So stop after round 2. It's not the purpose of the test to see if pairing is taking place correctly, but only to assimilate late entries.
+After round 2, the pairings of the script were differing from those of pair. So I stopped after round 2. It's not the purpose of the test to see if pairing is taking place correctly, but only to assimilate late entries.
+
+Remember to un/comment RunCheckEnter.
 
 =cut
 
-# RunCheckEnter(3);
-# RunCheckEnter(4);
+RunCheckEnter(3);
+RunCheckEnter(4);
 
 __DATA__
 
@@ -161,7 +163,27 @@ b: [ White, Strong ]
 C: [ White, Mild ]
 D: [ Black, Strong ]
 
---- LAST
+=== Post-Round 2 floats
+--- input chomp floatcheck
+1
+--- expected yaml
+A: [ ~, Not, Not ]
+a: [ ~, Not, Not ]
+B: [ ~, Not, Up ]
+b: [ ~, ~, Not ]
+C: [ ~, Not, Down ]
+D: [ ~, Down, Not ]
+
+=== Post-Round 2 score
+--- input chomp scorecheck
+1
+--- expected yaml
+A: 1
+a: 1
+B: 1
+b: 0
+C: 1
+D: 2
 
 === Round 3 pairingnumbers
 --- input chomp numbercheck
@@ -181,11 +203,35 @@ D: 7
 --- expected yaml
 A: [ Black, Strong ]
 a: [ White, Strong ]
-B: [ Black, Mild ]
+B: [ White, Strong ]
 b: [ Black, Mild ]
-C: [ White, Absolute ]
-c: [ Black, Strong ]
+C: [ Black, Strong ]
+c: [ ~, Mild ]
 D: [ White, Mild ]
+
+=== Post-Round 3 floats
+--- input chomp floatcheck
+2
+--- expected yaml
+A: [ ~, Not, Not, Not ]
+a: [ ~, Not, Not, Not ]
+B: [ ~, Not, Up, Down ]
+b: [ ~, ~, Not, Up ]
+C: [ ~, Not, Down, Up ]
+c: [ ~, ~, ~, Down ]
+D: [ ~, Down, Not, Down ]
+
+=== Post-Round 3 score
+--- input chomp scorecheck
+2
+--- expected yaml
+A: 2
+a: 1
+B: 1
+b: 1
+C: 2
+c: 1
+D: 2
 
 === Round 4 pairingnumbers
 --- input chomp numbercheck
@@ -204,11 +250,38 @@ d: 8
 --- input chomp prefcheck
 3
 --- expected yaml
-A: [ Black, Strong ]
+A: [ White, Mild ]
 a: [ Black, Mild ]
 B: [ Black, Mild ]
 b: [ White, Strong ]
-C: [ White, Mild ]
-c: [ Black, Strong ]
+C: [ Black, Absolute ]
+c: [ White, Strong ]
 D: [ Black, Strong ]
-d: [ Black, Strong ]
+d: [ White, Strong ]
+
+=== Post-Round 4 floats
+--- input chomp floatcheck
+3
+--- expected yaml
+A: [ ~, Not, Not, Not, Not ]
+a: [ ~, Not, Not, Not, Down ]
+B: [ ~, Not, Up, Down, Not ]
+b: [ ~, ~, Not, Up, Up ]
+C: [ ~, Not, Down, Up, Not ]
+c: [ ~, ~, ~, Down, Up ]
+D: [ ~, Down, Not, Down, Down ]
+d: [ ~, ~, ~, ~, Up ]
+
+=== Post-Round 4 score
+--- input chomp scorecheck
+3
+--- expected yaml
+A: 2
+a: 2
+B: 2
+b: 1
+C: 3
+c: 1
+D: 3
+d: 0
+
