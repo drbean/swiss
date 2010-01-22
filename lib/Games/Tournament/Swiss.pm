@@ -1,7 +1,7 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 30, 17時51分21秒
-# $Id$
+# Last Edit: 2009  7月 25, 15時42分04秒
+# $Id: $
 
 use warnings;
 use strict;
@@ -304,6 +304,7 @@ sub orderPairings {
 	    $orderings[$b]->{totalscore} <=> $orderings[$a]->{totalscore} ||
 	    $orderings[$a]->{higherranking} <=> $orderings[$b]->{higherranking}
 		    } 0 .. $#orderings;
+$DB::single=1;
     return @neworder;
 }
 
