@@ -165,6 +165,7 @@ sub recreateCards {
         next if $round < $player->firstround;
 	my $opponentId = $opponents->{$id};
         croak "Round $round: opponent info for Player $id?" unless $opponentId;
+$DB::single=1 if $id eq 102;
         my $opponent          = $self->ided($opponentId);
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
