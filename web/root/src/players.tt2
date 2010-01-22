@@ -1,11 +1,11 @@
 [% META title = 'Entrants' -%]
 [% space=' '%]
 
-<h1>[% tournament %] Tournament</h1>
+<h1>[% tournament %] Tournament, Round [% round %]</h1>
 
 <form method="post" action="[% c.uri_for('add_player') %]">
 <table>
-  <TR><TH colspan="3"><H2>Enter player</H2>
+  <TR><TH colspan="3"><H2>Add player</H2>
   <tr><td colspan="2"><input type="submit" name="stop" value="No more players">
   <tr><th>Id<th>Name<th>Rating</tr>
   <tr>
