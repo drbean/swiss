@@ -108,6 +108,20 @@ sub index :Path :Args(0) {
 	return;
     # Hello World
     $c->response->body( $c->welcome_message );
+	my ($lasttourney, $tourneychoice, @tournaments);
+	if ( $c->request->cookie('tournament') and
+		$c->request->cookie('tournament')->isa('CGI::Simple::Cookie') )
+	{
+		$lasttourney = $c->request->cookie('tournament')->value;
+	}
+	if ( $c->request->cookie('tournaments') and
+		$c->request->cookie('tournaments')->isa('CGI::Simple::Cookie') )
+	{
+		$tourneychoice = $c->request->cookie('tournaments')->value;
+		@tournaments = $c->model('GTS')->destringCookie($tourneychoice);
+	}
+	$c->stash->{recentone} = $lasttourney;
+	$c->stash->{tournaments} = \@tournaments;
 }
 
 
@@ -194,6 +208,7 @@ Later rounds, players
 
 sub edit_players : Local {
         my ($self, $c) = @_;
+	my $tournament = $c->stash->{tournament};
 	my $cookies = $c->request->cookies;
 	my $tourname = $c->request->cookie('tournament')->value;
 	my $round = $c->request->cookie("${tourname}_round")->value + 1;
