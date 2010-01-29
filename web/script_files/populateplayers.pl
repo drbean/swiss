@@ -6,7 +6,7 @@ populateplayers.pl - Enter players in database via script
 
 =head1 SYNOPSIS
 
-populate.players.pl
+populateplayers.pl
 
 =head1 DESCRIPTION
 
@@ -36,6 +36,8 @@ use Grades;
 
 use Config::General;
 
+my $script = Grades::Script->new_with_options;
+
 my @MyAppConf = glob( "$Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
 			unless @MyAppConf == 1;
@@ -51,32 +53,23 @@ my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
 my $s = $d->resultset('Players');
 
-for my $tournament ( "beans/t/emile" ) {
+my $leagues = $script->league;
+for my $tournament ( "GL00029", "beans/t/emile" ) {
 	my $league = League->new( id =>
 		"$config{leagues}/$tournament" );
 	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
 	my $comps = $grades->conversations;
-	my @newmembers;
-	for my $member ( @$members ) {
-		my $name = $member->{name};
-		next unless $name =~ m/^[0-9a-zA-Z'-]*$/;
-		my $id = $member->{id};
-		my $rating = 0;
-		for my $comp ( @$comps ) {
-			no warnings 'uninitialized';
-			$rating += $grades->points( $comp )->{$id};
-			use warnings 'uninitialized';
-		}
-		push @newmembers, {
-			name => $name,
-			id => $id,
-			rating => $rating,
+	my @newmembers = map {
+		{
+			name => $_->{name},
+			id => $_->{id},
+			rating => $_->{rating} || 0,
 			firstrounds => { 
 				tournament => $tournament,
-				player => $id,
+				player => $_->{id},
 				firstround => 1, }
-		};
-	}
+		}
+			} @$members;
 	$s->populate( \@newmembers );
 }
