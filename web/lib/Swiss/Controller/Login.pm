@@ -31,11 +31,13 @@ sub index :Path :Args(0)  {
     if ( $id && $name && $password ) {
         if ( $c->authenticate( { id => $id, password => $password } ) ) {
             $c->session->{arbiter_id} = $id;
-            my @tournaments =
-              $c->model("DB::Tournaments")->search( { arbiter => $id } )->
-	      	get_column('id')->all;
+	    my $arbiter = $c->model('DB::Arbiters')->find( { id => $id } );
+	    my $tournament = $arbiter->active;
+	    my $tourid = $tournament->id if $tournament;
+	    my @tournaments = $arbiter->tournaments;
 	    $c->stash->{id}         = $id;
 	    $c->stash->{name}       = $name;
+	    $c->stash->{recentone}   = $tourid;
 	    $c->stash->{tournaments}   = \@tournaments;
 	    $c->stash->{template}   = 'swiss.tt2';
 	    return;

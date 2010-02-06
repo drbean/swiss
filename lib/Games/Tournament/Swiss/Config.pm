@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Config;
 
-# Last Edit: 2009  7月 28, 12時42分32秒
+# Last Edit: 2009  7月 03, 13時44分26秒
 # $Id: $
 
 use warnings;
@@ -97,7 +97,7 @@ sub roles {
 
 =head2 scores
 
-Getter/setter of the scores the 2 players can get, eg win: 1, loss: 0, draw: 0.5, forfeit: 0, bye: 1, which is the default. Both object and class method.
+Getter/setter of the scores the 2 players can get, eg win: 1, loss: 0, draw: 0.5, absent: 0, bye: 1, which is the default. Both object and class method.
 
 =cut
 
@@ -108,7 +108,7 @@ sub scores {
     { $self->{scores} = $scores; }
     elsif (ref $self eq "Games::Tournament::Swiss::Config" and $self->{scores})
     { return %{ $self->{scores} }; }
-    else { return ( win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 ) }
+    else { return ( win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 ) }
 }
 
 

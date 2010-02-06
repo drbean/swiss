@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure;
 
-# Last Edit: 2009  8月 15, 14時12分49秒
+# Last Edit: 2007 Nov 28, 07:36:56 AM
 # $Id: $
 
 use warnings;
@@ -36,7 +36,7 @@ A number of different swiss pairing algorithms exist. This is a wrapper allowing
 
 =head1 REQUIREMENTS
 
-The module that you wrap needs a 'new' constructor and 'message', 'matchPlayers' and 'matches' methods.
+The module that you wrap needs a 'new' constructor and 'matchPlayers' and 'matches' methods.
 
 =head1 METHODS
 
@@ -58,17 +58,6 @@ Called in the Class::Tournament::Swiss method, 'pairing'.
 =cut 
 
 # sub new { my $self = shift; $self->SUPER::new(@_); }
-
-=head2 message
-
- $pairing->message;
-
-Something about the success or failure of the pairing procedure.
-
-=cut 
-
-# sub message { my $self = shift; $self->SUPER::message(@_); }
-
 
 =head2 matchPlayers
 

@@ -9,6 +9,11 @@ $Template::Stash::SCALAR_OPS->{lc} = sub {
 	return lc $string;
 };
 
+$Template::Stash::SCALAR_OPS->{initial} = sub {
+	my ($word ) = @_;
+	return substr( $word, 0, 1 );
+};
+
 $Template::Stash::LIST_OPS->{abbrevs} = sub {
 	my ( $list, @roles ) = @_;
 	return [ map { ( $_ eq $roles[0] or $_ eq $roles[1] ) ?

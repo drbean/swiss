@@ -1,13 +1,14 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009  8月 29, 19時07分03秒
+# Last Edit: 2009 10月 19, 10時56分14秒
 # $Id: $
 
 use warnings;
 use strict;
 use Carp;
 
-use List::Util qw/min reduce sum/;
+use List::Util qw/min reduce sum first/;
+use List::MoreUtils qw/any all/;
 use List::MoreUtils qw/any all/;
 
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
@@ -28,7 +29,7 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    $action = Games::Tournament:Card->new(round => 1, contestants => {Black => $knicks, White => $deepblue}, result => { Black => 'Win', White => 'Loss' });
+    $game = Games::Tournament:Card->new(round => 1, contestants => {Black => $knicks, White => $deepblue}, result => { Black => 'Win', White => 'Loss' });
 
 =head1 DESCRIPTION
 
@@ -38,7 +39,7 @@ In a tournament, matches take place in rounds between contestants, who are maybe
 
 =head2 new
 
-    $action = Games::Tournament:Card->new(
+    $game = Games::Tournament:Card->new(
 	    round => 1,
 	    contestants => {Black => $knicks, White => $deepblue},
 	    result => { Black => 'Win', White => 'Loss' },
@@ -164,6 +165,36 @@ sub myPlayers {
 }
 
 
+=head2 myOpponent
+
+    $game->myOpponent($player)
+
+Returns the opponent of $player from $game. If $player has a Bye, return a Games::Tournament::Contestant::Swiss object with name 'Bye', and id 'Bye'.
+
+=cut 
+
+sub myOpponent {
+    my $self       = shift;
+    my $contestant = shift;
+    my $id = $contestant->id;
+    my $contestants = $self->contestants;
+    my @contestants = values %$contestants;
+    my %dupes;
+    for my $contestant ( @contestants )
+    {
+	die "Player $contestant isn't a contestant"
+	unless $contestant and
+		$contestant->isa('Games::Tournament::Contestant::Swiss');
+    }
+    my @dupes = grep { $dupes{$_->id}++ } @contestants;
+    croak "Players @dupes had more than one role" if @dupes;
+    my $opponent = first { $id ne $_->id } @contestants;
+    $opponent = Games::Tournament::Contestant::Swiss->new(
+	name => "Bye", id => "Bye") if $self->isBye;
+    return $opponent;
+}
+
+
 =head2 myRole
 
     $game->myRole($player)
@@ -218,7 +249,7 @@ sub myFloat {
 
 =head2 round
 
- $action->round
+ $game->round
 
 Returns the round in which the match is taking place.
 
@@ -232,7 +263,7 @@ sub round {
 
 =head2 contestants
 
-	$action->contestants
+	$game->contestants
 
 Gets/sets the participants as an anonymous array of player objects.
 
@@ -248,7 +279,7 @@ sub contestants {
 
 =head2 result
 
-	$action->result
+	$game->result
 
 Gets/sets the results of the match.
 
@@ -262,11 +293,27 @@ sub result {
 }
 
 
+=head2 floats
+
+	$game->floats
+
+Gets/sets the floats of the match. Probably $game->float($player, 'Up') is used however, instead.
+
+=cut
+
+sub floats {
+    my $self   = shift;
+    my $floats = shift;
+    if ( defined $floats ) { $self->{floats} = $floats; }
+    else { return $self->{floats}; }
+}
+
+
 =head2 float
 
 	$card->float($player[,'Up|Down|Not'])
 
-Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated.
+Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated. $player->floats is not changed. This takes place in $tourney->collectCards.
 
 =cut
 

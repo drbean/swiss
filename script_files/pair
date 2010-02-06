@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Last Edit: 2009  7月 30, 13時22分21秒
+# Last Edit: 2009  7月 13, 21時57分26秒
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
@@ -9,18 +9,16 @@ pair - Pair players for the next round of a swiss tournament
 
 =head1 VERSION
 
-Version 0.10
+Version 0.09
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.09';
 
 use strict;
 use warnings;
 
 use YAML qw/LoadFile DumpFile Bless/;
-use IO::All;
-use IO::Handle;
 
 use Games::Tournament::Swiss::Config;
 
@@ -30,7 +28,7 @@ die 'round.yaml already exists' if -e 'round.yaml';
 
 my $roles = $league->{roles} || [$swiss->roles];
 my $scores = $league->{scores} ||
-	{ win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
+	{ win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 };
 my $firstround = $league->{firstround} || $swiss->firstround;
 my $algorithm = $league->{algorithm} || 'Games::Tournament::Swiss::Procedure::FIDE';
 my $abbrev = $league->{abbreviation} ||
@@ -46,6 +44,7 @@ $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
 require Games::Tournament::Swiss;
 require Games::Tournament::Contestant::Swiss;
+require Games::Tournament::Card;
 
 use File::Spec;
 use File::Basename;
@@ -55,7 +54,9 @@ die "round $next directory name not a round number" unless
 						    $next =~ m/^\d+$/;
 my $previous = $next-1;
 my $round = $previous;
+my $n = 0;
 
+my $oldlist;
 my $lineup;
 my @absentees = @{ $league->{absent} } if $league->{absent};
 for my $member ( @{ $league->{member} } ) {
@@ -72,17 +73,13 @@ for my $late ( @$lateEntries ) {
     my $player = Games::Tournament::Contestant::Swiss->new( %$late );
     $tourney->enter($player);
 }
-
-$tourney->idNameCheck;
-
-# $tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 $tourney->assignPairingNumbers;
 $tourney->initializePreferences;
-# io('=')->print($tourney->catLog('ASSIGNPAIRINGNUMBERS'));
 
+my @ids = map { $_->{pairingNumber} } @$lineup;
+my $pairingtable;
 if ( $round >= $firstround and -e "./pairtable.yaml" )
 {
-    my @ids = map { $_->{id} } @$lineup;
     my $pairingtable = LoadFile "./pairtable.yaml";
     my ( $opponents, $roles, $floats, $score ) =
         @$pairingtable{qw/opponents roles floats score/};
@@ -98,7 +95,7 @@ if ( $round >= $firstround and -e "./pairtable.yaml" )
        my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
        my %floats =
 	   map { $_ => $floats->{$_}->[$round-$lastround-1]||undef } @ids;
-       my @games = $tourney->recreateCards( {
+       my @games = $tourney->prepareCards( {
 	   round => $round, opponents => \%opponents,
 	    roles => \%roles, floats => \%floats } );
        $tourney->collectCards( @games );
@@ -109,9 +106,11 @@ my %brackets = $tourney->formBrackets;
 my $pairing = $tourney->pairing( \%brackets );
 $pairing->loggingAll;
 my $results = $pairing->matchPlayers;
+use IO::All;
+io('=')->print($pairing->catLog);
 my $matches = $results->{matches};
-
 my @games;
+
 my %number = map { $_ => $brackets{$_}->number } keys %brackets;
 for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
 {
@@ -120,39 +119,22 @@ for my $bracket ( sort { $number{$a} cmp $number{$b} } keys %$matches )
 	@$bracketmatches;
 }
 $tourney->round($next);
-my @tables = $tourney->publishCards(@games);
+$tourney->publishCards(@games);
 
 my ($schedule, $template);
 $schedule->{Warning} =
   "# This file, $directory/round.yaml, was created for round $next by pair on "
   . localtime() . '.';
-$schedule->{round} = $next;
-$schedule->{date} = localtime;
-
 if ( -e '../assistants.yaml' ) {
     my $assistantFile = LoadFile '../assistants.yaml';
     $schedule->{assistant} = $assistantFile->{$next};
 }
-
-our (@names, @ids, @scores);
-open REP, '>-' or die 'STDOUT? $!';
-REP->format_top_name('TOP');
-REP->format_name('PAIRS');
-my $n = 0;
-for my $table (@tables) {
-    my $players = $table->contestants;
-    $schedule->{group}->{ ++$n } = $players;
-    if ( $table->isBye ) {
-	@names = ( $table->contestants->{Bye}->name, 'bye' );
-	@ids = ( $table->contestants->{Bye}->id, '-' );
-	@scores = ( $table->contestants->{Bye}->score || 0, '-' );
-    }
-    else {
-	@names = map { $table->contestants->{$_}->name } @$roles;
-	@ids = map { $table->contestants->{$_}->id } @$roles;
-	@scores = map { $table->contestants->{$_}->score || 0 } @$roles;
-    }
-    write REP;
+$n = 1;
+for my $game (@games) {
+    my %group = map { $_ => $game->{contestants}->{$_}->{name} }
+      keys %{ $game->{contestants} };
+    $schedule->{group}->{ $n++ } = \%group;
+    $template->{$n++} = { reverse %group };
 }
 
 if ( $lateEntries ) {
@@ -167,34 +149,25 @@ if ( $lateEntries ) {
     DumpFile '../league.yaml', $league;
 }
 
-my %groups;
-for my $n ( 0 .. $#tables ) {
-    my $table = $tables[$n];
-    my $contestants = $table->contestants;
-    my %members = map { $_ => $contestants->{$_}->name } keys %$contestants;
-    $template->{++$n} = { reverse %members };
-    $groups{$n} = \%members;
-}
-$schedule->{group} = \%groups;
-my @keys = sort {$a<=>$b} keys %groups;
+
+$schedule->{firstround} = $swiss->firstround($firstround);
+$schedule->{scores} = $swiss->scores($scores);
+$schedule->{roles} = $swiss->roles($roles);
+$schedule->{algorithm} = $swiss->algorithm($algorithm);
+$schedule->{round} = $next;
+$schedule->{week}  = $next . ' perhaps. Change if wrong.';
+
+DumpFile 'player.yaml', $tourney->entrants;
+DumpFile 'tourney.yaml', $tourney;
+DumpFile 'pairing.yaml', $pairing;
+DumpFile 'matches.yaml', \@games;
+DumpFile 'brackets.yaml', \%brackets;
+
+my @keys = sort {$a<=>$b} keys %{$schedule->{group}};
 Bless($schedule->{group})->keys( \@keys );
 
 DumpFile 'round.yaml', $schedule;
 DumpFile "$next.yaml", $template;
-
-format TOP =
-		  @<<<<<<<< @<<<<<<<< @<<<< @<< @<<<<<<<<<<<<<<<
-$league->{name}, 'Pairings,', 'Round', $tourney->round . ',', $schedule->{date}
-              @<<<<<                              @<<<<<
-$roles->[0],                               $roles->[1]  
-@<<<<   @<<     @<<<<    @<<<<  @<<<<<<    @<<     @<<<<    @<<<< 
-'Table', 'ID', 'Name', 'Score', 'Result', 'ID', 'Name', 'Score'
--------------------------------------------------------------------------
-.
-format PAIRS =
-@<<   @<<<<<<< @<<<<<<<<<< @<<   @<<<<<<  @<<<<<<< @<<<<<<<<<< @<<
-$n,  $ids[0], $names[0], $scores[0], ' - ', $ids[1], $names[1], $scores[1] 
-.
 
 __END__
 

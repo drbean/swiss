@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2009  8月 30, 17時51分21秒
+# Last Edit: 2010  2月 03, 14時39分37秒
 # $Id$
 
 use warnings;
@@ -170,13 +170,14 @@ $DB::single=1 if $id eq 102;
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
 "Player ${id}'s opponent is $opponentId, but ${opponentId}'s opponent is $opponentsOpponent, not $id in round $round"
-          unless $opponentId eq 'Bye' or $opponentId eq '-'
+          unless $opponentId eq 'Bye' or $opponentId eq 'Unpaired'
               or $opponentsOpponent eq $id;
         my $role         = $roles->{$id};
         my $opponentRole = $roles->{$opponentId};
-        if ( $opponentId eq '-' ) {
+        if ( $opponentId eq 'Unpaired' ) {
             croak "Player $id has $role, in round $round?"
-              unless $player and $role eq '-';
+              unless $player and $role eq 'Unpaired';
+	    next;
 	    next;
         }
         elsif ( $opponentId eq 'Bye' ) {
@@ -249,24 +250,25 @@ sub collectCards {
 		my $entrant = $self->ided($id);
 		my $oldroles = $player->roles;
 		my $scores   = $player->scores;
-		my ( $role, $float );
+		my ( $role, $float, $score );
 		$role             = $game->myRole($player);
 		$float            = $game->myFloat($player);
-		$scores->{$round} = $game->{result}->{$role};
+		$scores->{$round} = ref $game->result eq 'HASH'? 
+			    $game->result->{$role}: undef;
+		$score = $scores->{$round};
 		#carp
-		#  "No result on card for player $id as $role in round $round "
-		#	unless $scores->{$round};
+		#  "No result on card for player $id as $role in round $round,"
+		#	unless $score;
 		$game ||= "No game";
 		$play->{$round}->{$id} = $game;
 		$entrant->scores($scores);
-		carp "No record in round $round for player $id $player->{name}"
+		carp "No record in round $round for player $id $player->{name},"
 		  unless $play->{$round}->{$id};
-		$entrant->roles($role) unless $scores->{round} and
-			$scores->{$round} eq 'Bye'||'Forfeit';
+		$entrant->roles( $round, $role );
 		$entrant->floats( $round, $float );
 		$entrant->floating('');
-		$entrant->preference->update( $entrant->roles ) unless
-		    $scores->{round} and $scores->{$round} eq 'Bye'||'Forfeit';
+		$entrant->preference->update( $entrant->rolesPlayedList ) unless
+		    $score and ( $score eq 'Bye' or $score eq 'Forfeit' );
 ;
 	    }
 	}
@@ -277,7 +279,7 @@ sub collectCards {
 
 =head2 orderPairings
 
- $schedule = $tourney->orderPairings( @games );
+ @schedule = $tourney->orderPairings( @games );
 
 Tables are ordered by scores of the player with the higher score at the table, then the total scores of the players (in other words, the scores of the other player), then the A2 ranking of the higher-ranked player, in that order. F1
 
@@ -350,9 +352,8 @@ sub myCard {
     my $self    = shift;
     my %args    = @_;
     my $round   = $args{round};
-    my $player  = $args{player};
+    my $id  = $args{player};
     my $roundmatches = $self->{play}->{$round};
-    my $id   = first { $_ eq $player } keys %$roundmatches;
     return $roundmatches->{$id};
 }
 

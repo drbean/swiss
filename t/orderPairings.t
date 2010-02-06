@@ -1,11 +1,11 @@
 
 # DESCRIPTION:  Check that F1 ordering works
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009  7月 25, 16時09分36秒
+# Last Edit: 2010  2月 03, 14時35分49秒
 
 our $VERSION = 0.1;
 
-=head 3 DESCRIPTION
+=head3 DESCRIPTION
 
 Order pairings in F1 order
 

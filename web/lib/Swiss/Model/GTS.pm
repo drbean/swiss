@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2009  9月 08, 18時33分10秒
+# Last Edit: 2009 11月 25, 09時48分46秒
 # $Id$
 
 use strict;
@@ -25,9 +25,10 @@ use Games::Tournament::Swiss::Config;
 my $swiss = Games::Tournament::Swiss::Config->new;
 
 my $roles = [qw/White Black/];
-my $abbrev = { W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-	0.5 => 'Draw', '=' => 'Draw'  };
-my $scoring = { win => 1, loss => 0, draw => 0.5, forfeit => 0, bye => 1 };
+my $abbrev = { W => 'White', B => 'Black', 5 => 'Win', 3 => 'Loss',
+	4 => 'Draw', '=' => 'Draw'  };
+my $scoring = { win => 5, loss => 3, draw => 4, forfeit => 0, bye => 5,
+	late => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
 
@@ -310,7 +311,7 @@ sub parsePlayers {
 	my @playerlist;
 	my @records = split /\n/, $records;
 	for my $line ( @records ) {
-		next if $line =~ m/^$/;
+		next if $line =~ m/^\s*$/;
 		my %player;
 		chomp $line;
 		my @fields = split ' ', $line;
@@ -366,7 +367,7 @@ sub parseTable {
 		my $entrant = $tourney->ided( $id );
 		$pairingtable{pairingnumber}->{$id} = $entrant->pairingNumber;
 	}
-	return %pairingtable;
+	return \%pairingtable;
 }
 
 
@@ -430,10 +431,10 @@ sub pair {
 	my $pairingtable = $args->{history};
 	if ( $pairingtable ) {
 		my $scores = $pairingtable->{score};
-        for my $player ( @$entrants ) {
-                my $id = $player->id;
-                $player->score( $scores->{$id} );
-        }
+		for my $player ( @$entrants ) {
+			my $id = $player->id;
+			$player->score( $scores->{$id} );
+		}
 		my $lastround = $round;
 		for my $round ( 1..$lastround ) {
 			my $games = $self->postPlayPaperwork(
@@ -482,7 +483,7 @@ sub postPlayPaperwork {
 		@$pairingtable{qw/opponent role float score/};
 	my %opponents = map { $_ => $opponents->{$_}->[$round-1] } @ids;
 	my %roles = map { $_ => $roles->{$_}->[$round-1] } @ids;
-	my %floats = map { $_ => $floats->{$_}->[$round-$lastround-1] } @ids;
+	my %floats = map { $_ => $floats->{$_}->[$round-1] } @ids;
 	my @games = $tourney->recreateCards( {
 		round => $round, opponents => \%opponents,
 		roles => \%roles, floats => \%floats } );
@@ -505,31 +506,20 @@ sub changeHistory {
 		my $id = $player->id;
 		my $game = $tourney->myCard(round => $round, player => $id);
 		if ( defined $game ) {
-			my $opponent = $player->myOpponent($game)
-			|| Games::Tournament::Contestant->new(
-				name => "Bye", id => "Bye" );
-			my $opponents = $history->{opponent}->{$id};
-			push @$opponents, $opponent->id;
-			$history->{opponent}->{$id} = $opponents;
-			my $role = $game->myRole($player);
-			if ( $role eq 'Bye' ) { $role = '-'; }
-			my $roles = $history->{role}->{$id};
-			push @$roles, $role;
-			$history->{role}->{$id} = $roles;
+			for my $field ( qw/opponent role float/ ) {
+				my $myField = 'my' . ucfirst $field;
+				my $gamevalue = $game->$myField($player);
+				$gamevalue = $gamevalue->id if $field eq 
+					'opponent';
+				my $allvalues = $history->{$field}->{$id};
+				push @$allvalues, $gamevalue;
+				$history->{$field}->{$id} = $allvalues;
+			}
 		}
 		else {
-			push @{ $history->{opponent}->{$id} }, "-,";
-			push @{ $history->{role}->{$id} }, "-";
+			push @{ $history->{opponent}->{$id} }, "Unpaired";
+			push @{ $history->{role}->{$id} }, "Unpaired";
 		}
-		my $floats = $player->floats;
-		my $float = '';
-		$float = 'd' if $floats->[-2] and $floats->[-2] eq 'Down';
-		$float = 'u' if $floats->[-2] and $floats->[-2] eq 'Up';
-		$float = 'n' if $floats->[-2] and $floats->[-2] eq 'Not';
-		$float .= 'D' if $floats->[-1] and $floats->[-1] eq 'Down';
-		$float .= 'U' if $floats->[-1] and $floats->[-1] eq 'Up';
-		$float .= 'N' if $floats->[-1] and $floats->[-1] eq 'Not';
-		$history->{float}->{$id} = $floats;
 		$history->{score}->{$id} = $player->score;
 		$history->{pairingnumber}->{$id} = $player->pairingNumber ||
 									'-';
