@@ -73,16 +73,12 @@ for my $member ( @{ $league->{member} } ) {
 $tourney = Games::Tournament::Swiss->new( entrants => $lineup,
 	round => $Games::Tournament::Swiss::Config::firstround);
 
-my @rounds;
-if (($ARGV[0]) and ($ARGV[0] =~ /^\d+$/)) {
-    @rounds = (1..$ARGV[0]);
-} else {
-    for my $number ( glob ('./*') ) {
-	push @rounds, $1 if -d $number and $number =~ m/\/(\d+)$/
-		and -e "./scores/$number.yaml";
-    }
-    $nextRound = $#rounds;
+my $lateEntries = $league->{late};
+for my $late ( @$lateEntries ) {
+    my $player = Games::Tournament::Contestant::Swiss->new( %$late );
+    $tourney->enter($player);
 }
+
 $lineup = $tourney->entrants;
 
 $tourney->idNameCheck;
@@ -148,11 +144,10 @@ for my $round ( @rounds )
 	    $group{round} = $round;
 	}
 	my $game = Games::Tournament::Card->new( %group );
-	$games[--$n] = $game;
+	push @games, $game;
 	$playerGames{$_} = $game for map { $_->id } @players;
     }
     $tourney->collectCards( @games );
-
     for my $player (@$lineup) {
 	my $id = $player->id;
 	$table->{$id}->{id} = $id;
@@ -171,32 +166,6 @@ for my $round ( @rounds )
 	    $table->{$id}->{roles} .= "-";
 	}
     }
-	my $game = Games::Tournament::Card->new( %group );
-	$games[--$n] = $game;
-	$playerGames{$_} = $game for map { $_->id } @players;
-    }
-    $tourney->collectCards( @games );
-
-    for my $player (@$lineup) {
-	my $id = $player->id;
-	$table->{$id}->{id} = $id;
-	my $game = $playerGames{$id};
-	if ( defined $game ) {
-	    my $opponent = $player->myOpponent($game)
-	      || Games::Tournament::Contestant->new( name => "Bye", id => "-" );
-	    $table->{$id}->{opponents} .= $opponent->id . ",";
-	    my $role = $game->myRole($player);
-	    if ( $role eq 'Bye' ) { $role = '-'; }
-	    else                  { $role =~ s/^(.).*$/$1/; }
-	    $table->{$id}->{roles} .= $role;
-	}
-	else {
-	    $table->{$id}->{opponents} .= "-,";
-	    $table->{$id}->{roles} .= "-";
-	}
-    }
-
-}
 }
 my %brackets = $tourney->formBrackets;
 my $playerN = 0;
