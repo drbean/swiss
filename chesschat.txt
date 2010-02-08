@@ -1,20 +1,29 @@
-In a swiss tournament, after the first round, preferences for the next round are the consequence of the pairings (as realized) in the previous round.
+[QUOTE=Garvinator][CODE][SIZE="3"] 6 : 22,11,23,16,4  BWBWB     d   2    
+11 : 25,6,18,8,24   WBWBW         2    
+16 : -,5,24,6,-     -BWB-    uD   2    
+17 : 1,20,8,24,19   WBWBW     U   2    
+20 : 13,17,19,15,26 BWWBW     u   2    
+25 : 11,-,9,-,18    B-W-B     D   2    
+27 : 15,3,12,23,14  WBWB-     d   2    
+                                       
+15 : 27,24,22,20,28 BWBWB    Ud   1.5  
+19 : 2,14,20,21,17  BWBWB     D   1.5  
+21 : 4,18,-,19,23   BW-BW         1.5[/SIZE][/CODE]
 
-But Rule F.2 states:
+I'm trying to recreate a pairing table that would allow a swiss pairing program to pair just these 2 brackets.
 
-[QUOTE=Rules]
-F.2  Byes, and pairing not actually played, or lost by one of the
-players due to arriving late or not at all, will not be taken into
-account with respect to colour, Such a pairing is not considered to be
-illegal in future rounds.
-[/QUOTE]
+I have a question about the pairing of 27 in round 5 against 14.
 
-So in such cases, preferences for the next round are NOT the consequence of the pairing in the previous round.
+There is no color for 27 in that round.
 
-What is not clear to me is the meaning of the second sentence. Is it saying that pairings not actually played, and which might be thought to be illegal because of B1a (about players meeting more than once), are not in fact illegal.
+Does that mean that one of 27 or 14 forfeited in that round?
 
-The first part of F.2 is all about color preferences, so I think it's not clear whether the second part is also about just color preferences or all illegalities under the Rules.
+If that is the case, doesn't it mean 27 v 14 is a possible pairing in later rounds?
 
-So, the question is:
+It is confusing for the human arbiter to have the 14 there. But seeing Player 14 isn't in these 2 brackets, perhaps it doesn't matter.
 
-Is it OK for two players to meet more than once, if they didn't actually meet the first time?
+
+
+
+
+
