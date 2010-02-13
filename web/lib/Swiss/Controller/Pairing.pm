@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  1月 01, 20時01分11秒
+# Last Edit: 2010  2月 12, 09時50分54秒
 # $Id$
 
 use strict;
@@ -240,7 +240,7 @@ sub nextround : Local {
 	my (@playerlist, @absentees);
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
-		$player->{firstround} = $member->firstround->firstround;
+		$player->{firstround} = $member->firstround;
 		push @playerlist, $player;
 		push @absentees, $player if $member->absent eq 'True';
 	}
