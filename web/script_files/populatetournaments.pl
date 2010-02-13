@@ -57,7 +57,10 @@ for my $tournament ( qw/GL00029 BMA0099 emile/ ) {
 		"$config{leagues}/$tournament" );
 	my $members = $league->members;
 	@$members = grep { $_->{name} =~ m/^[0-9a-zA-Z'-]*$/ } @$members;
-	my @members = map { { tournament => $tournament, player => $_->{id}, absent => 'False' } } @$members;
+	my @members = map { {
+		tournament => $tournament, player => $_->{id}, absent => 'False',
+		firstround => 1 } }
+		@$members;
 	my $grades = Grades->new( league => $league );
 	my $name = $league->name;
 	my $description = $league->field;

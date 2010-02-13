@@ -51,7 +51,7 @@ my $modelmodule = "${name}::Model::DB";
 
 my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
-my $s = $d->resultset('Players');
+my $p = $d->resultset('Players');
 
 my $leagues = $script->league;
 for my $tournament ( "GL00029", "BMA0099", "emile" ) {
@@ -59,17 +59,17 @@ for my $tournament ( "GL00029", "BMA0099", "emile" ) {
 		"$config{leagues}/$tournament" );
 	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
-	my $comps = $grades->conversations;
-	my @newmembers = map {
-		{
-			name => $_->{name},
-			id => $_->{id},
-			rating => $_->{rating} || 0,
-			firstrounds => { 
+	my @players;
+	foreach my $member ( @$members ) {
+		push @players, {
+			name => $member->{name},
+			id => $member->{id},
+			rating => [ { 
+				player => $member->{id},
 				tournament => $tournament,
-				player => $_->{id},
-				firstround => 1, }
-		}
-			} @$members;
-	$s->populate( \@newmembers );
+				round => 0,
+				value => $member->{rating} || 0 } ]
+		};
+	}
+	$p->populate( \@players );
 }
