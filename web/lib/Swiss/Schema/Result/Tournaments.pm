@@ -56,6 +56,8 @@ __PACKAGE__->has_many(
 	opponents => 'Swiss::Schema::Result::Opponents', 'tournament' );
 __PACKAGE__->has_many(
 	roles => 'Swiss::Schema::Result::Roles', 'tournament' );
+__PACKAGE__->has_many(
+	ratings => 'Swiss::Schema::Result::Ratings', 'tournament' );
 __PACKAGE__->has_one(
 	round => 'Swiss::Schema::Result::Round', 'tournament' );
 
