@@ -20,14 +20,7 @@ __PACKAGE__->add_columns(
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
-    size => 15,
-  },
-  "rating",
-  {
-    data_type => "SMALLINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => undef,
+    size => 20,
   },
 );
 __PACKAGE__->set_primary_key("id");
@@ -39,13 +32,13 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->has_many(
 	memberships => 'Swiss::Schema::Result::Members', 'player');
 __PACKAGE__->has_many(
-	firstrounds => 'Swiss::Schema::Result::Firstrounds', 'player');
-__PACKAGE__->has_many(
 	opponent => 'Swiss::Schema::Result::Opponents', 'player');
 __PACKAGE__->has_many(
 	role => 'Swiss::Schema::Result::Roles', 'player');
 __PACKAGE__->has_many(
 	score => 'Swiss::Schema::Result::Scores', 'player');
+__PACKAGE__->has_many(
+	rating => 'Swiss::Schema::Result::Ratings', 'player');
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
