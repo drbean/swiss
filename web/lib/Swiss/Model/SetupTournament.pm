@@ -1,6 +1,6 @@
 package Swiss::Model::SetupTournament;
 
-# Last Edit: 2010  2月 13, 12時06分49秒
+# Last Edit: 2010  2月 13, 17時42分57秒
 # $Id$
 
 use strict;
@@ -26,11 +26,11 @@ require Games::Tournament::Contestant::Swiss;
 
 =head2 setupTournament
 
-Passing round a tournament, with players, is easier with the $c context.
+Passing round a tournament, with 'entrants' and 'absentees' args, is easier with the $c context. Context is used to store pairing numbers.
 
 =cut
 
-sub build_per_context_instance {
+sub setupTournament {
 	my ($self, $c, $args) = @_;
 	my $entrants = $args->{entrants};
 	my $absentees = $args->{absentees};
@@ -54,6 +54,18 @@ sub build_per_context_instance {
 			pairingnumber => $entrant->pairingNumber } );
 	}
 	return $tournament;
+}
+
+
+=head2 build_per_context_instance
+
+The method that $c->component( 'SetupTournament', $args ) will call.
+
+=cut
+
+sub build_per_context_instance {
+	my ($self, $c, $args) = @_;
+	return $self->setupTournament( $c, $args );
 }
 
 
