@@ -8,12 +8,12 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
 __PACKAGE__->table("tournaments");
 __PACKAGE__->add_columns(
-  "rounds",
+  "id",
   {
-    data_type => "SMALLINT",
+    data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
-    size => undef,
+    size => 15,
   },
   "name",
   {
