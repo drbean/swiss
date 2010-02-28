@@ -139,8 +139,7 @@ sub add_player : Local {
 			name => $profile->name, rating => $rating };
 	}
 	$c->stash->{tournament} = $tourid;
-	my %entrant = map { $_ => $c->request->params->{$_} }
-							qw/id name rating/;
+	my %entrant = map { $_ => $c->request->params->{$_} } qw/id name rating/;
 	my $mess;
 	if ( $mess = $c->model('GTS')->allFieldCheck( \%entrant ) ) {
 		$c->stash->{error_msg} = $mess;
@@ -153,14 +152,14 @@ sub add_player : Local {
 	else {
 		push @playerlist, \%entrant;
 		$c->stash->{playerlist} = \@playerlist;
-		my $firstround = delete $entrant{firstround};
-		$entrant{rating} = [ {
+		my %entrantentry = %entrant;
+		$entrantentry{rating} = [ {
 				player => $entrant{id}, tournament => $tourid,
 				round => $round, value => $entrant{rating} } ];
 		my $playerSet = $c->model('DB::Players');
-		$playerSet->create( \%entrant );
+		$playerSet->create( \%entrantentry );
 		$memberSet->create({ player => $entrant{id}, tournament => $tourid,
-				absent => 'False', firstround => $firstround });
+				absent => 'False', firstround => ($round+1) });
 	}
 	$c->stash->{round} = $round+1;
 	$c->stash->{template} = 'players.tt2';
