@@ -54,14 +54,16 @@ my $d = $model->connect( @$connect_info );
 my $p = $d->resultset('Players');
 
 my $leagues = $script->league;
-for my $tournament ( "GL00029", "BMA0099", "emile" ) {
+my %players;
+for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
 	my $league = League->new( id =>
 		"$config{leagues}/$tournament" );
 	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
-	my @players;
 	foreach my $member ( @$members ) {
-		push @players, {
+		my $id = $member->{id};
+		unless ( defined $players{$id} ) { 
+		$players{$id} = {
 			name => $member->{name},
 			id => $member->{id},
 			rating => [ { 
@@ -69,7 +71,17 @@ for my $tournament ( "GL00029", "BMA0099", "emile" ) {
 				tournament => $tournament,
 				round => 0,
 				value => $member->{rating} || 0 } ]
-		};
+			};
+		}
+		else {
+			push @{ $players{$id}->{rating} }, 
+				{ 
+					player => $member->{id},
+					tournament => $tournament,
+					round => 0,
+					value => $member->{rating} || 0 };
+		}
 	}
-	$p->populate( \@players );
 }
+my @players = values %players;
+$p->populate( \@players );
