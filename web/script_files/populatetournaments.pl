@@ -52,11 +52,11 @@ my $d = $model->connect( @$connect_info );
 my $s = $d->resultset('Tournaments');
 
 my @newtournaments;
-for my $tournament ( qw/GL00029 BMA0099 emile/ ) {
+for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
 	my $league = League->new( id =>
 		"$config{leagues}/$tournament" );
 	my $members = $league->members;
-	@$members = grep { $_->{name} =~ m/^[0-9a-zA-Z'-]*$/ } @$members;
+	# @$members = grep { $_->{name} =~ m/^[0-9a-zA-Z'-]*$/ } @$members;
 	my @members = map { {
 		tournament => $tournament, player => $_->{id}, absent => 'False',
 		firstround => 1 } }
