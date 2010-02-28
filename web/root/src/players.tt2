@@ -21,7 +21,7 @@
 <table>
   <TR><TH colspan="3"><H2>Entry list</H2>
   <tr><th>Id<th>Name<th>Rating<th>First round</tr>
-[% FOREACH player IN playerlist %]
+[% FOREACH player IN playerlist.nsort("rating").reverse %]
   <tr>
     <td style="width: 5em">[% player.id %]
     <td style="width: 11em">[% player.name %]
