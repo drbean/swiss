@@ -1,5 +1,8 @@
 package Swiss::Controller::Tournaments;
 
+# Last Edit: 2010  3月 01, 17時05分48秒
+# $Id$
+
 use Moose;
 BEGIN { extends 'Catalyst::Controller'; }
 
