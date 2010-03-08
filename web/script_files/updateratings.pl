@@ -33,12 +33,13 @@ use IO::All;
 my $io = io '-';
 
 use Grades;
+use Games::Ratings::Chess::FIDE;
 
 use Config::General;
 
 my $script = Grades::Script->new_with_options;
 my $tournament = $script->league;
-my $round = $script->exercise;
+my $round = $script->round - 1;
 
 my @MyAppConf = glob( "$Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
@@ -53,21 +54,60 @@ my $modelmodule = "${name}::Model::DB";
 
 my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
-my $ratings = $d->resultset('Ratings');
+my $members = $d->resultset('Members')->search({ tournament => $tournament });
 
-my $leagues = $script->league;
 my @ratings;
 my $league = League->new( id =>
 	"$config{leagues}/$tournament" );
 my $grades = Grades->new( league => $league );
-my $members = $league->members;
-foreach my $member ( @$members ) {
-	my $id = $member->{id};
-	push @ratings, 
-		{ 
-			player => $member->{id},
+my $entrants = $league->members;
+my %entrants = map { $_->{id} => $_ } @$entrants;
+my $points = $grades->points( "comp/$round" );
+my %seen;
+while ( my $member = $members->next ) {
+	my $id = $member->player;
+	my $oldRating;
+	$oldRating = $member->rating->find({
+			tournament => $tournament,
+			round => ($round - 1) });
+	unless ( $oldRating ) {
+	$oldRating = $entrants{$id}->{rating};
+		next;
+	}
+	$oldRating = $oldRating->value;
+	warn "Player $id had no rating in round $round" unless $oldRating;
+	my $newRating;
+	my $opponent = $member->opponent->find({
+			tournament => $tournament,
+			round => $round });
+	my $point = $points->{$id};
+	unless ( $opponent ) {
+		warn
+"Player $id got $point points in Round $round, but $opponent is $opponent?"
+			if $point;
+		$newRating = $oldRating;
+	}
+	else {
+		#my $Orating = $opponent->profile->rating->find({
+		#		tournament => $tournament,
+		#		round => ($round - 1) })->value;
+		my $Orating = $d->resultset('Ratings')->find({ 
+				player => $opponent->opponent,
+				tournament => $tournament,
+				round => ($round - 1) })->value;
+		my $result = $point == 5? "win": $point == 3? "loss": "draw";
+		my $rater = Games::Ratings::Chess::FIDE->new;
+		$rater->set_rating( $oldRating );
+		$rater->set_coefficient( 25 );
+		$rater->add_game( { opponent_rating => $Orating,
+				result => $result } );
+		$newRating = $rater->get_new_rating;
+	}
+	push @ratings, { 
+			player => $id,
 			tournament => $tournament,
 			round => $round,
-			value => $member->{rating} || 0 };
+			value => $newRating || $entrants{$id}->{rating} || 0 };
 }
+my $ratings = $d->resultset('Ratings');
 $ratings->update_or_create( $_ ) for @ratings;
