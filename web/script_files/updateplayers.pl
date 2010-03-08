@@ -10,7 +10,7 @@ updateplayers.pl
 
 =head1 DESCRIPTION
 
-"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml." Update ratings for players also but just in round 0, ie before the tournament starts. 
+"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml." Update ratings for players also but just in round 0, ie before the tournament starts. Most importantly, update Members.
 
 
 =head1 AUTHOR
