@@ -163,7 +163,7 @@ sub run {
 	}
 	foreach my $stage (@stages) {
 		my $diagram = $t->fill_in( HASH => $seatingcharts{$stage} );
-		io("$::config{leagues}/$league/classwork/${stage}seat.$filetype")
+		io("$::config{leagues}/$league/comp/${stage}seat.$filetype")
 			->print($diagram);
 		if ( $filetype eq 'html' ) {
 			my $web = Net::FTP->new( 'web.nuu.edu.tw' ) or warn "web.nuu?";
