@@ -170,7 +170,7 @@ sub run {
 			$web->login("greg", "1514") or warn "login: greg?";
 			$web->cwd( 'public_html' ) or die "No cwd to public_html,";
 			$web->put(
-				"$::config{leagues}/$league/classwork/${stage}seat.$filetype",
+				"$::config{leagues}/$league/comp/${stage}seat.$filetype",
 				"$league$stage.html") or die "put file?";
 		}
 	}
