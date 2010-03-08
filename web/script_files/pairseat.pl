@@ -94,7 +94,7 @@ sub run {
 		my $myid = $member->player;
 		next if any { $myid eq $_ } @checkedids;
 		my $score = $member->score->find({ tournament => $league })->score;
-		my $rating = $member->rating->find({round => $round})->value;
+		my $rating = $member->rating->find({round => $round-1})->value;
 		my $player = Games::Tournament::Contestant->new( 
 			id => $myid, name => $member->profile->name,
 			rating => $rating, score => $score );
@@ -111,7 +111,7 @@ sub run {
 		my $otherscore = $other->score->find({
 				tournament => $league } )->score;
 		my $otherrating = $other->rating->find({
-				round => $round})->value;
+				round => $round-1})->value;
 		my $oppid = $other->id;
 		my $opponent = Games::Tournament::Contestant->new( 
 			id => $oppid, name => $other->name,
