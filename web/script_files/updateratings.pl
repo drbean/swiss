@@ -37,6 +37,8 @@ use Grades;
 use Config::General;
 
 my $script = Grades::Script->new_with_options;
+my $tournament = $script->league;
+my $round = $script->exercise;
 
 my @MyAppConf = glob( "$Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
@@ -55,19 +57,17 @@ my $ratings = $d->resultset('Ratings');
 
 my $leagues = $script->league;
 my @ratings;
-for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
-	my $league = League->new( id =>
-		"$config{leagues}/$tournament" );
-	my $grades = Grades->new( league => $league );
-	my $members = $league->members;
-	foreach my $member ( @$members ) {
-		my $id = $member->{id};
-		push @ratings, 
-			{ 
-				player => $member->{id},
-				tournament => $tournament,
-				round => 0,
-				value => $member->{rating} || 0 };
-	}
+my $league = League->new( id =>
+	"$config{leagues}/$tournament" );
+my $grades = Grades->new( league => $league );
+my $members = $league->members;
+foreach my $member ( @$members ) {
+	my $id = $member->{id};
+	push @ratings, 
+		{ 
+			player => $member->{id},
+			tournament => $tournament,
+			round => $round,
+			value => $member->{rating} || 0 };
 }
 $ratings->update_or_create( $_ ) for @ratings;
