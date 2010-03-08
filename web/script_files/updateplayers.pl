@@ -56,8 +56,7 @@ my $d = $model->connect( @$connect_info );
 my $players = $d->resultset('Players');
 my $ratings = $d->resultset('Ratings');
 my $members = $d->resultset('Members');
-my %players;
-my @ratings;
+my (%players, @members, @ratings);
 my $leagues = $script->league;
 for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
 	my $league = League->new( id =>
@@ -71,8 +70,8 @@ for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/
 			id => $member->{id},
 			};
 		push @members, {
-			tournament => $tournament, player => $_->{id}, absent => 'False',
-			firstround => $round };
+			tournament => $tournament, player => $member->{id},
+			absent => 'False', firstround => $round };
 		push @ratings, { 
 				player => $member->{id},
 				tournament => $tournament,
