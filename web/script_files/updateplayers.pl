@@ -10,9 +10,8 @@ updateplayers.pl
 
 =head1 DESCRIPTION
 
-"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml."
+"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml." Update ratings for players also but just in round 0, ie before the tournament starts. 
 
-Do this in combination with update ratings, because ratings are not touched.
 
 =head1 AUTHOR
 
@@ -54,13 +53,13 @@ my $modelmodule = "${name}::Model::DB";
 my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
 my $players = $d->resultset('Players');
-
-my $leagues = $script->league;
+my $ratings = $d->resultset('Ratings');
 my %players;
+my @ratings;
+my $leagues = $script->league;
 for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
 	my $league = League->new( id =>
 		"$config{leagues}/$tournament" );
-	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
 	foreach my $member ( @$members ) {
 		my $id = $member->{id};
@@ -69,8 +68,15 @@ for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/
 			name => $member->{name},
 			id => $member->{id},
 			};
+		push @ratings, 
+			{ 
+				player => $member->{id},
+				tournament => $tournament,
+				round => 0,
+				value => $member->{rating} || 0 };
 		}
 	}
 }
 my @players = values %players;
 $players->update_or_create( $_ ) for @players;
+$ratings->update_or_create( $_ ) for @ratings;
