@@ -38,6 +38,7 @@ use Grades;
 use Config::General;
 
 my $script = Grades::Script->new_with_options;
+my $round = $script->round;
 
 my @MyAppConf = glob( "$Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
@@ -54,6 +55,7 @@ my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
 my $players = $d->resultset('Players');
 my $ratings = $d->resultset('Ratings');
+my $members = $d->resultset('Members');
 my %players;
 my @ratings;
 my $leagues = $script->league;
@@ -68,15 +70,18 @@ for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/
 			name => $member->{name},
 			id => $member->{id},
 			};
-		push @ratings, 
-			{ 
+		push @members, {
+			tournament => $tournament, player => $_->{id}, absent => 'False',
+			firstround => $round };
+		push @ratings, { 
 				player => $member->{id},
 				tournament => $tournament,
-				round => 0,
+				round => ($round - 1),
 				value => $member->{rating} || 0 };
 		}
 	}
 }
 my @players = values %players;
 $players->update_or_create( $_ ) for @players;
+$members->update_or_create( $_ ) for @members;
 $ratings->update_or_create( $_ ) for @ratings;
