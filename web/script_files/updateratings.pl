@@ -81,9 +81,10 @@ while ( my $member = $members->next ) {
 			tournament => $tournament,
 			round => $round });
 	my $point = $points->{$id};
-	unless ( $opponent ) {
-		warn
-"Player $id got $point points in Round $round, but $opponent is $opponent?"
+	unless ( $opponent and $opponent->opponent ne 'Unpaired'
+			and $opponent->opponent ne 'Bye' ) {
+		warn "Player $id got $point points in Round $round,
+				but $opponent is $opponent->opponetnt?"
 			if $point;
 		$newRating = $oldRating;
 	}
