@@ -57,7 +57,7 @@ has 'help' => (is => 'ro', isa => 'Bool');
 has 'tournament' => (traits => ['Getopt'], is => 'ro', isa => 'Str',
 		cmd_aliases => 'l',);
 has 'round' => (traits => ['Getopt'], is => 'ro', isa => 'Str',
-		cmd_aliases => 's',);
+		cmd_aliases => 'r',);
 has 'latex' => (is => 'ro', isa => 'Bool');
 
 
@@ -86,34 +86,36 @@ sub run {
 	my $league = $script->tournament;
 	my $tournament = $schema->resultset( 'Tournaments' )->find(
 				{ id => $league });
-	my $session = $script->round;
+	my $round = $script->round;
 	my $members = $tournament->members;
 	my @role = Games::Tournament::Swiss::Config->roles;
 	my ( @games, @checkedids, @members, @nonplayers );
 	while ( my $member = $members->next ) {
 		my $myid = $member->player;
 		next if any { $myid eq $_ } @checkedids;
-		my $profile = $member->profile;
-		my $score = $profile->score->find({ tournament => $league })->score;
+		my $score = $member->score->find({ tournament => $league })->score;
+		my $rating = $member->rating->find({round => $round})->value;
 		my $player = Games::Tournament::Contestant->new( 
-			id => $myid, name => $profile->name,
-			rating => $profile->rating, score => $score );
+			id => $myid, name => $member->profile->name,
+			rating => $rating, score => $score );
 		push @members, $player;
-		my $myrole = $profile->role->find({ tournament => $league, round =>
-				$session }) or die "no round $session";
+		my $myrole = $member->role->find({ tournament => $league, round =>
+				$round }) or die "no round $round";
 		my $role = $myrole->role;
 		if ( $role eq 'Unpaired' or $role eq 'Bye' ) {
 			push @nonplayers, $player;
 			next;
 		}
 		my $other = $member->opponent->find({
-				tournament => $league, round => $session } )->other;
+			tournament => $league, round => $round } )->other;
 		my $otherscore = $other->score->find({
 				tournament => $league } )->score;
+		my $otherrating = $other->rating->find({
+				round => $round})->value;
 		my $oppid = $other->id;
 		my $opponent = Games::Tournament::Contestant->new( 
 			id => $oppid, name => $other->name,
-			rating => $other->rating, score => $otherscore );
+			rating => $otherrating, score => $otherscore );
 		push @members, $opponent;
 		my $otherrole = first { $_ ne $role } @role;
 		my $game = Games::Tournament::Card->new( 
@@ -139,7 +141,7 @@ sub run {
 		"$::config{leagues}/rooms/$config->{room}/${fileprefix}seats.tmpl",
 						DELIMITERS => ['[*', '*]']);
 	my %seatingcharts = map { $_ =>
-			{ league => $league, round => $session, stage => $_ } } @stages;
+			{ league => $league, round => $round, stage => $_ } } @stages;
 	foreach my $n (0 .. $#games) {
 		my $game = $games[$n];
 		my $table = $n+1;
@@ -169,7 +171,7 @@ sub run {
 			$web->cwd( 'public_html' ) or die "No cwd to public_html,";
 			$web->put(
 				"$::config{leagues}/$league/classwork/${stage}seat.$filetype",
-				"$league.html") or die "put file?";
+				"$league$stage.html") or die "put file?";
 		}
 	}
 }
