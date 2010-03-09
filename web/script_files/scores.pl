@@ -53,11 +53,12 @@ my $league = $ARGV[0];
 
 my $leaguedata = LoadFile "/home/drbean/class/$league/league.yaml";
 my $members = $leaguedata->{member};
-my $conversations = $leaguedata->{conversations};
+# my $conversations = $leaguedata->{conversations};
+my $conversations = [ 1 ];
 my ($points, @scores);
 for my $conversation ( @$conversations ) {
 	$points->{$conversation} = LoadFile
-		"/home/drbean/class/$league/$conversation/points.yaml";
+		"/home/drbean/class/$league/comp/$conversation/points.yaml";
 }
 push @scores, [qw/tournament player score/];
 for my $player ( @$members ) {
