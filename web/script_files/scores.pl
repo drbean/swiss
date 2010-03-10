@@ -53,9 +53,8 @@ use Grades;
 
 my $script = Grades::Script->new_with_options;
 my $league = $script->league;
-my $round = $script->round;
 
-my $leagueobject = League->new( id => "$config{leagues}/$league" );
+my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
 my $tournament = Grades->new( league => $leagueobject );
 my $members = $leagueobject->members;
 my $conversations = $tournament->conversations;
