@@ -56,8 +56,8 @@ my $p = $d->resultset('Players');
 my $leagues = $script->league;
 my %players;
 for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
-	my $league = League->new( id =>
-		"$config{leagues}/$tournament" );
+	my $league = League->new( leagues => 
+		$config{leagues}, id => $tournament );
 	my $grades = Grades->new( league => $league );
 	my $members = $league->members;
 	foreach my $member ( @$members ) {
