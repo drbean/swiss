@@ -57,8 +57,8 @@ my $d = $model->connect( @$connect_info );
 my $members = $d->resultset('Members')->search({ tournament => $tournament });
 
 my @ratings;
-my $league = League->new( id =>
-	"$config{leagues}/$tournament" );
+my $league = League->new( leagues =>
+	$config{leagues}, id => $tournament );
 my $grades = Grades->new( league => $league );
 my $entrants = $league->members;
 my %entrants = map { $_->{id} => $_ } @$entrants;
