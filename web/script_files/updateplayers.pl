@@ -59,24 +59,25 @@ my $ratings = $d->resultset('Ratings');
 my $members = $d->resultset('Members');
 my (%players, @members, @ratings);
 my $leagues = $script->league;
-my $league = League->new( id =>
-	"$config{leagues}/$tournament" );
+my $league = League->new( leagues => $config{leagues}, id => $tournament );
 my $filemembers = $league->members;
 foreach my $member ( @$filemembers ) {
 	my $id = $member->{id};
-	unless ( defined $players{$id} ) { 
-	$players{$id} = {
-		name => $member->{name},
-		id => $member->{id},
-		};
-	push @members, {
-		tournament => $tournament, player => $member->{id},
-		absent => 'False', firstround => $round };
-	push @ratings, { 
-			player => $member->{id},
-			tournament => $tournament,
-			round => ($round - 1),
-			value => $member->{rating} || 0 };
+	my $dbmember = $members->find({ player => $id,
+			tournament => $tournament });
+	unless ( $dbmember ) {
+		$players{$id} = {
+			name => $member->{name},
+			id => $member->{id},
+			};
+		push @members, {
+			tournament => $tournament, player => $member->{id},
+			absent => 'False', firstround => $round };
+		push @ratings, { 
+				player => $member->{id},
+				tournament => $tournament,
+				round => ($round - 1),
+				value => $member->{rating} || 0 };
 	}
 }
 my @players = values %players;
