@@ -49,23 +49,28 @@ use YAML qw/LoadFile DumpFile/;
 use IO::All;
 use List::Util qw/sum/;
 
-my $league = $ARGV[0];
+use Grades;
 
-my $leaguedata = LoadFile "/home/drbean/class/$league/league.yaml";
-my $members = $leaguedata->{member};
-# my $conversations = $leaguedata->{conversations};
-my $conversations = [ 1..2 ];
+my $script = Grades::Script->new_with_options;
+my $league = $script->league;
+my $round = $script->round;
+
+my $leagueobject = League->new( id => "$config{leagues}/$league" );
+my $tournament = Grades->new( league => $leagueobject );
+my $members = $leagueobject->members;
+my $conversations = $tournament->conversations;
 my ($points, @scores);
 for my $conversation ( @$conversations ) {
-	$points->{$conversation} = LoadFile
-		"/home/drbean/class/$league/comp/$conversation/points.yaml";
+	$points->{$conversation} = $tournament->points($conversation);
 }
-push @scores, [qw/tournament player score/];
 for my $player ( @$members ) {
 	my $id = $player->{id};
 	my $score = sum map { $_->{$id} } @{$points}{@$conversations};
-	push @scores, [ $league, $id, $score ];
+	push @scores, {
+			tournament => $league,
+			player => $id,
+			score => $score || 0 };
 
 }
 my $t = $d->resultset('Scores');
-$t->populate(\@scores);
+$t->update_or_create( $_ ) for @scores;
