@@ -6,7 +6,7 @@ updateratings.pl - Enter new ratings of players in database via script
 
 =head1 SYNOPSIS
 
-updateratings.pl
+updateratings.pl -l FLA0018 -r 2 
 
 =head1 DESCRIPTION
 
@@ -62,29 +62,37 @@ my $league = League->new( leagues =>
 my $grades = Grades->new( league => $league );
 my $entrants = $league->members;
 my %entrants = map { $_->{id} => $_ } @$entrants;
-my $points = $grades->points( "comp/$round" );
+my $points = $grades->points( "$round" );
 my %seen;
 while ( my $member = $members->next ) {
 	my $id = $member->player;
-	my $oldRating;
+	my ( $oldRating, $newRating );
 	$oldRating = $member->rating->find({
 			tournament => $tournament,
 			round => ($round - 1) });
 	unless ( $oldRating ) {
-	$oldRating = $entrants{$id}->{rating};
+		$newRating = $entrants{$id}->{rating} || 0;
+		push @ratings, { 
+				player => $id,
+				tournament => $tournament,
+				round => $round,
+				value => $newRating || 0 };
+		warn " Player $id has no rating, assigning $newRating rating,";
 		next;
 	}
 	$oldRating = $oldRating->value;
-	warn "Player $id had no rating in round $round" unless $oldRating;
-	my $newRating;
+	warn "Player $id had no, or zero rating in round $round" unless $oldRating;
 	my $opponent = $member->opponent->find({
 			tournament => $tournament,
 			round => $round });
 	my $point = $points->{$id};
-	unless ( $opponent and $opponent->opponent ne 'Unpaired'
-			and $opponent->opponent ne 'Bye' ) {
+	if ( not $opponent ) {
 		warn
-			"Player $id got $point points in Round $round, but $opponent is " .
+"Player $id, with $oldRating rating, missing from Opponents database in Round $round,";
+		$newRating = $oldRating;
+	}
+	elsif ( $opponent->opponent eq 'Unpaired' or $opponent->opponent eq 'Bye') {
+		warn "Player $id got $point points in Round $round, but opponent is " .
 					$opponent->opponent . "?" if $point;
 		$newRating = $oldRating;
 	}
@@ -96,13 +104,16 @@ while ( my $member = $members->next ) {
 				player => $opponent->opponent,
 				tournament => $tournament,
 				round => ($round - 1) })->value;
-		my $result = $point == 5? "win": $point == 3? "loss": "draw";
-		my $rater = Games::Ratings::Chess::FIDE->new;
-		$rater->set_rating( $oldRating );
-		$rater->set_coefficient( 25 );
-		$rater->add_game( { opponent_rating => $Orating,
-				result => $result } );
-		$newRating = $rater->get_new_rating;
+		if ( $point ) {
+			my $result = $point == 5? "win": $point == 4? "draw": "loss";
+			my $rater = Games::Ratings::Chess::FIDE->new;
+			$rater->set_rating( $oldRating );
+			$rater->set_coefficient( 25 );
+			$rater->add_game( { opponent_rating => $Orating,
+					result => $result } );
+			$newRating = $rater->get_new_rating;
+		}
+		else { $newRating = $oldRating }
 	}
 	push @ratings, { 
 			player => $id,
