@@ -54,7 +54,7 @@ my $league = $ARGV[0];
 my $leaguedata = LoadFile "/home/drbean/class/$league/league.yaml";
 my $members = $leaguedata->{member};
 # my $conversations = $leaguedata->{conversations};
-my $conversations = [ 1 ];
+my $conversations = [ 1..2 ];
 my ($points, @scores);
 for my $conversation ( @$conversations ) {
 	$points->{$conversation} = LoadFile
