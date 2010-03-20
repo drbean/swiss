@@ -91,9 +91,12 @@ while ( my $member = $members->next ) {
 "Player $id, with $oldRating rating, missing from Opponents database in Round $round,";
 		$newRating = $oldRating;
 	}
-	elsif ( $opponent->opponent eq 'Unpaired' or $opponent->opponent eq 'Bye') {
-		warn "Player $id got $point points in Round $round, but opponent is " .
+	elsif ( $opponent->opponent eq 'Unpaired' ) {
+		warn "Player $id got $point points in Round $round, but was " .
 					$opponent->opponent . "?" if $point;
+		$newRating = $oldRating;
+	}
+	elsif ( $opponent->opponent eq 'Bye' ) {
 		$newRating = $oldRating;
 	}
 	else {
