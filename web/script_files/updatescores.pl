@@ -6,11 +6,11 @@ loadYAML.pl -- Populate scores with tournament conversation points totals.
 
 =head1 SYNOPSIS
 
-web/script_files/scores.pl FLA0016
+web/script_files/scores.pl -l FLA0016
 
 =head1 DESCRIPTION
 
-Populate scores tables using points.yaml files of all conversations of ARGV[0] tournament, from the 'points.yaml' file of the appropriate directory, as recorded in the 'conversations' sequence of 'league.yaml'. If scores exist will not update them. You will have to delete those rows.
+Update or Populate scores tables using points.yaml files of all conversations of -l tournament, from the 'points.yaml' files below the appropriate directory, as recorded in the 'compcomp' field of 'league.yaml'.
 
 =head1 AUTHOR
 
