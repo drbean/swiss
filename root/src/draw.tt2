@@ -1,0 +1,58 @@
+[% META title = 'Draw' -%]
+[% n = 1 %]
+
+<form method="post" action="[% c.uri_for('preppair') %]">
+<table>
+<caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
+  <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
+      <TH colspan="3"><H2>[% roles.1 %]</H2>
+  <TR><TH>Table<TH>ID<TH>Name<TH>Score<TH>Result<TH>ID<TH>Name<TH>Score
+[% FOREACH n IN [ 0 .. games.max ] %]
+[% UNLESS games.$n.contestants.size == 1 %]
+  <TR>
+    <td>[% n + 1 %]
+    <td>[% games.$n.contestants.$roles.0.id %]
+    <td>[% games.$n.contestants.$roles.0.name %]
+    <td>[% games.$n.contestants.$roles.0.score.defined ? games.$n.contestants.$roles.0.score : '-' %]
+    <td> 
+<select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
+
+<OPTION selected value="0">-:-</OPTION>
+<OPTION value="win:loss">W:L</OPTION>
+<OPTION value="loss:win">L:W</OPTION>
+<OPTION value="draw:draw">=:=</OPTION>
+<OPTION value="win:forfeit">W:F</OPTION>
+<OPTION value="forfeit:win">F:W</OPTION>
+<OPTION value="forfeit:forfeit">F:F</OPTION>
+
+</select>
+    <td>[% games.$n.contestants.$roles.1.id %]
+    <td>[% games.$n.contestants.$roles.1.name %]
+    <td>[% games.$n.contestants.$roles.1.score.defined ? games.$n.contestants.$roles.1.score : '-' %]
+[% ELSE %]
+  <TR>
+    <td>[% n + 1 %]
+    <td>[% games.$n.contestants.Bye.id %]
+    <td>[% games.$n.contestants.Bye.name %]
+    <td>[% games.$n.contestants.Bye.score.defined ? games.$n.contestants.Bye.score : '-' %]
+    <td> 
+<select name="[% games.$n.contestants.Bye.id %]_:_Bye" size="1">
+
+<OPTION selected value="bye:bye">Bye</OPTION>
+
+</select>
+[% END %]
+[% END %]
+  <TR><TH colspan="8">W: Win, L: Loss, =: draw, F: Forfeit
+</table>
+<input type="submit" name="Submit" value="Record Round [% round  %] results">
+</form>
+<br>
+
+[%- IF log %]
+<H2>FIDE Pairing Procedure Log</H2>
+
+<PRE>[% log %]</PRE>
+[% END %]
+
+[%- IF pairtable %][% INCLUDE pairtable.tt2 round = round + 1 %][% END %]
