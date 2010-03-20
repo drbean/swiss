@@ -6,11 +6,11 @@ updateplayers.pl - Change players in database via script
 
 =head1 SYNOPSIS
 
-updateplayers.pl
+updateplayers.pl -l FLA0031 -r 2
 
 =head1 DESCRIPTION
 
-"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml." Update ratings for players also but just in round 0, ie before the tournament starts. Most importantly, update Members.
+"Update missing players, eg transfers or without English names, not in original populate of Players, but now in league.yaml." Update ratings for players from the given round. Also, update Members.
 
 
 =head1 AUTHOR
