@@ -64,7 +64,7 @@ __PACKAGE__->has_many( float => 'Swiss::Schema::Result::Floats',
 __PACKAGE__->has_many( rating => 'Swiss::Schema::Result::Ratings',
 				{ 'foreign.tournament' => 'self.tournament',
 				'foreign.player' => 'self.player' } );
-__PACKAGE__->has_many( score => 'Swiss::Schema::Result::Scores',
+__PACKAGE__->might_have( score => 'Swiss::Schema::Result::Scores',
 				{ 'foreign.tournament' => 'self.tournament',
 				'foreign.player' => 'self.player' } );
 
