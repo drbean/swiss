@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2010  2月 03, 14時39分37秒
+# Last Edit: 2010  3月 23, 22時22分01秒
 # $Id$
 
 use warnings;
@@ -165,7 +165,6 @@ sub recreateCards {
         next if $round < $player->firstround;
 	my $opponentId = $opponents->{$id};
         croak "Round $round: opponent info for Player $id?" unless $opponentId;
-$DB::single=1 if $id eq 102;
         my $opponent          = $self->ided($opponentId);
         my $opponentsOpponent = $opponents->{$opponentId};
         croak
