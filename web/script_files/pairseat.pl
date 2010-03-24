@@ -93,7 +93,7 @@ sub run {
 	while ( my $member = $members->next ) {
 		my $myid = $member->player;
 		next if any { $myid eq $_ } @checkedids;
-		my $score = $member->score->find({ tournament => $league })->score;
+		my $score = $member->score->score;
 		my $rating = $member->rating->find({round => $round-1})->value;
 		my $player = Games::Tournament::Contestant->new( 
 			id => $myid, name => $member->profile->name,
