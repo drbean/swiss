@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  2月 12, 21時51分46秒
+# Last Edit: 2010  3月 28, 12時37分19秒
 # $Id$
 
 use strict;
@@ -329,7 +329,8 @@ sub nextround : Local {
 			my $fieldhistory = $newhistory->{$field}->{$id};
 			my %series = map { ($_+1) => $fieldhistory->[$_] }
 					0 .. $#$fieldhistory;
-			for my $round ( keys %series ) {
+			for my $round ( sort keys %series ) {
+$DB::single=1 if not $series{$round};
 				$fieldset->update_or_create( {
 					tournament => $tourid,
 					player => $id, 
