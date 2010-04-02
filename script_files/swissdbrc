@@ -1,0 +1,26 @@
+#!perl
+
+use lib 'web/lib';
+use YAML qw/LoadFile DumpFile/;
+use Grades;
+
+my $leagueid = 'GL00027';
+
+my $l = League->new( id => $leagueid );
+my $g = Grades->new( league => $l );
+my $m = $l->members;
+my %m = map { $_->{id} => $_ } @$m;
+
+my $conversations = $g->conversations;
+my @op = map { $g->opponents($_) } @$conversations;
+
+use Swiss;
+use Swiss::Model::DB;
+use Swiss::Schema;
+
+my $d = Swiss::Schema->connect( 'dbi:SQLite:web/db/982', '', '' );
+
+my $o = $d->resultset('Opponents')->search({ tournament => $leagueid });
+my $r = $d->resultset('Ratings')->search({ tournament => $leagueid });
+my $ro = $d->resultset('Round')->search({ tournament => $leagueid });
+my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
