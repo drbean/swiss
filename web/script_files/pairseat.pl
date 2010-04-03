@@ -169,9 +169,10 @@ sub run {
 			my $web = Net::FTP->new( 'web.nuu.edu.tw' ) or warn "web.nuu?";
 			$web->login("greg", "1514") or warn "login: greg?";
 			$web->cwd( 'public_html' ) or die "No cwd to public_html,";
+			my $page = $stage eq 'pair'? "${league}p.html": "${league}px.html";
 			$web->put(
-				"$::config{leagues}/$league/comp/${stage}seat.$filetype",
-				"$league$stage.html") or die "put file?";
+				"$::config{leagues}/$league/comp/${stage}seat.$filetype", $page 
+				) or die "put file?";
 		}
 	}
 }
