@@ -4,7 +4,7 @@ use lib 'web/lib';
 use YAML qw/LoadFile DumpFile/;
 use Grades;
 
-my $leagueid = 'GL00027';
+my $leagueid = 'GL00012';
 
 my $l = League->new( id => $leagueid );
 my $g = Grades->new( league => $l );
@@ -21,6 +21,8 @@ use Swiss::Schema;
 my $d = Swiss::Schema->connect( 'dbi:SQLite:web/db/982', '', '' );
 
 my $o = $d->resultset('Opponents')->search({ tournament => $leagueid });
+my $rol = $d->resultset('Roles')->search({ tournament => $leagueid });
+my $f = $d->resultset('Floats')->search({ tournament => $leagueid });
 my $r = $d->resultset('Ratings')->search({ tournament => $leagueid });
 my $ro = $d->resultset('Round')->search({ tournament => $leagueid });
 my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
