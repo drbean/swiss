@@ -4,7 +4,9 @@ use lib 'web/lib';
 use YAML qw/LoadFile DumpFile/;
 use Grades;
 
-my $leagueid = 'GL00012';
+$_REPL->load_plugin('DumpHistory');
+
+my $leagueid = 'FLA0018';
 
 my $l = League->new( id => $leagueid );
 my $g = Grades->new( league => $l );
@@ -26,3 +28,33 @@ my $f = $d->resultset('Floats')->search({ tournament => $leagueid });
 my $r = $d->resultset('Ratings')->search({ tournament => $leagueid });
 my $ro = $d->resultset('Round')->search({ tournament => $leagueid });
 my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
+
+$rol->update_or_create({ player => 'V9899132', round => 3, role => "White" });
+$rol->update_or_create({ player => 'N9561766', round => 3, role => "Black" });
+
+# $rol->update_or_create({ player => 'V9731059', round => 4, role => 'Black' });
+# $o->update_or_create({ player => 'V9731059', round => 4, opponent => 'V9741048' });
+# $o->update_or_create({ player => 'V9741048', round => 4, opponent => 'V9731059' });
+
+# $rol->update_or_create({ player => 'V9741047', round => 4, role => 'White' });
+# $o->update_or_create({ player => 'V9741047', round => 4, opponent => 'V9741023' });
+# $o->update_or_create({ player => 'V9741023', round => 4, opponent => 'V9741047' });
+
+# my $o4 = LoadFile '/home/drbean/class/FLA0018/comp/4/opponent.yaml';
+# my $r4 = LoadFile '/home/drbean/class/FLA0018/comp/4/role.yaml';
+# $o->update_or_create({ round => 4, player => $_, opponent => $o4->{$_} }) for keys %m;
+# $rol->update_or_create({ round => 4, player => $_, role => $r4->{$_} }) for keys %m;
+# $f->update_or_create({ round => 4, player => $_, float => 'Not' }) for keys %m;
+
+# $o->update_or_create({ tournament => 'FLA0018', player => 'U9593023', opponent => 'Unpaired', round => 1 });
+# $o->update_or_create({ tournament => 'FLA0018', player => 'U9593023', opponent => 'Unpaired', round => 2 });
+# $o->update_or_create({ tournament => 'FLA0018', player => 'U9593023', opponent => 'Unpaired', round => 3 });
+
+# $o->update_or_create({ tournament => 'FLA0018', player => 'E9841001', opponent => 'Unpaired', round => 1 });
+# $o->update_or_create({ tournament => 'FLA0018', player => 'E9841001', opponent => 'Unpaired', round => 2 });
+# $o->update_or_create({ tournament => 'FLA0018', player => 'E9841001', opponent => 'Unpaired', round => 3 });
+
+# $o->update_or_create({ tournament => 'FLA0018', player => 'V9741044', opponent => 'V9899132', round => 1 });
+# $o->update_or_create({ tournament => 'FLA0018', player => 'V9899132', opponent => 'V9741044', round => 1 });
+
+# $d->resultset( 'Round' )->update_or_create({ tournament => 'FLA0018', round => 3 });
