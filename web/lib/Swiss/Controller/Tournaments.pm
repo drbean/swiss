@@ -1,10 +1,12 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2010  3月 01, 17時05分48秒
+# Last Edit: 2010  4月 11, 20時20分58秒
 # $Id$
 
 use Moose;
 BEGIN { extends 'Catalyst::Controller'; }
+
+use Grades;
 
 use List::MoreUtils qw/none/;
 
@@ -19,7 +21,6 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
-
 
 =head2 form_create
 
@@ -263,10 +264,23 @@ sub rounds : Local {
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->round;
-	my @members = $c->model('DB::Members')->search(
+	my $league = League->new( id => $tourid );
+	my $grades = Grades->new( league => $league );
+$DB::single=1;
+	my $session = $grades->series->[-1];
+	my $beancans = $grades->beancans( $session );
+	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
-	my @players = map { { id => $_->player, name => $_->profile->name,
-				absent => $_->absent } } @members;
+	my @players;
+	for my $can ( sort keys %$beancans ) {
+		my $group = $beancans->{$can};
+		for my $player ( @$group ) {
+			my $id = $league->ided( $player );
+			my $member = $members->find({ player => $id });
+			push @players, { id => $id, name => $member->profile->name,
+				absent => $member->absent };
+		}
+	}
 	my $rounds = $c->request->params->{rounds};
 	$c->model('DB::Tournaments')->find( { id => $tourid } )
 				->update( { rounds => $rounds } );
