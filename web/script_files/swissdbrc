@@ -6,7 +6,7 @@ use Grades;
 
 $_REPL->load_plugin('DumpHistory');
 
-my $leagueid = 'GL00012';
+my $leagueid = 'BMA0076';
 
 my $l = League->new( id => $leagueid );
 my $g = Grades->new( league => $l );
@@ -29,89 +29,89 @@ my $r = $d->resultset('Ratings')->search({ tournament => $leagueid });
 my $ro = $d->resultset('Round')->search({ tournament => $leagueid });
 my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
 
-$o->update_or_create({ tournament => 'GL00012', player => 'U9843022', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9843022', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9843022', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9843009', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9843009', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9843009', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9631006', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9631006', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9631006', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9723053', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9723053', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9723053', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9515010', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9515010', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9515010', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9633045', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9633045', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9633045', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9621111', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9621111', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9621111', float => 'Not', round => 1 });
-
-
-
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 3 });
-
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 3 });
-
-$o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 3 });
-
-$o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 3 });
-
-$o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 3 });
-
-$o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 1 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 1 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 1 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 2 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 2 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 2 });
-$o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 3 });
-$rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 3 });
-$f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 3 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9843022', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9843022', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9843022', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9843009', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9843009', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9843009', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9631006', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9631006', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9631006', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9723053', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9723053', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9723053', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9515010', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9515010', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9515010', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9633045', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9633045', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9633045', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9621111', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9621111', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9621111', float => 'Not', round => 1 });
+# 
+# 
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610015', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610015', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610015', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9610042', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9610042', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9610042', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9521030', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9521030', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9521030', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9711030', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9711030', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9711030', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'T9722022', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'T9722022', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'T9722022', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 1 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 2 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => 'GL00012', player => 'U9593023', opponent => 'Unpaired', round => 3 });
+# $rol->update_or_create({ tournament => 'GL00012', player => 'U9593023', role => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => 'GL00012', player => 'U9593023', float => 'Not', round => 3 });
 
 # $rol->update_or_create({ player => 'V9899132', round => 3, role => "White" });
 # $rol->update_or_create({ player => 'N9561766', round => 3, role => "Black" });
