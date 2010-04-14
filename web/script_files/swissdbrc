@@ -29,6 +29,11 @@ my $r = $d->resultset('Ratings')->search({ tournament => $leagueid });
 my $ro = $d->resultset('Round')->search({ tournament => $leagueid });
 my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
 
+my $op = LoadFile '../class/BMA0076/comp/6/opponent.yaml';
+my $role = LoadFile '../class/BMA0076/comp/6/role.yaml';
+$o->update_or_create({ player => $_, opponent => $op->{$_}, round => 6 }) for keys %m;
+$rol->update_or_create({ player => $_, role => $role->{$_}, round => 6 }) for keys %m;
+;
 # $o->update_or_create({ tournament => 'GL00012', player => 'U9843022', opponent => 'Unpaired', round => 1 });
 # $rol->update_or_create({ tournament => 'GL00012', player => 'U9843022', role => 'Unpaired', round => 1 });
 # $f->update_or_create({ tournament => 'GL00012', player => 'U9843022', float => 'Not', round => 1 });
@@ -142,3 +147,4 @@ my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
 # $o->update_or_create({ tournament => 'FLA0018', player => 'V9899132', opponent => 'V9741044', round => 1 });
 
 # $d->resultset( 'Round' )->update_or_create({ tournament => 'FLA0018', round => 3 });
+#$o->update_or_create({ player => $_, opponent => $op->{$_}, round => 6 }) for keys %m })
