@@ -6,11 +6,19 @@ updateratings.pl - Enter new ratings of players in database via script
 
 =head1 SYNOPSIS
 
-updateratings.pl -l FLA0018 -r 2 
+updateratings.pl -l FLA0018
 
 =head1 DESCRIPTION
 
-"Update ratings for missing players, eg transfers, not in original populate of Players, but now in league.yaml, for round 0 before rating changes."
+This script is run after play is finished in one round and before the next round is paired and played.
+
+The rating of round n is the rating after play in that round, and is the rating that applies to the game in round n+1.
+
+It is calculated from the ratings in round n-1 of the player and the opponent on the basis of play in round n.
+
+The round n is found from the conversations of the league that is participating in the tournament, using Grades.pm.
+
+Ratings in round 0 are in league.yaml. The ratings of missing players, eg transfers, not in the original populate of Players, but now in league.yaml, for round 0 before rating changes are also updated.
 
 =head1 AUTHOR
 
@@ -42,11 +50,7 @@ sub run {
 	my $script = Grades::Script->new_with_options;
 	my $tournament = $script->league or die "League id?";
 
-	# my @MyAppConf = glob( "$Bin/../*.conf" );
-	my @MyAppConf = glob( "web/swiss.conf" );
-	die "Which of @MyAppConf is the configuration file?"
-				unless @MyAppConf == 1;
-	my %config = Config::General->new($MyAppConf[0])->getall;
+	my %config = Config::General->new( "web/swiss.conf" )->getall;
 	my $name = $config{name};
 	require $name . ".pm";
 	my $model = "${name}::Schema";
@@ -62,59 +66,58 @@ sub run {
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
 	my $grades = Grades->new( league => $league );
-	my $lastround = $grades->conversations->[-1] + 1;
-	my $round = $script->round || $lastround;
-	$round--;
+	my $thisround = $grades->conversations->[-1] || 0;
+	my $lastround = $thisround - 1;
 	my $entrants = $league->members;
 	my %entrants = map { $_->{id} => $_ } @$entrants;
-	my $points = $grades->points( $round );
+	my $points = $grades->points( $thisround );
 	my %seen;
 	while ( my $member = $members->next ) {
 		my $id = $member->player;
 		my ( $oldRating, $newRating );
 		$oldRating = $member->rating->find({
 				tournament => $tournament,
-				round => $round });
+				round => $lastround });
 		unless ( $oldRating ) {
 			$newRating = $entrants{$id}->{rating} || 0;
 			push @ratings, { 
 					player => $id,
 					tournament => $tournament,
-					round => $round,
-					value => $newRating || 0 };
+					round => $thisround,
+					value => $newRating };
 			warn
-			" Player $id had no rating in round $round, assigning $newRating,";
+		" Player $id had no rating in round $lastround, assigning $newRating,";
 			next;
 		}
 		$oldRating = $oldRating->value;
-		warn "Player $id had no, or zero rating in round $round" unless $oldRating;
+		warn "Player $id had no, or zero rating in round $lastround" unless $oldRating;
 		my $opponent = $member->opponent->find({
 				tournament => $tournament,
-				round => $round });
+				round => $thisround });
 		my $point = $points->{$id};
 		if ( not $opponent ) {
 			warn
-	"Player $id, with $oldRating rating, had no opponent in Round $round,";
+	"Player $id, with $oldRating rating, had no opponent in Round $thisround,";
 			$newRating = $oldRating;
 		}
 		elsif ( $opponent->opponent eq 'Unpaired' ) {
-			warn "Player $id got $point points in Round $round, but was " .
+			warn "Player $id got $point points in Round $thisround, but was " .
 						$opponent->opponent . "?" if $point;
 			$newRating = $oldRating;
 		}
-		elsif ( $opponent->opponent eq 'Bye' ) {
+		elsif (  $opponent->opponent eq 'Late' or
+											$opponent->opponent eq 'Bye' ) {
 			$newRating = $oldRating;
 		}
 		else {
 			my $Orating = $opponent->other->rating->find({
-					tournament => $tournament,
-					round => ($round - 1) });
+					tournament => $tournament, round => $lastround });
 			#my $Orating = $d->resultset('Ratings')->find({ 
 			#		player => $opponent->opponent,
 			#		tournament => $tournament,
 			#		round => ($round - 1) });
-			die $opponent->opponent . "'s rating in round " . ($round-1) . ","
-										unless $Orating;
+			die "${id}'s opponent, " . $opponent->opponent .
+				"'s rating in round $lastround," unless $Orating;
 			$Orating = $Orating->value;
 			if ( $point ) {
 				my $result = $point == 5? "win": $point == 4? "draw": "loss";
@@ -130,7 +133,7 @@ sub run {
 		push @ratings, { 
 				player => $id,
 				tournament => $tournament,
-				round => $round,
+				round => $thisround,
 				value => $newRating || $entrants{$id}->{rating} || 0 };
 	};
 
