@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2010  4月 15, 08時41分02秒
+# Last Edit: 2010  4月 15, 12時05分14秒
 # $Id$
 
 =head1 NAME
@@ -66,9 +66,13 @@ Finally, the swiss database is updated.
 
 =cut
 
+run() unless caller;
+
 sub run {
     my $roundfile = $g->inspect( $g->compcompdirs . "/$round/round.yaml" );
     my $pairs = $roundfile->{pair};
+    my $Bye = delete $pairs->{Bye};
+    my $byeplayer = $Bye->{Bye};
     my @white = keys %$pairs;
     die "Some white players not in league" unless
 	all { $league->is_member($_) } @white;
@@ -77,10 +81,12 @@ sub run {
     die "Some black players not in league" unless
 	all { $league->is_member($_) } keys %black;
     @opponents{ keys %black } = values %black;
+    $opponents{$byeplayer} = 'Bye' if $byeplayer;
     $opponents{$_} ||= 'Unpaired' for keys %members;
 
     my %roles = map { $_ => 'White' } @white;
     @roles{ keys %black } = ('Black') x keys %black;
+    $roles{$byeplayer} = 'Bye' if $byeplayer;
     $roles{$_} ||= 'Unpaired' for keys %members;
 
     my ( @opponents, @roles );
@@ -122,8 +128,6 @@ sub run {
     print Dump \%opponents;
     print Dump \%roles;
 }
-
-run unless caller;
 
 =head1 AUTHOR
 
