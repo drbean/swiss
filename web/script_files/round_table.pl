@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2010  4月 15, 12時05分14秒
+# Last Edit: 2010  4月 15, 13時15分54秒
 # $Id$
 
 =head1 NAME
@@ -89,7 +89,7 @@ sub run {
     $roles{$byeplayer} = 'Bye' if $byeplayer;
     $roles{$_} ||= 'Unpaired' for keys %members;
 
-    my ( @opponents, @roles );
+    my ( @opponents, @roles, @floats );
     #while ( my $member = $members->next ) { 
     #    my $id = $member->player;
     #    die "$id not in tournament," unless $league->is_member($id) or 
@@ -118,12 +118,19 @@ sub run {
 		round => $round,
 		player => $id,
 		role => $roles{$id} };
+	push @floats, {
+		tournament => $tourid,
+		round => $round,
+		player => $id,
+		float => 'Not' };
     }
 
     my $opponents = $d->resultset('Opponents');
     $opponents->populate( \@opponents );
     my $roles = $d->resultset('Roles');
     $roles->populate( \@roles );
+    my $floats = $d->resultset('Floats');
+    $floats->populate( \@floats );
 
     print Dump \%opponents;
     print Dump \%roles;
