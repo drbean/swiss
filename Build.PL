@@ -25,6 +25,7 @@ my $builder = Module::Build->new(
 			    script_files/pairtable2yaml
 			    script_files/pairyaml2txt
         		    script_files/pairstately
+					web/script_files/create_table.pl
         			)],
     add_to_cleanup      => [ 'Games-Tournament-Swiss-*' ],
 			);
