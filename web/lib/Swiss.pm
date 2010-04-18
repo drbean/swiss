@@ -14,7 +14,8 @@ use Catalyst::Runtime 5.80;
 #                 directory
 
 use parent qw/Catalyst/;
-use Catalyst qw/-Debug
+# use Catalyst qw/-Debug
+use Catalyst qw/
                 ConfigLoader
                 Static::Simple
 
