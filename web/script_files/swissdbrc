@@ -6,7 +6,7 @@ use Grades;
 
 $_REPL->load_plugin('DumpHistory');
 
-my $leagueid = 'FLA0018';
+my $leagueid = 'GL00012';
 
 my $league = League->new( id => $leagueid );
 my $g = Grades->new( league => $league );
@@ -30,7 +30,12 @@ my $l = $d->resultset('Ratings')->search({ tournament => $leagueid });
 my $n = $d->resultset('Round')->search({ tournament => $leagueid });
 my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
 
-$f->update_or_create({ round => 3, player => $_, float => 'Not' }) for keys %m;
+my $beancanmembers = $g->names2beancans(2);
+my @a = grep { not $beancanmembers->{$m{$_}->{name}} or $beancanmembers->{$m{$_}->{name}} eq 'Absent' } keys %m;
+
+$m->update_or_create({ player => $_, absent => 'True' }) for @a;
+
+# $f->update_or_create({ round => 3, player => $_, float => 'Not' }) for keys %m;
 # $f->update_or_create({ player => 'N9361756', float => 'Not', round => 3 });
 # $f->update_or_create({ player => 'N9461753', float => 'Not', round => 3 });
 
