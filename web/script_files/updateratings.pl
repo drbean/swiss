@@ -66,7 +66,7 @@ sub run {
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
 	my $grades = Grades->new( league => $league );
-	my $thisround = $grades->conversations->[-1] || 0;
+	my $thisround = $script->round || $grades->conversations->[-1] || 0;
 	my $lastround = $thisround - 1;
 	my $entrants = $league->members;
 	my %entrants = map { $_->{id} => $_ } @$entrants;
