@@ -1,12 +1,12 @@
 #!perl
 
-use lib 'web/lib';
+use lib 'lib';
 use YAML qw/LoadFile DumpFile/;
 use Grades;
 
 $_REPL->load_plugin('DumpHistory');
 
-my $leagueid = 'GL00012';
+my $leagueid = 'FLA0031';
 
 my $league = League->new( id => $leagueid );
 my $g = Grades->new( league => $league );
@@ -20,7 +20,7 @@ use Swiss;
 use Swiss::Model::DB;
 use Swiss::Schema;
 
-my $d = Swiss::Schema->connect( 'dbi:SQLite:web/db/982', '', '' );
+my $d = Swiss::Schema->connect( 'dbi:SQLite:db/982', '', '' );
 
 my $m = $d->resultset('Members')->search({ tournament => $leagueid });
 my $o = $d->resultset('Opponents')->search({ tournament => $leagueid });
@@ -39,8 +39,10 @@ $m->update_or_create({ player => $_, absent => 'True' }) for @a;
 # $f->update_or_create({ player => 'N9361756', float => 'Not', round => 3 });
 # $f->update_or_create({ player => 'N9461753', float => 'Not', round => 3 });
 
-# my @r = $r->search({round => 7});
-# $_->delete for @r;
+my @o = $o->search({round => 6});
+my @r = $r->search({round => 6});
+my @f = $f->search({round => 6});
+$_->delete for @o, @r, @f;
 
 # my $op = LoadFile '../class/BMA0076/comp/6/opponent.yaml';
 # my $role = LoadFile '../class/BMA0076/comp/6/role.yaml';
