@@ -1,6 +1,7 @@
 #!perl
 
 use lib 'lib';
+use lib 'web/lib';
 use YAML qw/LoadFile DumpFile/;
 use Grades;
 
@@ -20,7 +21,7 @@ use Swiss;
 use Swiss::Model::DB;
 use Swiss::Schema;
 
-my $d = Swiss::Schema->connect( 'dbi:SQLite:db/982', '', '' );
+my $d = Swiss::Schema->connect( 'dbi:SQLite:web/db/982', '', '' );
 
 my $m = $d->resultset('Members')->search({ tournament => $leagueid });
 my $o = $d->resultset('Opponents')->search({ tournament => $leagueid });
@@ -35,9 +36,11 @@ my @a = grep { not $beancanmembers->{$m{$_}->{name}} or $beancanmembers->{$m{$_}
 
 $m->update_or_create({ player => $_, absent => 'True' }) for @a;
 
-# $f->update_or_create({ round => 3, player => $_, float => 'Not' }) for keys %m;
-# $f->update_or_create({ player => 'N9361756', float => 'Not', round => 3 });
-# $f->update_or_create({ player => 'N9461753', float => 'Not', round => 3 });
+# $f->update_or_create({ round => 1, player => $_, float => 'Not' }) for keys %m;
+$f->update_or_create({ player => 'N9461747', float => 'Not', round => 1 });
+$f->update_or_create({ player => 'N9661714', float => 'Not', round => 1 });
+$f->update_or_create({ player => 'N9661719', float => 'Not', round => 1 });
+$f->update_or_create({ player => 'N9661731', float => 'Not', round => 1 });
 
 my @o = $o->search({round => 6});
 my @r = $r->search({round => 6});
