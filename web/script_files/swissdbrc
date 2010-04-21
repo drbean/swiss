@@ -33,19 +33,19 @@ my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
 
 my $beancanmembers = $g->names2beancans(2);
 my @a = grep { not $beancanmembers->{$m{$_}->{name}} or $beancanmembers->{$m{$_}->{name}} eq 'Absent' } keys %m;
-
 $m->update_or_create({ player => $_, absent => 'True' }) for @a;
 
-# $f->update_or_create({ round => 1, player => $_, float => 'Not' }) for keys %m;
-$f->update_or_create({ player => 'N9461747', float => 'Not', round => 1 });
-$f->update_or_create({ player => 'N9661714', float => 'Not', round => 1 });
-$f->update_or_create({ player => 'N9661719', float => 'Not', round => 1 });
-$f->update_or_create({ player => 'N9661731', float => 'Not', round => 1 });
 
-my @o = $o->search({round => 6});
-my @r = $r->search({round => 6});
-my @f = $f->search({round => 6});
-$_->delete for @o, @r, @f;
+$f->update_or_create({ round => 4, player => $_, float => 'Not' }) for keys %m;
+# $f->update_or_create({ player => 'N9461747', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661714', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661719', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661731', float => 'Not', round => 1 });
+
+# my @o = $o->search({round => 6});
+# my @r = $r->search({round => 6});
+# my @f = $f->search({round => 6});
+# $_->delete for @o, @r, @f;
 
 # my $op = LoadFile '../class/BMA0076/comp/6/opponent.yaml';
 # my $role = LoadFile '../class/BMA0076/comp/6/role.yaml';
