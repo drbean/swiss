@@ -7,7 +7,7 @@ use Grades;
 
 $_REPL->load_plugin('DumpHistory');
 
-my $leagueid = 'GL00027';
+my $leagueid = 'FLA0018';
 
 my $league = League->new( id => $leagueid );
 my $g = Grades->new( league => $league );
@@ -35,22 +35,29 @@ my $beancanmembers = $g->names2beancans(2);
 my @a = grep { not $beancanmembers->{$m{$_}->{name}} or $beancanmembers->{$m{$_}->{name}} eq 'Absent' } keys %m;
 # $m->update_or_create({ player => $_, absent => 'True', firstround => 1 }) for @a;
 
-$n->update_or_create({ tournament => $leagueid, round=> 7 });
+$o->update_or_create({ player => 'V9741018', opponent => 'Unpaired', round => 5 });
+$o->update_or_create({ player => 'V9741042', opponent => 'V9741057', round => 5 });
+$o->update_or_create({ player => 'V9741057', opponent => 'V9741042', round => 5 });
 
-my @rounds = ( 1..3, 6 );
-my %r = map { $_ => LoadFile "/home/drbean/class/$leagueid/comp/$_/role.yaml" }
-			@rounds;
-for ( @rounds ) {
-	my $n = $_;
-	my $roles = $r{$_};
-	$r->update_or_create({ player => $_, role => $roles->{$_}, round => $n })
-		for keys %$roles;
-}
+$r->update_or_create({ player => 'V9741018', role => 'Unpaired', round => 5 });
+$r->update_or_create({ player => 'V9741057', role => 'Black', round => 5 });
 
-$l->update_or_create({ player => 'U9711125', value => 1000, round => $_ }) for 0;
- $o->update_or_create({ player => 'U9831044', opponent => 'Unpaired', round => $_ }) for 1..6;
- $r->update_or_create({ player => 'U9831044', role => 'Unpaired', round => $_ }) for 4..6;
- $f->update_or_create({ player => 'U9831044', float => 'Not', round => $_ }) for 1..6;
+# $n->update_or_create({ tournament => $leagueid, round=> 7 });
+
+#my @rounds = ( 1..3, 6 );
+#my %r = map { $_ => LoadFile "/home/drbean/class/$leagueid/comp/$_/role.yaml" }
+#			@rounds;
+#for ( @rounds ) {
+#	my $n = $_;
+#	my $roles = $r{$_};
+#	$r->update_or_create({ player => $_, role => $roles->{$_}, round => $n })
+#		for keys %$roles;
+#}
+
+# $l->update_or_create({ player => 'U9711125', value => 1000, round => $_ }) for 0;
+#  $o->update_or_create({ player => 'U9831044', opponent => 'Unpaired', round => $_ }) for 1..6;
+#  $r->update_or_create({ player => 'U9831044', role => 'Unpaired', round => $_ }) for 4..6;
+#  $f->update_or_create({ player => 'U9831044', float => 'Not', round => $_ }) for 1..6;
 
 # $r->update_or_create({ player => 'N9661755', role => 'Black', round => $_ }) for 4;
 # $r->update_or_create({ player => 'N9461734', role => 'Unpaired', round => $_ }) for 4;
