@@ -300,47 +300,17 @@ $DB::single=1 unless $rating;
 	$tourney->round($round);
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, $pairingtable, $games );
-	for my $field ( qw/score/ ) {
-		my $Fields = ucfirst $field . 's';
-		my $fieldset = $c->model( "DB::$Fields" );
-		$members->reset;
-		while ( my $member = $members->next ) {
-			my $id = $member->profile->id;
-			my $value = $newhistory->{$field}->{$id};
-			if ( defined $value ) {
-				$fieldset->update_or_create( {
-					tournament => $tourid,
-					player => $id, 
-					$field => $value,
+	my $n = 0;
+	my $cardset = $c->model( "DB::Cards" );
+	for my $game ( @$games ) {
+		$cardset->update_or_create( {
+			tournament => $tourid,
+			round => $round,
+			table => $n++, 
+			white => $game->{white},
+			black => $game->{black},
+			float => $game->{float}
 				} );
-			}
-			else { 
-				$fieldset->update_or_create( {
-					tournament => $tourid,
-					player => $id, 
-				} );
-			}
-		}
-	}
-	for my $field ( qw/opponent role float/ ) {
-		my $Fields = ucfirst $field . 's';
-		my $fieldset = $c->model( "DB::$Fields" );
-		$members->reset;
-		while ( my $member = $members->next ) {
-			my $id = $member->profile->id;
-			my $fieldhistory = $newhistory->{$field}->{$id};
-			my %series = map { ($_+1) => $fieldhistory->[$_] }
-					0 .. $#$fieldhistory;
-			for my $round ( sort keys %series ) {
-$DB::single=1 if not $series{$round};
-				$fieldset->update_or_create( {
-					tournament => $tourid,
-					player => $id, 
-					round => $round,
-					$field => $series{$round}
-				} );
-			}
-		}
 	}
 	$round = $tourney->round;
 	$c->session->{"${tourid}_round"} = $round;

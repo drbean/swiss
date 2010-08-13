@@ -464,8 +464,21 @@ sub pair {
 	    push @games, grep { ref eq 'Games::Tournament::Card' }
 		@$bracketmatches;
 	}
-	my @tables = $tourney->publishCards(@games);
-	return ($message, $log, \@tables);
+	my @gameCards = $tourney->publishCards(@games);
+	my ( $tables, $n );
+	for my $card ( @gameCards ) {
+		my $contestants = $card->contestants;
+		for my $role ( @$roles ) {
+			my $contestant = $contestants->{$role};
+			$tables->[$n]->{$role} = $contestant->id;
+			$tables->[$n]->{float} = $card->float($contestant);
+		}
+		die "Table $n had 2 players" unless
+					all { $tables->[$n]->{$_} } @$roles;
+		die "Table $n float?" unless $tables->[$n]->float;
+		$n++;
+	}
+	return ($message, $log, $tables);
 }
 
 
