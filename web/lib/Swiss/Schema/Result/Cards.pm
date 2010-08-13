@@ -43,6 +43,13 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
+  "float",
+  {
+    data_type => "BOOL",
+    default_value => undef,
+    is_nullable => 0,
+    size => undef,
+  },
 );
 __PACKAGE__->set_primary_key("tournament", "round", "table");
 
