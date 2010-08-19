@@ -17,7 +17,6 @@ use parent qw/Catalyst/;
 # use Catalyst qw/-Debug
 use Catalyst qw/
                 ConfigLoader
-                Static::Simple
 
 		Authentication
 		Authorization::Roles
@@ -26,6 +25,7 @@ use Catalyst qw/
     Session::Store::FastMmap
     Session::State::Cookie
 		/;
+#                Static::Simple
 our $VERSION = '0.01';
 
 # Configure the application.
