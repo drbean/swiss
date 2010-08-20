@@ -52,7 +52,7 @@ my $d = $model->connect( @$connect_info );
 my $s = $d->resultset('Tournaments');
 
 my @newtournaments;
-for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/) {
+for my $tournament ( qw/emile/) {
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
 	my $members = $league->members;
@@ -61,7 +61,7 @@ for my $tournament ( qw/GL00012 MIA0009 BMA0077 BMA0076 FLA0031 GL00027 FLA0018/
 		tournament => $tournament, player => $_->{id}, absent => 'False',
 		firstround => 1 } }
 		@$members;
-	my $grades = Grades->new( league => $league );
+	my $grades = Grades->new({ league => $league });
 	my $name = $league->name;
 	my $description = $league->field;
 	my $arbiter = '193001';
