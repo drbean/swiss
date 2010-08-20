@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  "table",
+  "pair",
   {
     data_type => "TINYINT",
     default_value => undef,
@@ -51,7 +51,7 @@ __PACKAGE__->add_columns(
     size => undef,
   },
 );
-__PACKAGE__->set_primary_key("tournament", "round", "table");
+__PACKAGE__->set_primary_key("tournament", "round", "pair");
 
 
 # Not Created by DBIx::Class::Schema::Loader
