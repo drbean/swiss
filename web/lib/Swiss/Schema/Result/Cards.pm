@@ -56,7 +56,4 @@ __PACKAGE__->set_primary_key("tournament", "round", "table");
 
 # Not Created by DBIx::Class::Schema::Loader
 
-__PACKAGE__->belongs_to(
-	tournament => 'Swiss::Schema::Result::Tournaments', 'tournament' );
-
 1;
