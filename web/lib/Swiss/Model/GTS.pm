@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2010  2月 12, 12時55分07秒
+# Last Edit: 2010 Aug 24, 05:59:36 PM
 # $Id$
 
 use strict;
@@ -464,22 +464,11 @@ sub pair {
 	    push @games, grep { ref eq 'Games::Tournament::Card' }
 		@$bracketmatches;
 	}
-	my @gameCards = $tourney->publishCards(@games);
-	my $tables;
-	my $n = 0;
-	for my $card ( @gameCards ) {
-		my $contestants = $card->contestants;
-		for my $role ( @$roles ) {
-			my $contestant = $contestants->{$role};
-			$tables->[$n]->{$role} = $contestant->id;
-			$tables->[$n]->{float} = $card->float($contestant);
-		}
-		die "Table $n had 2 players" unless
-					all { $tables->[$n]->{$_} } @$roles;
-		die "Table $n float?" unless $tables->[$n]->{float};
-		$n++;
-	}
-	return ($message, $log, $tables);
+	my @tables = $tourney->publishCards(@games);
+	my $n = $#tables;
+	die "Table $n has 2 players" unless $tables[$n]->contestants;
+	die "Table $n contestants floating?" unless $tables[$n]->floats;
+	return ($message, $log, \@tables);
 }
 
 
@@ -541,6 +530,29 @@ sub changeHistory {
 	return $history;
 }
 
+
+=head2 cardData
+
+Extracts 'white', 'black', 'float' data from Games::Tournament::Card object, for database update.
+
+=cut
+
+sub cardData {
+	my ($self, $game) = @_;
+	my $pair = $game->contestants;
+	my $floats = $game->floats;
+	my %card = map { lc( $_ ) => $pair->{$_}->id } keys %$pair;
+	if ( grep m/bye/, keys %card ) {
+		$card{white} = $card{bye} ;
+		$card{black} = 'Bye';
+	}
+	$card{float} = notall { $floats->{$_} eq 'Not' } keys %$floats? 1 : 0;
+$DB::single=1;
+	return \%card;
+}
+
+
+=head2 idDupe
 
 =head2 allFieldCheck
 
