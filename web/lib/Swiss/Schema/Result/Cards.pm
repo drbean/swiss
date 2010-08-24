@@ -36,6 +36,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
+  # if there was a bye, white gets the bye, and black is 'BYE'.
   "black",
   {
     data_type => "VARCHAR",
