@@ -465,7 +465,8 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @gameCards = $tourney->publishCards(@games);
-	my ( $tables, $n );
+	my $tables;
+	my $n = 0;
 	for my $card ( @gameCards ) {
 		my $contestants = $card->contestants;
 		for my $role ( @$roles ) {
@@ -475,7 +476,7 @@ sub pair {
 		}
 		die "Table $n had 2 players" unless
 					all { $tables->[$n]->{$_} } @$roles;
-		die "Table $n float?" unless $tables->[$n]->float;
+		die "Table $n float?" unless $tables->[$n]->{float};
 		$n++;
 	}
 	return ($message, $log, $tables);
