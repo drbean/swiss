@@ -183,7 +183,9 @@ sub edit_players : Local {
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->round;
 	my $newlist = $c->request->params->{playerlist};
-	my @playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist);
+	my @playerlist;
+	@playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist)
+		if $newlist;
 	if ( not $newlist ) {
 		my $memberSet = $tourney->members;
 		while ( my $member = $memberSet->next )
@@ -264,9 +266,11 @@ sub rounds : Local {
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->round;
-	my $league = League->new( id => $tourid );
-	my $grades = Grades->new( league => $league );
-	my $session = $grades->series->[-1];
+	my $league = League->new( leagues => $c->config->{leagues},
+					id => $tourid );
+	my $grades = Grades->new({ league => $league });
+	my $series = $grades->series;
+	my $session = $series->[-1];
 	my $beancans = $grades->beancans( $session );
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
