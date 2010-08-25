@@ -36,7 +36,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
-  # if there was a bye, white gets the bye, and black is 'BYE'.
+  # if there was a bye, white gets the bye, and black is 'Bye'.
   "black",
   {
     data_type => "VARCHAR",
@@ -45,6 +45,30 @@ __PACKAGE__->add_columns(
     size => 10,
   },
   "float",
+  {
+    data_type => "BOOL",
+    default_value => undef,
+    is_nullable => 0,
+    size => undef,
+  },
+  # possible values are 'White', 'Black', 'Draw,' or 'None'.
+  "win",
+  {
+    data_type => "BOOL",
+    default_value => undef,
+    is_nullable => 0,
+    size => undef,
+  },
+  # possible values are 'White', 'Black', 'Both', or 'None.'
+  "forfeit",
+  {
+    data_type => "BOOL",
+    default_value => undef,
+    is_nullable => 0,
+    size => undef,
+  },
+  # possible values are 'White', 'Black', 'Both', or 'None.'
+  "late",
   {
     data_type => "BOOL",
     default_value => undef,
