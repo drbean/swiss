@@ -65,8 +65,10 @@ sub run {
 	my @ratings;
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
-	my $grades = Grades->new( league => $league );
-	my $thisround = $script->round || $grades->conversations->[-1] || 0;
+	my $grades = Grades->new({ league => $league });
+	my $thisweek = $league->approach eq 'CompComp'?
+			$grades->all_weeks->[-1]: 0;
+	my $thisround = $script->round || $thisweek || 0;
 	my $lastround = $thisround - 1;
 	my $entrants = $league->members;
 	my %entrants = map { $_->{id} => $_ } @$entrants;
