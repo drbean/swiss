@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010 Aug 24, 03:21:26 PM
+# Last Edit: 2010 Aug 25, 10:09:02 PM
 # $Id$
 
 use strict;
@@ -300,7 +300,7 @@ sub nextround : Local {
 	my $newhistory = $c->model('GTS')->changeHistory(
 			$tourney, $pairingtable, $games );
 	my $n = 0;
-	my $cardset = $c->model( "DB::Cards" );
+	my $cardset = $c->model( "DB::Matches" );
 	for my $game ( @$games ) {
 		my $card = $c->model('GTS')->cardData( $game );
 		$cardset->update_or_create( {
@@ -309,7 +309,10 @@ sub nextround : Local {
 			pair => $n++, 
 			white => $card->{white},
 			black => $card->{black},
-			float => $card->{float}
+			float => $card->{float},
+			win => 'Unknown',
+			forfeit => 'Unknown',
+			tardy => 'Unknown'
 				} );
 	}
 	$round = $tourney->round;
