@@ -51,7 +51,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  # possible values are 'White', 'Black', 'Draw,' or 'None'.
+  # possible values are 'White', 'Black', 'Draw,' 'None' or 'Unknown'.
   "win",
   {
     data_type => "BOOL",
@@ -59,7 +59,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  # possible values are 'White', 'Black', 'Both', or 'None.'
+  # possible values are 'White', 'Black', 'Both', 'None' or 'Unknown'.
   "forfeit",
   {
     data_type => "BOOL",
@@ -67,8 +67,8 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => undef,
   },
-  # possible values are 'White', 'Black', 'Both', or 'None.'
-  "late",
+  # possible values are 'White', 'Black', 'Both', 'None' or 'Unknown'.
+  "tardy",
   {
     data_type => "BOOL",
     default_value => undef,
