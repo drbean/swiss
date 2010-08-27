@@ -14,7 +14,7 @@ This script is run after play is finished in one round and before the next round
 
 The result of play in round n, whether a win for Black or for White, or a draw, is updated in the 'matches' table.
 
-This table's columns (and possible values), apart from the primary key columns, 'tournament', 'round' and 'pair', are 'win': 'White', 'Black', 'Draw,' 'None' or 'Unknown'; 'forfeit': 'White', 'Black', 'Both', 'None' or 'Unknown'; and 'late': 'White', 'Black', 'Both', 'None' or 'Unknown'.
+This table's columns and possible values, (apart from the primary key columns, 'tournament', 'round' and 'pair',) are 'win': 'White', 'Black', 'Draw,' 'None' or 'Unknown'; 'forfeit': 'White', 'Black', 'Both', 'None' or 'Unknown'; and 'tardy': 'White', 'Black', 'Both', 'None' or 'Unknown'.
 
 The default for n, the last round, is found from the weeks of the league that is participating in the tournament, using Grades.pm, and in particular, CompComp.
 
