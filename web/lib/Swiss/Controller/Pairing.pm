@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010 Aug 25, 10:09:02 PM
+# Last Edit: 2010  8月 27, 10時33分35秒
 # $Id$
 
 use strict;
@@ -329,6 +329,53 @@ sub nextround : Local {
 	$c->stash->{roles} = $c->model('GTS')->roles;
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
+	$c->stash->{template} = "draw.tt2";
+}
+
+
+=head2 draw
+
+	http://sac.nuu.edu.tw/swiss/pairing/draw/17
+
+Need to be able to go back and look at draws without writing database or doing another pairing. Adds 'win', 'forfeit' info unless 'Unknown'.
+
+=cut
+
+sub draw : Local {
+        my ($self, $c, $round) = @_;
+	my $tourid = $c->session->{tournament};
+	$round ||= $c->model('DB::Round')->find( { tournament => $tourid } )
+			->round;
+	my $tournament = $c->model('DB::Tournaments')->find(
+		{ id => $tourid });
+	my $members = $tournament->members;
+	my @columns = Swiss::Schema::Result::Players->columns;
+	my $rounds = $tournament->rounds;
+	my (%playerlist, @absentees);
+	while ( my $member = $members->next ) {
+		my $player = { map { $_ => $member->profile->$_ } @columns };
+		$player->{firstround} = $member->firstround;
+		my $rating = $member->profile->rating->find({
+				tournament => $tourid, round => $round-1 });
+		$player->{rating} = $rating->value;
+		$playerlist{ $player->{id} } = $player;
+		push @absentees, $player if $member->absent eq 'True';
+	}
+	my $Roles = $c->model('GTS')->roles;
+	my @roles = map { lcfirst $_ } @$Roles;
+	my $matches = $tournament->matches;
+	my $games;
+	while ( my $match = $matches->next ) {
+		my %contestants = map { ucfirst($_) =>
+			$playerlist{ $match->$_ } } @roles;
+		push @$games, {contestants => \%contestants,
+				win => $match->win,
+				forfeit => $match->forfeit };
+	}
+	$c->stash->{tournament} = $tourid;
+	$c->stash->{round} = $round;
+	$c->stash->{roles} = $Roles;
+	$c->stash->{games} = $games;
 	$c->stash->{template} = "draw.tt2";
 }
 
