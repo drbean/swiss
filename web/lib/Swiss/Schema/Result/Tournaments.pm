@@ -51,6 +51,8 @@ __PACKAGE__->set_primary_key("id");
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gy+JKFpLh9KriN3D4enzJw
 
 __PACKAGE__->has_many(
+	matches => 'Swiss::Schema::Result::Matches', 'tournament' );
+__PACKAGE__->has_many(
 	members => 'Swiss::Schema::Result::Members', 'tournament' );
 __PACKAGE__->has_many(
 	opponents => 'Swiss::Schema::Result::Opponents', 'tournament' );
