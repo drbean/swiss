@@ -20,13 +20,15 @@
     <td> 
 <select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
 
-<OPTION selected value="0">-:-</OPTION>
-<OPTION value="win:loss">W:L</OPTION>
-<OPTION value="loss:win">L:W</OPTION>
-<OPTION value="draw:draw">=:=</OPTION>
-<OPTION value="win:forfeit">W:F</OPTION>
-<OPTION value="forfeit:win">F:W</OPTION>
-<OPTION value="forfeit:forfeit">F:F</OPTION>
+[% win = games.$n.win %]
+[% forfeit = games.$n.forfeit %]
+<OPTION [% IF win=='unknown' %] selected [% END %] value="0">-:-</OPTION>
+<OPTION [% IF win=='white' %] selected [% END %] value="win:loss">W:L</OPTION>
+<OPTION [% IF win=='black' %] selected [% END %] value="loss:win">L:W</OPTION>
+<OPTION [% IF win=='draw' %] selected [% END %] value="draw:draw">=:=</OPTION>
+<OPTION [% IF forfeit=='black' %]selected[% END %] value="win:forfeit">W:F</OPTION>
+<OPTION [% IF forfeit=='white' %]selected[% END %] value="forfeit:win">F:W</OPTION>
+<OPTION [% IF forfeit=='both' %]selected[% END %] value="forfeit:forfeit">F:F</OPTION>
 
 </select>
     <td>[% black.id %]
