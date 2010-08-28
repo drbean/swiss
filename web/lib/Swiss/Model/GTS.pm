@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2010 Aug 24, 05:59:36 PM
+# Last Edit: 2010  8月 27, 22時11分16秒
 # $Id$
 
 use strict;
@@ -547,7 +547,6 @@ sub cardData {
 		$card{black} = 'Bye';
 	}
 	$card{float} = notall { $floats->{$_} eq 'Not' } keys %$floats? 1 : 0;
-$DB::single=1;
 	return \%card;
 }
 
