@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  8月 27, 10時33分35秒
+# Last Edit: 2010  8月 28, 17時39分26秒
 # $Id$
 
 use strict;
@@ -350,7 +350,6 @@ sub draw : Local {
 		{ id => $tourid });
 	my $members = $tournament->members;
 	my @columns = Swiss::Schema::Result::Players->columns;
-	my $rounds = $tournament->rounds;
 	my (%playerlist, @absentees);
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
@@ -363,7 +362,7 @@ sub draw : Local {
 	}
 	my $Roles = $c->model('GTS')->roles;
 	my @roles = map { lcfirst $_ } @$Roles;
-	my $matches = $tournament->matches;
+	my $matches = $tournament->matches->search({ round => $round });
 	my $games;
 	while ( my $match = $matches->next ) {
 		my %contestants = map { ucfirst($_) =>
