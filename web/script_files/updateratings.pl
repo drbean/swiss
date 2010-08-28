@@ -45,6 +45,9 @@ use Grades;
 use Games::Ratings::Chess::FIDE;
 
 use Config::General;
+use List::Util qw/first/;
+use List::MoreUtils qw/all/;
+use Scalar::Util qw/looks_like_number/;
 
 sub run {
 	my $script = Grades::Script->new_with_options;
@@ -56,91 +59,87 @@ sub run {
 	my $model = "${name}::Schema";
 	my $modelfile = "$name/Model/DB.pm";
 	my $modelmodule = "${name}::Model::DB";
-	# require $modelfile;
-
 	my $connect_info = $modelmodule->config->{connect_info};
 	my $d = $model->connect( @$connect_info );
-	my $members = $d->resultset('Members')->search({ tournament => $tournament });
 
-	my @ratings;
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
-	my $grades = Grades->new({ league => $league });
+	my $comp = CompComp->new({ league => $league });
 	my $thisweek = $league->approach eq 'CompComp'?
-			$grades->all_weeks->[-1]: 0;
+			$comp->all_weeks->[-1]: 0;
 	my $thisround = $script->round || $thisweek || 0;
 	my $lastround = $thisround - 1;
+	my $tourney = $d->resultset('Tournaments')->find({ id => $tournament });
+	my $matches = $tourney->matches->search({ round => $thisround });
+	my $members = $tourney->members;
+	my %ratings;
 	my $entrants = $league->members;
 	my %entrants = map { $_->{id} => $_ } @$entrants;
-	my $points = $grades->points( $thisround );
 	my %seen;
-	while ( my $member = $members->next ) {
-		my $id = $member->player;
-		my ( $oldRating, $newRating );
-		$oldRating = $member->rating->find({
-				tournament => $tournament,
-				round => $lastround });
-		unless ( $oldRating ) {
-			$newRating = $entrants{$id}->{rating} || 0;
-			push @ratings, { 
+	while ( my $match = $matches->next ) {
+		my $table = $match->pair;
+		my %ids = map { ucfirst($_) => $match->$_ } qw/white black/;
+		my $win = $match->win;
+		my $forfeit = $match->forfeit;
+		my $tardy = $match->tardy;
+		my @memberratings;
+		PLAYER: for my $role ( keys %ids ) {
+			my $id = $ids{$role};
+			next PLAYER if $id eq 'Bye';
+			my $member = $members->find({
+				tournament => $tournament, player => $id });
+			my ( $oldRating );
+			$oldRating = $member->rating->find({
+					tournament => $tournament,
+					round => $lastround });
+			unless ( $oldRating ) {
+				$oldRating = $entrants{$id}->{rating} || 0;
+				$ratings{$id} = { 
+						player => $id,
+						tournament => $tournament,
+						round => $thisround,
+						value => $oldRating };
+				warn " Player $id had no rating in round " .
+					$lastround . ", assigning $oldRating,";
+				next PLAYER;
+			}
+			my $oldValue = $oldRating->value;
+			warn "Player $id had no, or zero rating in round " .
+				$lastround unless $oldValue;
+			push @memberratings, $oldValue;
+			$ratings{$id} = { 
 					player => $id,
 					tournament => $tournament,
 					round => $thisround,
-					value => $newRating };
+					value => $oldValue };
+		}
+		unless ( all { looks_like_number $_ } @memberratings or
+			$ids{Black} eq 'Bye' )
+		{
 			warn
-		" Player $id had no rating in round $lastround, assigning $newRating,";
-			next;
+	"Rating for Table $table player, $ids{White}, or partner in Round " .
+				$thisround . "?";
 		}
-		$oldRating = $oldRating->value;
-		warn "Player $id had no, or zero rating in round $lastround" unless $oldRating;
-		my $opponent = $member->opponent->find({
-				tournament => $tournament,
-				round => $thisround });
-		my $point = $points->{$id};
-		if ( not $opponent ) {
-			warn
-	"Player $id, with $oldRating rating, had no opponent in Round $thisround,";
-			$newRating = $oldRating;
-		}
-		elsif ( $opponent->opponent eq 'Unpaired' ) {
-			warn "Player $id got $point points in Round $thisround, but was " .
-						$opponent->opponent . "?" if $point;
-			$newRating = $oldRating;
-		}
-		elsif (  $opponent->opponent eq 'Late' or
-											$opponent->opponent eq 'Bye' ) {
-			$newRating = $oldRating;
-		}
-		else {
-			my $Orating = $opponent->other->rating->find({
-					tournament => $tournament, round => $lastround });
-			#my $Orating = $d->resultset('Ratings')->find({ 
-			#		player => $opponent->opponent,
-			#		tournament => $tournament,
-			#		round => ($round - 1) });
-			die "${id}'s opponent, " . $opponent->opponent .
-				"'s rating in round $lastround," unless $Orating;
-			$Orating = $Orating->value;
-			if ( $point ) {
-				my $result = $point == 5? "win": $point == 4? "draw": "loss";
-				my $rater = Games::Ratings::Chess::FIDE->new;
-				$rater->set_rating( $oldRating );
+		elsif (  $ids{Black} ne 'Bye' and $win ne 'None' and $win ne 'Unknown' and ( $forfeit eq 'None' or $forfeit eq 'Unknown' ) and ( $tardy eq 'None' or $tardy eq 'Unknown' ) ) {
+			my $rater = Games::Ratings::Chess::FIDE->new;
+			for my $role ( keys %ids ) {
+				my $id = $ids{$role};
+				my $opprole = first { $_ ne $role } keys %ids;
+				my $oppid = $ids{$opprole};
+				my $result = $win eq $role? 'win':
+					$win eq $opprole? 'loss':
+					$win eq 'Both'? 'draw': 'None of above';
+				$rater->set_rating( $ratings{$id}->{value} );
 				$rater->set_coefficient( 25 );
-				$rater->add_game( { opponent_rating => $Orating,
+				$rater->add_game( { opponent_rating =>
+						$ratings{$oppid}->{value},
 						result => $result } );
-				$newRating = $rater->get_new_rating;
+				$ratings{$id}->{value} = $rater->get_new_rating;
 			}
-			else { $newRating = $oldRating }
 		}
-		push @ratings, { 
-				player => $id,
-				tournament => $tournament,
-				round => $thisround,
-				value => $newRating || $entrants{$id}->{rating} || 0 };
-	};
-
+	}
 	my $ratings = $d->resultset('Ratings');
-	$ratings->update_or_create( $_ ) for @ratings;
+	$ratings->update_or_create( $_ ) for values %ratings;
 }
 
 run() unless caller;
