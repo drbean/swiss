@@ -18,6 +18,7 @@ This table's columns and possible values, (apart from the primary key columns, '
 
 The default for n, the last round, is found from the weeks of the league that is participating in the tournament, using Grades.pm, and in particular, CompComp.
 
+The contestants data comes from 'comp/n/round.yaml' and results data comes from 'comp/n/result.yaml'.
 =head1 AUTHOR
 
 Dr Bean
@@ -72,20 +73,27 @@ sub run {
     my $pairs = $comp->tables( $round );
     $io->print( $league->id . " Tournament Results, Round $round\n" .
 	"Table\tWhite\tBlack\tWin\tForfeit\tTardy\n" );
+    my @roles = qw/white black/;
     while ( my $match = $matches->next ) {
-	my @roles = qw/white black/;
 	my $table = $match->pair;
+	my $pair = $pairs->{$table};
+	if ( keys %$pair == 1 and $pair->{Bye} ) {
+	    $pair->{White} = $pair->{Bye};
+	    $pair->{Black} = 'Bye';
+	}
 	my $result = $comp->scores( $round, $table );
 	my %id = map { $_ => $match->$_ } @roles;
-	my %roleplayer = reverse %id;
+	my %ID = map { ucfirst( $_ ) => $id{$_} } keys %id;
+	my %roleplayer = reverse %ID;
 	for my $role ( @roles ) {
 	    my $Role = ucfirst $role;
-	    die "Pair $table, $Role: $id{$role} or $pairs->{$table}->{$Role}?"
-		unless $id{$role} eq $pairs->{$table}->{$Role};
+	    die "Pair $table, $Role: $id{$role} or $pair->{$Role}?"
+		unless $id{$role} eq $pair->{$Role};
 	}
 	my @id = values %id;
 	my %values;
-	if ( $result->{$id[0]} > $result->{$id[1]} ) {
+	if ( $pair->{Bye} ) { $values{win} = 'White' }
+	elsif ( $result->{$id[0]} > $result->{$id[1]} ) {
 	    $values{win} = $roleplayer{$id[0]};
 	}
 	elsif ( $result->{$id[0]} < $result->{$id[1]} ) {
