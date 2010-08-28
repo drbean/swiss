@@ -10,7 +10,7 @@ populateplayers.pl
 
 =head1 DESCRIPTION
 
-Enter players in database via script
+Enter players in database via script. TODO Include the nonentity, Bye player, who makes a pair when there are an odd number of players. Problem is how to prevent a partner being looked for for that Bye player.
 
 =head1 AUTHOR
 
