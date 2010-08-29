@@ -72,7 +72,7 @@ for my $tournament ( qw/emile/) {
 		description => $description,
 		arbiter => $arbiter,
 		rounds => 6,
-		round => { round => 0, tournament => $tournament },
+		round => { value => 0, tournament => $tournament },
 		members => \@members,
 		};
 	push @newtournaments, $newtournament;

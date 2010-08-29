@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 15,
   },
-  "round",
+  "value",
   {
     data_type => "TINYINT",
     default_value => undef,

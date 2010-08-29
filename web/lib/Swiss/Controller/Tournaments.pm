@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2010  4月 18, 16時47分49秒
+# Last Edit: 2010  8月 29, 10時11分38秒
 # $Id$
 
 use Moose;
@@ -97,7 +97,7 @@ sub name : Local {
 	my $round;
 	if ( my $resultset =
 		$c->model('DB::Round')->find( { tournament => $tourid } ) ) {
-		$round = $resultset->round;
+		$round = $resultset->value;
 	}
 	else { $round = 0; }
 	if ( not $candidate ) {
@@ -181,7 +181,7 @@ sub edit_players : Local {
 	my $tourid = $c->session->{tournament};
 	my $tourney = $c->model('DB::Tournaments')->find({ id=>$tourid });
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my $newlist = $c->request->params->{playerlist};
 	my @playerlist;
 	@playerlist = $c->model('GTS')->parsePlayers( $tourid, $newlist)
@@ -241,7 +241,7 @@ sub final_players : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my @players = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my $tournament = $c->model('DB::Tournaments')->find({
@@ -265,7 +265,7 @@ sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my $league = League->new( leagues => $c->config->{leagues},
 					id => $tourid );
 	my $grades = Grades->new({ league => $league });
@@ -310,7 +310,7 @@ sub absentees : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	while ( my $member = $members->next ) {

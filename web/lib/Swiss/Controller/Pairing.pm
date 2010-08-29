@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  8月 28, 17時39分26秒
+# Last Edit: 2010  8月 29, 10時15分26秒
 # $Id$
 
 use strict;
@@ -79,7 +79,7 @@ sub preppair : Local {
 	my $requestargs = $c->request->args;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my @columns = Swiss::Schema::Result::Players->columns;
@@ -230,7 +230,7 @@ sub nextround : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	$round++;
 	my $tournament = $c->model('DB::Tournaments')->find(
 		{ id => $tourid });
@@ -318,7 +318,7 @@ sub nextround : Local {
 	$round = $tourney->round;
 	$c->session->{"${tourid}_round"} = $round;
 	$c->model('DB::Round')->find({ tournament => $tourid })->update({
-			round=>$round });
+			value=>$round });
 	if ( $c->request->params->{pairtable} ) {
 		@playerlist = buildPairingtable( $c, $tourid, \@playerlist, 
 			$newhistory );
@@ -345,7 +345,7 @@ sub draw : Local {
         my ($self, $c, $round) = @_;
 	my $tourid = $c->session->{tournament};
 	$round ||= $c->model('DB::Round')->find( { tournament => $tourid } )
-			->round;
+			->value;
 	my $tournament = $c->model('DB::Tournaments')->find(
 		{ id => $tourid });
 	my $members = $tournament->members;
