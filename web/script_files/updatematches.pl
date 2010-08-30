@@ -70,6 +70,10 @@ sub run {
     my $config = $comp->config( $round );
     my $forfeiters = $config->{forfeiters};
     my $tardies = $config->{tardies};
+    my %dupes;
+    for my $id ( @$forfeiters, @$tardies ) {
+	die "Is $id forfeiter or tardy?" if $dupes{$id}++;
+    }
     my $pairs = $comp->tables( $round );
     $io->print( $league->id . " Tournament Results, Round $round\n" .
 	"Table\tWhite\tBlack\tWin\tForfeit\tTardy\n" );
