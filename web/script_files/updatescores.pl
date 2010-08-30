@@ -10,7 +10,7 @@ web/script_files/scores.pl -l FLA0016
 
 =head1 DESCRIPTION
 
-Update or Populate scores tables using points.yaml files of all conversations of -l tournament, from the 'points.yaml' files below the appropriate directory, as recorded in the 'compcomp' field of 'league.yaml'.
+Update or Populate scores tables using results of all rounds of -l tournament, from the 'result.yaml' files below the appropriate directory, as recorded in the 'compcomp' field of 'league.yaml'. Code taken from Grades (CompComp)'s points method. TODO Transfer player
 
 =head1 AUTHOR
 
@@ -30,6 +30,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use Config::General;
+use List::MoreUtils qw/any/;
 
 my @MyAppConf = glob( "$FindBin::Bin/../*.conf" );
 die "Which of @MyAppConf is the configuration file?"
@@ -55,12 +56,43 @@ my $script = Grades::Script->new_with_options;
 my $league = $script->league;
 
 my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
-my $tournament = Grades->new( league => $leagueobject );
+my $tournament = CompComp->new( league => $leagueobject );
 my $members = $leagueobject->members;
-my $conversations = $tournament->conversations;
+my $conversations = $tournament->all_weeks;
 my ($points, @scores);
-for my $conversation ( @$conversations ) {
-	$points->{$conversation} = $tournament->points($conversation);
+for my $round ( @$conversations ) {
+	my $config = $tournament->config( $round );
+	my $forfeits = $config->{forfeit};
+	my $tardies = $config->{tardy};
+	my $unpaired = $config->{unpaired};
+	my $scores = $tournament->scores($round);
+	GROUP: for my $group ( keys %$scores ) {
+		my $myscore = $scores->{$group};
+		my @ids = keys %$myscore;
+		my %theirscore;
+		@theirscore{ @ids } = @$myscore{ reverse @ids };
+		ID: for my $id ( @ids ) {
+			if ( $id eq 'Bye' or $myscore->{$id} eq 'Bye' ) {
+				$points->{$round}->{$myscore->{$id}}=5;
+				$points->{$round}->{$id}=5;
+				next GROUP;
+			}
+			if ( any { $_ eq $id } @$tardies ) {
+				$points->{$round}->{$id} = 1;
+				next ID;
+			}
+			if ( any { $_ eq $id } @$unpaired, @$forfeits ) {
+				$points->{$round}->{$id} = 0;
+				next ID;
+			}
+			# TODO Transfer player
+			$points->{$round}->{$id} =
+				( $myscore->{$id} > $theirscore{$id} )?
+				 5: ( $myscore->{$id} < $theirscore{$id} )?
+				 3: ( $myscore->{$id} == $theirscore{$id} )?
+				 4: "???";
+		}
+	}
 }
 for my $player ( @$members ) {
 	my $id = $player->{id};
