@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
-  "score",
+  "value",
   {
     data_type => "TINYINT",
     default_value => 0,
@@ -41,4 +41,4 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->belongs_to( ided =>'Swiss::Schema::Result::Players', 'player' );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
-1;
+1

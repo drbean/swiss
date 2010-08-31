@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  8月 29, 10時15分26秒
+# Last Edit: 2010  8月 31, 07時09分40秒
 # $Id$
 
 use strict;
@@ -261,7 +261,7 @@ sub nextround : Local {
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
 			my $row = $member->$field;
-			my $value = $row? $row->$field: 0;
+			my $value = $row? $row->value: 0;
 			$fieldhistory->{$player->id} = $value;
 		}
 		$pairingtable->{$field} = $fieldhistory;
@@ -353,6 +353,7 @@ sub draw : Local {
 	my (%playerlist, @absentees);
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
+		$player->{score} = $member->score->value;
 		$player->{firstround} = $member->firstround;
 		my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round-1 });
