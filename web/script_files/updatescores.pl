@@ -10,7 +10,7 @@ web/script_files/scores.pl -l FLA0016
 
 =head1 DESCRIPTION
 
-Update or Populate scores tables using results of all rounds of -l tournament, from the 'result.yaml' files below the appropriate directory, as recorded in the 'compcomp' field of 'league.yaml'. Code taken from Grades (CompComp)'s points method. TODO Transfer player
+Update or Populate scores tables using results of all rounds, or up to -r round, of -l tournament, from the Matches resultsource of the swiss database.Code taken from CompComp (Standings)'s index method. TODO Transfer player
 
 =head1 AUTHOR
 
@@ -59,42 +59,61 @@ my $round = $script->round;
 my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
 my $tournament = CompComp->new( league => $leagueobject );
 my $members = $leagueobject->members;
+my $matches = $d->resultset('Matches')->search({ tournament => $league });
 my $conversations = defined $round? [ 1..$round ]: $tournament->all_weeks;
-my ($points, @scores);
+my ($points);
+my @Roles = qw/White Black/;
+my @roles = map { lcfirst $_ } @Roles;
 for my $round ( @$conversations ) {
-	my $config = $tournament->config( $round );
-	my $forfeits = $config->{forfeit};
-	my $tardies = $config->{tardy};
-	my $unpaired = $config->{unpaired};
-	my $scores = $tournament->scores($round);
-	GROUP: for my $group ( keys %$scores ) {
-		my $myscore = $scores->{$group};
-		my @ids = keys %$myscore;
-		my %theirscore;
-		@theirscore{ @ids } = @$myscore{ reverse @ids };
-		ID: for my $id ( @ids ) {
-			if ( $id eq 'Bye' or $myscore->{$id} eq 'Bye' ) {
-				$points->{$round}->{$myscore->{$id}}=5;
-				$points->{$round}->{$id}=5;
-				next GROUP;
+	my @matches = $matches->search({ round => $round })->all;
+	MATCH: for my $match ( @matches ) {
+		my %contestant = map { ucfirst($_) => $match->$_ } @roles;
+		my %opponent; @opponent{ 'White', 'Black' } =
+			@contestant{ 'Black', 'White' };
+		if ( $contestant{Black} eq 'Bye' ) {
+			$points->{$round}->{ $contestant{White} } = 5;
+			next MATCH;
+		}
+		my $forfeit = $match->forfeit;
+		die "$forfeit forfeiters? Check $round round config file." if
+						$forfeit eq 'Unknown';
+		unless ( $forfeit eq 'None' ) {
+			my @forfeiters = $forfeit eq 'Both'? @Roles:
+				( $forfeit );
+			for ( @forfeiters ) {
+				$points->{$round}->{ $contestant{$_} } = 0;
 			}
-			if ( any { $_ eq $id } @$tardies ) {
-				$points->{$round}->{$id} = 1;
-				next ID;
+		}
+		my $tardy = $match->tardy;
+		die "$tardy tardies? Check round $round config file." if
+						$tardy eq 'Unknown';
+		unless ( $tardy eq 'None' ) {
+			my @tardies = $tardy eq 'Both'? @Roles:
+				( $tardy );
+			for ( @tardies ) {
+				$points->{$round}->{ $contestant{$_} } = 1;
 			}
-			if ( any { $_ eq $id } @$unpaired, @$forfeits ) {
-				$points->{$round}->{$id} = 0;
-				next ID;
+		}
+		next MATCH if $forfeit eq ' Both' or $tardy eq 'Both';
+		my $win = $match->win;
+		die "$win winners? Check round $round config file." if
+						$win eq 'Unknown';
+		unless ( $win eq 'None' ) {
+			my %points = $win eq 'White'?
+				( White => 5, Black => 3 ):
+				$win eq 'Black'?
+				( White => 3, Black => 5 ):
+				$win eq 'Both'?
+				( White => 4, Black => 4 ):
+				( White => '??', Black => '??' );
+			for ( @Roles ) {
+				$points->{$round}->{$contestant{$_}}=$points{$_}
+					unless $forfeit eq $_ or $tardy eq $_;
 			}
-			# TODO Transfer player
-			$points->{$round}->{$id} =
-				( $myscore->{$id} > $theirscore{$id} )?
-				 5: ( $myscore->{$id} < $theirscore{$id} )?
-				 3: ( $myscore->{$id} == $theirscore{$id} )?
-				 4: "???";
 		}
 	}
 }
+my @scores;
 for my $player ( @$members ) {
 	my $id = $player->{id};
 	my $score = sum map { $_->{$id} } @{$points}{@$conversations};
