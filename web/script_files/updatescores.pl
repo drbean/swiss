@@ -54,11 +54,12 @@ use Grades;
 
 my $script = Grades::Script->new_with_options;
 my $league = $script->league;
+my $round = $script->round;
 
 my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
 my $tournament = CompComp->new( league => $leagueobject );
 my $members = $leagueobject->members;
-my $conversations = $tournament->all_weeks;
+my $conversations = defined $round? [ 1..$round ]: $tournament->all_weeks;
 my ($points, @scores);
 for my $round ( @$conversations ) {
 	my $config = $tournament->config( $round );
@@ -100,7 +101,7 @@ for my $player ( @$members ) {
 	push @scores, {
 			tournament => $league,
 			player => $id,
-			score => $score || 0 };
+			value => $score || 0 };
 
 }
 my $t = $d->resultset('Scores');
