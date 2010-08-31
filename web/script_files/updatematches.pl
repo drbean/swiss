@@ -68,8 +68,8 @@ sub run {
 	round => $round });
 
     my $config = $comp->config( $round );
-    my $forfeiters = $config->{forfeiters};
-    my $tardies = $config->{tardies};
+    my $forfeiters = $config->{forfeit};
+    my $tardies = $config->{tardy};
     my %dupes;
     for my $id ( @$forfeiters, @$tardies ) {
 	die "Is $id forfeiter or tardy?" if $dupes{$id}++;
@@ -78,16 +78,18 @@ sub run {
     $io->print( $league->id . " Tournament Results, Round $round\n" .
 	"Table\tWhite\tBlack\tWin\tForfeit\tTardy\n" );
     my @roles = qw/white black/;
+    my $results = $comp->scores( $round );
     while ( my $match = $matches->next ) {
 	my $table = $match->pair;
 	my $pair = $pairs->{$table};
+	my $result = $results->{$table};
 	if ( keys %$pair == 1 and $pair->{Bye} ) {
 	    $pair->{White} = $pair->{Bye};
 	    $pair->{Black} = 'Bye';
 	}
-	my $result = $comp->scores( $round, $table );
 	my %id = map { $_ => $match->$_ } @roles;
 	my %ID = map { ucfirst( $_ ) => $id{$_} } keys %id;
+	my %opponent; @opponent{ 'White', 'Black' } = ( 'Black', 'White' );
 	my %roleplayer = reverse %ID;
 	for my $role ( @roles ) {
 	    my $Role = ucfirst $role;
@@ -107,17 +109,21 @@ sub run {
 	my @forfeit = grep( ( $_ eq $id{$roles[0]} or $_ eq $id{$roles[1]} ),
 		    @$forfeiters);
 	if ( @forfeit == 0 ) { $values{forfeit} = 'None' }
-	elsif ( @forfeit = 1 ) { $values{forfeit} = $forfeit[0] }
+	elsif ( @forfeit == 1 ) {
+	    $values{forfeit} =  $roleplayer{ $forfeit[0] };
+	    $values{win} = $opponent{ $roleplayer{ $forfeit[0] } };
+	}
 	else { $values{forfeit} = 'Both'; $values{win} = 'None' }
 	my @tardy = grep( ( $_ eq $id{$roles[0]} or $_ eq $id{$roles[1]} ),
 		    @$tardies);
 	if ( @tardy == 0 ) { $values{tardy} = 'None' }
-	elsif ( @tardy = 1 ) { $values{tardy} = $tardy[0] }
+	elsif ( @tardy = 1 ) { $values{tardy} = $roleplayer{ $tardy[0] } }
 	else { $values{tardy} = 'Both' }
 	$match->update({
 		win => $values{win},
 		forfeit => $values{forfeit},
 		tardy => $values{tardy} });
+	local $" = "\t";
 	$io->print( "$table\t@id{@roles}\t@values{qw/win forfeit tardy/}\n" );
     }
 }
