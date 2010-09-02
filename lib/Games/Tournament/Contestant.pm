@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2009 10月 28, 11時35分49秒
+# Last Edit: 2010  9月 01, 13時29分53秒
 # $Id: $
 
 use warnings;
@@ -205,7 +205,7 @@ sub score {
     my $score = shift;
     if ( defined $score ) { $self->{score} = $score; }
     my $scores      = $self->scores;
-    return $self->{score} || undef unless defined $scores and
+    return $self->{score} unless defined $scores and
 		all { defined $_ } values %$scores;
     my %lcconverter = map { lc($_) => $converter{$_} } keys %converter;
     my %scores      = map { $_ => lc $scores->{$_} } keys %$scores;
