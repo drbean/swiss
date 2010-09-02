@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Config;
 
-# Last Edit: 2009  7月 03, 13時44分26秒
+# Last Edit: 2010  9月 02, 11時31分54秒
 # $Id: $
 
 use warnings;
@@ -108,13 +108,14 @@ sub scores {
     { $self->{scores} = $scores; }
     elsif (ref $self eq "Games::Tournament::Swiss::Config" and $self->{scores})
     { return %{ $self->{scores} }; }
-    else { return ( win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1 ) }
+    else { return ( win => 1, loss => 0, draw => 0.5, absent => 0, bye => 1,
+	unpaired => 0, tardy => 0.5, forfeit => 0 ) }
 }
 
 
 =head2 abbreviation
 
-Getter/setter of the abbreviations used and their full translations. The default is W: White, B: Black, 1: Win, 0: Loss, '0.5': Draw, '=': Draw. Both object and class method.
+Getter/setter of the abbreviations used and their full translations. The default is W: White, B: Black, 1: Win, 0: Loss, '0.5': Draw, '=': Draw. Both object and class method. Also Absolute, Strong and Mild preferences, and Down, Up, and Not floats.
 
 =cut
 
@@ -127,7 +128,7 @@ sub abbreviation {
 		$self->{abbreviation} )
     { return %{ $self->{abbreviation} }; }
     else { return ( W => 'White', B => 'Black', 1 => 'Win', 0 => 'Loss',
-    0.5 => 'Draw', '=' => 'Draw', A => 'Absolute', S => 'Strong', M => 'Mild', ); }
+    0.5 => 'Draw', '=' => 'Draw', A => 'Absolute', S => 'Strong', M => 'Mild', D => 'Down', U => 'Up', N => 'Not' ); }
 }
 
 
