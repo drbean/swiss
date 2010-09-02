@@ -75,7 +75,7 @@ for my $round ( @$conversations ) {
 			next MATCH;
 		}
 		my $forfeit = $match->forfeit;
-		die "$forfeit forfeiters? Check $round round config file." if
+		die "$forfeit forfeiters? Update matches for $round round." if
 						$forfeit eq 'Unknown';
 		unless ( $forfeit eq 'None' ) {
 			my @forfeiters = $forfeit eq 'Both'? @Roles:
@@ -85,7 +85,7 @@ for my $round ( @$conversations ) {
 			}
 		}
 		my $tardy = $match->tardy;
-		die "$tardy tardies? Check round $round config file." if
+		die "$tardy tardies? Update matches for $round round." if
 						$tardy eq 'Unknown';
 		unless ( $tardy eq 'None' ) {
 			my @tardies = $tardy eq 'Both'? @Roles:
@@ -96,7 +96,7 @@ for my $round ( @$conversations ) {
 		}
 		next MATCH if $forfeit eq ' Both' or $tardy eq 'Both';
 		my $win = $match->win;
-		die "$win winners? Check round $round config file." if
+		die "$win winners? Update matches for $round round." if
 						$win eq 'Unknown';
 		unless ( $win eq 'None' ) {
 			my %points = $win eq 'White'?
