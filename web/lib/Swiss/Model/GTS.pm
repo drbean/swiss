@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2010  8月 27, 22時11分16秒
+# Last Edit: 2010  9月 02, 16時01分44秒
 # $Id$
 
 use strict;
@@ -28,7 +28,7 @@ my $roles = [qw/White Black/];
 my $abbrev = { W => 'White', B => 'Black', 5 => 'Win', 3 => 'Loss',
 	4 => 'Draw', '=' => 'Draw'  };
 my $scoring = { win => 5, loss => 3, draw => 4, forfeit => 0, bye => 5,
-	late => 1 };
+	tardy => 1 };
 my $firstround = 1;
 my $algorithm = 'Games::Tournament::Swiss::Procedure::FIDE';
 
@@ -42,6 +42,7 @@ $Games::Tournament::Swiss::Config::algorithm = $algorithm;
 
 require Games::Tournament::Swiss;
 require Games::Tournament::Contestant::Swiss;
+require Games::Tournament::Card;
 
 =head2 roles
 
@@ -428,20 +429,8 @@ sub pair {
 	my $rounds = $tourney->rounds;
 	my $entrants = $tourney->entrants;
 	$tourney->idNameCheck;
-	my $pairingtable = $args->{history};
-	if ( $pairingtable ) {
-		my $scores = $pairingtable->{score};
-		for my $player ( @$entrants ) {
-			my $id = $player->id;
-			$player->score( $scores->{$id} );
-		}
-		my $lastround = $round;
-		for my $round ( 1..$lastround ) {
-			my $games = $self->postPlayPaperwork(
-				$tourney, $pairingtable, $round);
-			$tourney->collectCards( @$games );
-		}
-	}
+	my $games = $args->{history};
+	$tourney->collectCards( @$games );
 	$tourney->loggedProcedures('ASSIGNPAIRINGNUMBERS');
 	$tourney->assignPairingNumbers;
 	$tourney->initializePreferences if $round == 0;
@@ -533,21 +522,116 @@ sub changeHistory {
 
 =head2 cardData
 
-Extracts 'white', 'black', 'float' data from Games::Tournament::Card object, for database update.
+Extracts 'white', 'black', 'float' data from Games::Tournament::Card object, for database update of 'matches' table.
 
 =cut
 
 sub cardData {
 	my ($self, $game) = @_;
 	my $pair = $game->contestants;
-	my $floats = $game->floats;
-	my %card = map { lc( $_ ) => $pair->{$_}->id } keys %$pair;
-	if ( grep m/bye/, keys %card ) {
-		$card{white} = $card{bye} ;
+	my (%card, %floats);
+	if ( grep m/Bye/, keys %$pair ) {
+		$card{white} = $pair->{Bye} ;
 		$card{black} = 'Bye';
+		$card{float} = 'True';
 	}
-	$card{float} = notall { $floats->{$_} eq 'Not' } keys %$floats? 1 : 0;
+	else {
+		%card = map { lc( $_ ) => $pair->{$_}->id } keys %$pair;
+		%floats = map { $_ => $game->float($pair->{$_}) } @$roles;
+		$card{float} = all { $floats{$_} eq 'Not' } keys %floats?
+							'False' : 'True';
+	}
 	return \%card;
+}
+
+
+=head2 writeCard
+
+Creates Games::Tournament::Card object from database 'matches' table's 'white', 'black', 'float', 'win', 'forfeit' and 'tardy' columns. Follows code from CompComp's Standings controller and script, updatescores.pl
+
+=cut
+
+sub writeCard {
+	my ($self, $tourney, $game) = @_;
+	my $round = $game->round;
+	my @lcroles = map { lcfirst $_ } @$roles;
+	my %id = map { ucfirst($_) => $game->$_ }
+				@lcroles;
+	my %contestant;
+	if ( $id{Black} eq 'Bye' ) {
+		my $byer = $id{White};
+		$contestant{Bye} = $tourney->ided( $id{White} );
+		return Games::Tournament::Card->new(
+			round => $round,
+			contestants => \%contestant,
+			result => "Bye",
+			floats => 'Down' );
+	}
+	%contestant = map { $_ => $tourney->ided( $id{$_} ) } @$roles;
+	my %float;
+	if ( not $game->float ) {
+		%float = ( White => 'Not', Black => 'Not' );
+	}
+	elsif ( $contestant{White}->score > $contestant{Black}->score ) {
+		%float = ( White => 'Down', Black => 'Up' );
+	}
+	elsif ( $contestant{White}->score < $contestant{Black}->score ) {
+		%float = ( White => 'Up', Black => 'Down' );
+	}
+	else { die $tourney->round . "round contestants " .
+		@contestant{qw/White Black/} . " floating, but scores same."
+	}
+	my %result;
+	my $forfeit = $game->forfeit;
+	die "$forfeit forfeiters? Update matches for round $round." if
+					$forfeit eq 'Unknown';
+	unless ( $forfeit eq 'None' ) {
+		my @forfeiters = $forfeit eq 'Both'? @$roles:
+			( $forfeit );
+		for my $role ( @forfeiters ) {
+			$result{ $role } = 'Forfeit';
+		}
+	}
+	my $tardy = $game->tardy;
+	die "$tardy tardies? Update matches for round $round." if
+					$tardy eq 'Unknown';
+	unless ( $tardy eq 'None' ) {
+		my @tardies = $tardy eq 'Both'? @$roles:
+			( $tardy );
+		for my $role ( @tardies ) {
+			$result{ $role } = 'Tardy';
+		}
+	}
+	return Games::Tournament::Card->new(
+		round => $round,
+		contestants => \%contestant,
+		floats => \%float,
+		result => \%result ) if $forfeit eq ' Both' or $tardy eq 'Both';
+	my $win = $game->win;
+	die "$win winners? Update matches for round $round." if
+					$win eq 'Unknown';
+	my %points;
+	unless ( $win eq 'None' ) {
+		%points = $win eq 'White'?
+			( White => 'Win', Black => 'Loss' ):
+			$win eq 'Black'?
+			( White => 'Loss', Black => 'Win' ):
+			$win eq 'Both'?
+			( White => 'Draw', Black => 'Draw' ):
+			( White => '??', Black => '??' );
+	}
+	die "$win result not Win, Loss or Draw in round $round," unless
+		all { $points{$_} eq 'Win' or $points{$_} eq 'Loss' or
+			$points{$_} eq 'Draw' } @$roles;
+	for my $role ( @$roles ) {
+		$result{ $role } = $points{ $role }
+			unless $forfeit eq $role or $tardy eq $role;
+	}
+	return Games::Tournament::Card->new(
+		round => $round,
+		contestants => \%contestant,
+		floats => \%float,
+		result => \%result );
 }
 
 
