@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 10,
   },
-  "pairingnumber",
+  "value",
   {
     data_type => "TINYINT",
     default_value => undef,
