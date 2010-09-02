@@ -1,6 +1,6 @@
 package Swiss::Model::SetupTournament;
 
-# Last Edit: 2010  2月 13, 17時42分57秒
+# Last Edit: 2010  9月 01, 15時21分22秒
 # $Id$
 
 use strict;
@@ -51,7 +51,7 @@ sub setupTournament {
 	for my $entrant ( @$entrants ) {
 		$c->model('DB::Pairingnumbers')->update_or_create( { 
 			 tournament => $args->{name}, player => $entrant->id,
-			pairingnumber => $entrant->pairingNumber } );
+			value => $entrant->pairingNumber } );
 	}
 	return $tournament;
 }
