@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2010  9月 02, 13時33分24秒
+# Last Edit: 2010  9月 02, 15時37分36秒
 # $Id: $
 
 use warnings;
@@ -365,7 +365,7 @@ sub floats {
 
 	$card->float($player[,'Up|Down|Not'])
 
-Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated. $player->floats is not changed. This takes place in $tourney->collectCards.
+Gets/sets whether the player was floated 'Up', 'Down', or 'Not' floated. $player->floats is not changed. This takes place in $tourney->collectCards. TODO what if $player is 'Bye'?
 
 =cut
 
