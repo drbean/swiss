@@ -54,26 +54,26 @@ __PACKAGE__->add_columns(
   # possible values are 'White', 'Black', 'Draw,' 'None' or 'Unknown'.
   "win",
   {
-    data_type => "BOOL",
+    data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
-    size => undef,
+    size => 10,
   },
   # possible values are 'White', 'Black', 'Both', 'None' or 'Unknown'.
   "forfeit",
   {
-    data_type => "BOOL",
+    data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
-    size => undef,
+    size => 10,
   },
   # possible values are 'White', 'Black', 'Both', 'None' or 'Unknown'.
   "tardy",
   {
-    data_type => "BOOL",
+    data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 0,
-    size => undef,
+    size => 10,
   },
 );
 __PACKAGE__->set_primary_key("tournament", "round", "pair");
