@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2009 10月 19, 10時56分14秒
+# Last Edit: 2010  9月 02, 13時05分06秒
 # $Id: $
 
 use warnings;
@@ -9,7 +9,7 @@ use Carp;
 
 use List::Util qw/min reduce sum first/;
 use List::MoreUtils qw/any all/;
-use List::MoreUtils qw/any all/;
+use Scalar::Util qw/looks_like_number/;
 
 use constant ROLES => @Games::Tournament::Swiss::Config::roles?
 			@Games::Tournament::Swiss::Config::roles:
@@ -52,7 +52,7 @@ In a tournament, matches take place in rounds between contestants, who are maybe
 	    result => "Bye"
 	    floats => 'Down' );
 
-'contestants' is a hash ref of player objects, keyed on Black and White, or Home and Away, or some other role distinction that needs to be balanced over the tournament. The players are probably instances of the Games::Tournament::Contestant::Swiss class. 'result' is a hash reference, keyed on the same keys as contestants, containing the results of the match. 'floats' is a hash of  which role was floated up and which down. The default is neither contestant was floated, and 'Down' for a Bye. A4. What are the fields in Forfeits and byes? Forfeit has no special form. Bye is { Bye => $player }. TODO Perhaps the fields should be Winner and Loser, and Down and Up?
+'contestants' is a hash ref of player objects, keyed on Black and White, or Home and Away, or some other role distinction that needs to be balanced over the tournament. The players are probably instances of the Games::Tournament::Contestant::Swiss class. 'result' is a hash reference, keyed on the same keys as contestants, containing the results of the match. 'floats' is a hash of  which role was floated up and which down. The default is neither contestant was floated, and 'Down' for a Bye. A4. What are the fields in Forfeits and byes? Forfeit and Tardy have no special form, other than { White => 'Forfeit', Black => 'Tardy' }. Bye is { Bye => $player }. TODO Perhaps the fields should be Winner and Loser, and Down and Up?
 
 =cut 
 
@@ -247,6 +247,23 @@ sub myFloat {
 }
 
 
+=head2 opponentRole
+
+    Games::Tournament::Card->opponentRole( $role )
+
+Returns the role of the opponent of the player in the given role. Class method.
+
+=cut 
+
+sub opponentRole {
+    my $self       = shift;
+    my $role = shift;
+    my %otherRole;
+    @otherRole{ (ROLES) } = reverse (ROLES);
+    return $otherRole{ $role };
+}
+
+
 =head2 round
 
  $game->round
@@ -293,6 +310,41 @@ sub result {
 }
 
 
+=head2 equalScores
+
+	$game->equalScores
+
+Tests whether the players have equal scores, returning 1 or ''. If scores are equal, they are (should be) floating.
+
+=cut
+
+sub equalScores {
+    my $self   = shift;
+    my $contestants = $self->contestants;
+    my @score = map { $contestants->{$_}->score } ROLES;
+    return unless looks_like_number $score[0];
+    return all { $score[0] == $_ } @score;
+}
+
+
+=head2 higherScoreRole
+
+	$game->higherScoreRole
+
+Returns the role of the player with the higher score, returning '', if scores are equal.
+
+=cut
+
+sub higherScoreRole {
+    my $self   = shift;
+    my $contestant = $self->contestants;
+    my @score = map { $contestant->{$_}->score } ROLES;
+    return (ROLES)[0] if $score[0] > $score[1];
+    return (ROLES)[1] if $score[0] < $score[1];
+    return '';
+}
+
+
 =head2 floats
 
 	$game->floats
@@ -329,7 +381,9 @@ sub float {
       or $role     eq (ROLES)[1];
     my $float = shift;
     if ( defined $float ) { $self->{floats}->{$role} = $float; }
-    elsif ( $self->{floats}->{$role} ) { return $self->{floats}->{$role}; }
+    elsif ( $self->{floats} and ref $self->{floats} eq 'HASH' ) {
+	return $self->{floats}->{$role};
+    }
     elsif ( $role eq 'Bye' ) { return 'Down'; }
     else { return 'Not'; }
 }
