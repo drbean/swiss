@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2010  9月 02, 13時05分06秒
+# Last Edit: 2010  9月 02, 13時33分24秒
 # $Id: $
 
 use warnings;
@@ -381,9 +381,7 @@ sub float {
       or $role     eq (ROLES)[1];
     my $float = shift;
     if ( defined $float ) { $self->{floats}->{$role} = $float; }
-    elsif ( $self->{floats} and ref $self->{floats} eq 'HASH' ) {
-	return $self->{floats}->{$role};
-    }
+    elsif ( $self->{floats}->{$role} ) { return $self->{floats}->{$role}; }
     elsif ( $role eq 'Bye' ) { return 'Down'; }
     else { return 'Not'; }
 }
