@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  8月 31, 07時09分40秒
+# Last Edit: 2010  9月 01, 15時18分10秒
 # $Id$
 
 use strict;
@@ -98,12 +98,12 @@ sub preppair : Local {
 			absentees => \@absentees,
 		} );
 	my ($games, $latestscores, $pairingtable);
-	for my $field ( qw/pairingnumber score firstround/ ) {
+	for my $field ( qw/pairingnumber score/ ) {
 		$members->reset;
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
-			my $value = $member->$field->$field;
+			my $value = $member->$field->value;
 			$fieldhistory->{$member->profile->id}=$value;
 		}
 		$pairingtable->{$field} = $fieldhistory;
@@ -234,16 +234,29 @@ sub nextround : Local {
 	$round++;
 	my $tournament = $c->model('DB::Tournaments')->find(
 		{ id => $tourid });
+	my $rounds = $tournament->rounds;
 	my $members = $tournament->members;
 	my @columns = Swiss::Schema::Result::Players->columns;
-	my $rounds = $tournament->rounds;
+	my ($latestscores, $pairingtable);
+	for my $field ( qw/score/ ) {
+		my $fieldhistory;
+		while ( my $member = $members->next ) {
+			my $player = $member->profile;
+			my $row = $member->$field;
+			my $value = $row? $row->value: 0;
+			$fieldhistory->{$player->id} = $value;
+		}
+		$pairingtable->{$field} = $fieldhistory;
+	}
 	my (@playerlist, @absentees);
+		$members->reset;
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
 		$player->{firstround} = $member->firstround;
 		my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round-1 });
 		$player->{rating} = $rating->value;
+		$player->{score} = $pairingtable->{score}->{ $player->{id} };
 		push @playerlist, $player;
 		push @absentees, $player if $member->absent eq 'True';
 	}
@@ -254,32 +267,10 @@ sub nextround : Local {
 			entrants => \@playerlist,
 			absentees => \@absentees,
 		} );
-	my ($latestscores, $pairingtable);
-	for my $field ( qw/score/ ) {
-		$members->reset;
-		my $fieldhistory;
-		while ( my $member = $members->next ) {
-			my $player = $member->profile;
-			my $row = $member->$field;
-			my $value = $row? $row->value: 0;
-			$fieldhistory->{$player->id} = $value;
-		}
-		$pairingtable->{$field} = $fieldhistory;
-	}
-	for my $field ( qw/opponent role float/ ) {
-		$members->reset;
-		my $fieldhistory;
-		while ( my $member = $members->next ) {
-			my $player = $member->profile;
-			my $id = $player->id;
-			my $values = $member->$field;
-			while ( my $pair = $values->next ) {
-				my $round = $pair->round;
-				my $value = $pair->$field;
-				$fieldhistory->{$id}->[$round - 1] = $value;
-			}
-		}
-		$pairingtable->{$field} = $fieldhistory;
+	my @matches;
+	my $matches = $tournament->matches;
+	while ( my $match = $matches->next ) {
+		push @matches, $c->model('GTS')->writeCard( $tourney, $match );
 	}
 	for my $n ( 0 .. $#playerlist ) {
 		my $id = $playerlist[$n]->{id};
@@ -288,7 +279,7 @@ sub nextround : Local {
 	}
 	my ($mess, $log, $games) = $c->model('GTS')->pair( {
 			tournament => $tourney,
-			history => $pairingtable } );
+			history => \@matches } );
 	if ( $mess and $mess =~ m/^All joined into one .*, but no pairings!/ or
 		@$games * 2 < @playerlist - @absentees ) {
 		$c->stash->{error_msg} = $mess;
