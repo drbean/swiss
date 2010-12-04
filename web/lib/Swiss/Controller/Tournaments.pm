@@ -194,9 +194,10 @@ sub edit_players : Local {
 			my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round });
 			my $value; $value = $rating->value if $rating;
-			push @playerlist, { id => $profile->id, name => $profile->name,
-					firstround => $member->firstround, rating => $value
-				};
+			push @playerlist, { id => $profile->id,
+				name => $profile->name,
+				firstround => $member->get_column('firstround'),
+				rating => $value };
 		}
 	}
 	my $mess;

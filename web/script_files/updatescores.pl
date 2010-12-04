@@ -53,7 +53,7 @@ use List::Util qw/sum/;
 use Grades;
 
 my $script = Grades::Script->new_with_options;
-my $league = $script->league;
+my $leagueid = $script->league;
 my $round = $script->round;
 
 my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
@@ -118,7 +118,7 @@ for my $player ( @$members ) {
 	my $id = $player->{id};
 	my $score = sum map { $_->{$id} } @{$points}{@$conversations};
 	push @scores, {
-			tournament => $league,
+			tournament => $leagueid,
 			player => $id,
 			value => $score || 0 };
 

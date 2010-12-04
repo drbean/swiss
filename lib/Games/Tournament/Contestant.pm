@@ -358,7 +358,7 @@ sub id {
 
 	$member->firstround
 
-Returns/sets the firstround of the contestant, the round in which they first played or will play. Necessary for handling late entrants.
+Returns/sets the firstround of the contestant, the round in which they first played or will play. Necessary for handling late entrants. TODO What is the first round of an entrant who has entered but has never played a game, but may at a future point in time? 0? 1? 99? undef?
 
 =cut
 
