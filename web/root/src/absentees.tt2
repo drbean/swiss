@@ -1,0 +1,18 @@
+[% META title = 'Absentees' -%]
+[% space=' '%]
+
+<h1>Unpaired players in [% tournament %] Tournament, Round [% round %]</h1>
+
+<form method="post" action="[% c.uri_for('absentees') %]">
+<input type="submit" name="absent" value="Record Absentees">
+<table>
+  <tr><th>Absent<th>Id<th>Name</tr>
+[% FOREACH player IN playerlist %]
+  <tr>
+    <td><input type="checkbox" name="[% player.id %]" value="Absent" [% "checked" IF player.absent == 'True' %]>
+    <td>[% player.id %]
+    <td>[% player.name %]
+[% END -%]
+</table>
+<input type="submit" name="absent" value="Record Absentees">
+</form>

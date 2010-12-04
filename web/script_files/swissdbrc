@@ -1,0 +1,210 @@
+#!perl
+
+use lib 'lib';
+use lib 'web/lib';
+use YAML qw/LoadFile DumpFile/;
+use Grades;
+
+$_REPL->load_plugin('DumpHistory');
+
+my $leagueid = 'FLA0018';
+
+my $league = League->new( id => $leagueid );
+my $g = Grades->new( league => $league );
+my $members = $league->members;
+my %m = map { $_->{id} => $_ } @$members;
+
+my $conversations = $g->conversations;
+my @op = map { $g->opponents($_) } @$conversations;
+
+use Swiss;
+use Swiss::Model::DB;
+use Swiss::Schema;
+
+my $d = Swiss::Schema->connect( 'dbi:SQLite:web/db/982', '', '' );
+
+my $m = $d->resultset('Members')->search({ tournament => $leagueid });
+my $o = $d->resultset('Opponents')->search({ tournament => $leagueid });
+my $r = $d->resultset('Roles')->search({ tournament => $leagueid });
+my $f = $d->resultset('Floats')->search({ tournament => $leagueid });
+my $l = $d->resultset('Ratings')->search({ tournament => $leagueid });
+my $n = $d->resultset('Round')->search({ tournament => $leagueid });
+my $s = $d->resultset('Scores')->search({ tournament => $leagueid });
+
+my $beancanmembers = $g->names2beancans(2);
+my @a = grep { not $beancanmembers->{$m{$_}->{name}} or $beancanmembers->{$m{$_}->{name}} eq 'Absent' } keys %m;
+# $m->update_or_create({ player => $_, absent => 'True', firstround => 1 }) for @a;
+
+$o->update_or_create({ player => 'V9741018', opponent => 'Unpaired', round => 5 });
+$o->update_or_create({ player => 'V9741042', opponent => 'V9741057', round => 5 });
+$o->update_or_create({ player => 'V9741057', opponent => 'V9741042', round => 5 });
+
+$r->update_or_create({ player => 'V9741018', role => 'Unpaired', round => 5 });
+$r->update_or_create({ player => 'V9741057', role => 'Black', round => 5 });
+
+# $n->update_or_create({ tournament => $leagueid, round=> 7 });
+
+#my @rounds = ( 1..3, 6 );
+#my %r = map { $_ => LoadFile "/home/drbean/class/$leagueid/comp/$_/role.yaml" }
+#			@rounds;
+#for ( @rounds ) {
+#	my $n = $_;
+#	my $roles = $r{$_};
+#	$r->update_or_create({ player => $_, role => $roles->{$_}, round => $n })
+#		for keys %$roles;
+#}
+
+# $l->update_or_create({ player => 'U9711125', value => 1000, round => $_ }) for 0;
+#  $o->update_or_create({ player => 'U9831044', opponent => 'Unpaired', round => $_ }) for 1..6;
+#  $r->update_or_create({ player => 'U9831044', role => 'Unpaired', round => $_ }) for 4..6;
+#  $f->update_or_create({ player => 'U9831044', float => 'Not', round => $_ }) for 1..6;
+
+# $r->update_or_create({ player => 'N9661755', role => 'Black', round => $_ }) for 4;
+# $r->update_or_create({ player => 'N9461734', role => 'Unpaired', round => $_ }) for 4;
+# $f->update_or_create({ player => 'N9561757', float => 'Not', round => $_ }) for 1 .. 3;
+# $f->update_or_create({ player => $_, float => 'Not', round => 3 }) for
+# 	( 'N9561757', 'N9561741', 'N9461734', 'N9461748', 'N9561725' );
+# $o->update_or_create({ player => 'N9561712', opponent => 'Unpaired', round => $_ }) for 1..6;
+# $r->update_or_create({ player => 'N9561712', role => 'Unpaired', round => $_ }) for 1..6;
+# $f->update_or_create({ player => 'N9561712', float => 'Not', round => $_ }) for 1..6;
+# $o->update_or_create({ player => 'N9361758', opponent => 'Unpaired', round => $_ }) for 1..6;
+# $r->update_or_create({ player => 'N9361758', role => 'Unpaired', round => $_ }) for 1..6;
+# $f->update_or_create({ player => 'N9361758', float => 'Not', round => $_ }) for 1..6;
+
+# $f->update_or_create({ round => 4, player => $_, float => 'Not' }) for keys %m;
+# $f->update_or_create({ player => 'N9461747', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661714', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661719', float => 'Not', round => 1 });
+# $f->update_or_create({ player => 'N9661731', float => 'Not', round => 1 });
+
+# my @o = $o->search({round => 6});
+# my @r = $r->search({round => 6});
+# my @f = $f->search({round => 6});
+# $_->delete for @o, @r, @f;
+
+# my $op = LoadFile '../class/BMA0076/comp/6/opponent.yaml';
+# my $role = LoadFile '../class/BMA0076/comp/6/role.yaml';
+# $o->update_or_create({ player => $_, opponent => $op->{$_}, round => 6 }) for keys %m;
+
+# $o->update_or_create({ tournament => $leagueid, player => '9613207', opponent => 'Unpaired', round => 1 });
+
+# $r->update_or_create({ tournament => $leagueid, player => '9613207', role => 'Unpaired', round => $_ }) for 1 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => '9613207', float => 'Not', round => $_ }) for 1..3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9416042', role => 'Unpaired', round => $_ }) for 1 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9416042', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9515015', role => 'Unpaired', round => $_ }) for 1 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9515015', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9521028', role => 'White', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9521028', role => 'Unpaired', round => $_ }) for 2 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9521028', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9821028', role => 'White', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9821028', role => 'Unpaired', round => $_ }) for 2 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9821028', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9534043', role => 'Unpaired', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9534043', role => 'Black', round => $_ }) for 2 , 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9534043', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9534050', role => 'Unpaired', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9534050', role => 'Black', round => $_ }) for 2 , 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9534050', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9516043', role => 'White', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9516043', role => 'Unpaired', round => $_ }) for 2 .. 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9516043', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'Black', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'White', round => $_ }) for 2;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'White', round => $_ }) for 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9593001', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'Unpaired', round => $_ }) for 1;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'Unpaired', round => $_ }) for 2;
+# $r->update_or_create({ tournament => $leagueid, player => 'U9593001', role => 'Black', round => $_ }) for 3;
+# $f->update_or_create({ tournament => $leagueid, player => 'U9593001', float => 'Not', round => $_ }) for 1 .. 3, 5;
+# 
+# $r->update_or_create({ tournament => $leagueid, player => 'U9622106', role => 'Black', round => $_ }) for 1;
+
+# $o->update_or_create({ tournament => $leagueid, player => 'U9723053', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9723053', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9515010', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9515010', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9633045', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9633045', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9621111', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9621111', float => 'Not', round => 1 });
+# 
+# 
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610015', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610015', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610015', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610015', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610015', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610015', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610042', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610042', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610042', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610042', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9610042', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9610042', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'U9521030', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9521030', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9521030', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9521030', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9521030', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9521030', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'U9711030', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9711030', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9711030', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9711030', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9711030', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9711030', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'T9722022', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'T9722022', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'T9722022', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'T9722022', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'T9722022', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'T9722022', float => 'Not', round => 3 });
+# 
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 1 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9593023', float => 'Not', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 2 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9593023', float => 'Not', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 3 });
+# $f->update_or_create({ tournament => $leagueid, player => 'U9593023', float => 'Not', round => 3 });
+
+
+# $o->update_or_create({ player => 'V9731059', round => 4, opponent => 'V9741048' });
+# $o->update_or_create({ player => 'V9741048', round => 4, opponent => 'V9731059' });
+
+# $o->update_or_create({ player => 'V9741047', round => 4, opponent => 'V9741023' });
+# $o->update_or_create({ player => 'V9741023', round => 4, opponent => 'V9741047' });
+
+# my $o4 = LoadFile '/home/drbean/class/FLA0018/comp/4/opponent.yaml';
+# my $r4 = LoadFile '/home/drbean/class/FLA0018/comp/4/role.yaml';
+# $o->update_or_create({ round => 4, player => $_, opponent => $o4->{$_} }) for keys %m;
+# $f->update_or_create({ round => 4, player => $_, float => 'Not' }) for keys %m;
+
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'U9593023', opponent => 'Unpaired', round => 3 });
+
+# $o->update_or_create({ tournament => $leagueid, player => 'E9841001', opponent => 'Unpaired', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'E9841001', opponent => 'Unpaired', round => 2 });
+# $o->update_or_create({ tournament => $leagueid, player => 'E9841001', opponent => 'Unpaired', round => 3 });
+
+# $o->update_or_create({ tournament => $leagueid, player => 'V9741044', opponent => 'V9899132', round => 1 });
+# $o->update_or_create({ tournament => $leagueid, player => 'V9899132', opponent => 'V9741044', round => 1 });
+
+# $d->resultset( 'Round' )->update_or_create({ tournament => $leagueid, round => 3 });
+#$o->update_or_create({ player => $_, opponent => $op->{$_}, round => 6 }) for keys %m })
+#$o->update_or_create({ player => $_, opponent => $op->{$_}, round => 6 }) for keys %m })

@@ -1,0 +1,12 @@
+[% META title = 'End of competition' -%]
+
+<h1>[% tournament %] Game Over, in Round [% round %]</h1>
+
+<ul><h2>3 possible reasons for the failure to find another pairing
+<li>One or more players have already played all the other players.
+<li>The FIDE pairing procedure fails to produce all possible pairings.
+<li>Games::Tournament::Swiss fails to implement the FIDE Rules correctly.
+</ul>
+
+<h2>Run a new tournament? Or change the pairing tables of the old tournament, by eg adding more players?
+<a href="[% c.uri_for('/') %]">Go!</a>

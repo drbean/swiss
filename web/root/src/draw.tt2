@@ -1,0 +1,66 @@
+[% META title = 'Draw' -%]
+[% n = 1 %]
+
+<form method="post" action="[% c.uri_for('preppair') %]">
+<table>
+<caption><h1>[% tournament %] Tournament Draw Table, Round [% round %]</h1></caption>
+  <TR><TH colspan="4"><H2>[% roles.0 %]</H2>
+      <TH colspan="3"><H2>[% roles.1 %]</H2>
+  <TR><TH>Table<TH>ID<TH>Name<TH>Rating<TH>Score<TH>Result<TH>ID<TH>Name<TH>Rating<TH>Score
+[% FOREACH n IN [ 0 .. games.max ] %]
+[% UNLESS games.$n.contestants.size == 1 %]
+[%- white = games.$n.contestants.$roles.0 %]
+[%- black = games.$n.contestants.$roles.1 %]
+  <TR>
+    <td>[% n + 1 %]
+    <td>[% white.id %]
+    <td>[% white.name %]
+    <td>[% white.rating %]
+    <td>[[% white.score.defined ? white.score : '-' %]]
+    <td> 
+<select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
+
+[% win = games.$n.win %]
+[% forfeit = games.$n.forfeit %]
+<OPTION [% IF win=='unknown' %] selected [% END %] value="0">-:-</OPTION>
+<OPTION [% IF win=='white' %] selected [% END %] value="win:loss">W:L</OPTION>
+<OPTION [% IF win=='black' %] selected [% END %] value="loss:win">L:W</OPTION>
+<OPTION [% IF win=='draw' %] selected [% END %] value="draw:draw">=:=</OPTION>
+<OPTION [% IF forfeit=='black' %]selected[% END %] value="win:forfeit">W:F</OPTION>
+<OPTION [% IF forfeit=='white' %]selected[% END %] value="forfeit:win">F:W</OPTION>
+<OPTION [% IF forfeit=='both' %]selected[% END %] value="forfeit:forfeit">F:F</OPTION>
+
+</select>
+    <td>[% black.id %]
+    <td>[% black.name %]
+    <td>[% black.rating %]
+    <td>[[% black.score.defined ? black.score : '-' %]]
+[% ELSE %]
+[%- bye = games.$n.contestants.Bye %]
+  <TR>
+    <td>[% n + 1 %]
+    <td>[% bye.id %]
+    <td>[% bye.name %]
+    <td>[% bye.rating %]
+    <td>[% bye.score.defined ? bye.score : '-' %]
+    <td> 
+<select name="[% games.$n.contestants.Bye.id %]_:_Bye" size="1">
+
+<OPTION selected value="bye:bye">Bye</OPTION>
+
+</select>
+[% END %]
+[% END %]
+  <TR><TH colspan="8">W: Win, L: Loss, =: draw, F: Forfeit
+</table>
+<input type="submit" name="Submit" value="Record Round [% round  %] results">
+</form>
+<br>
+
+[%- IF log %]
+<H2>FIDE Pairing Procedure Log</H2>
+
+<PRE>[% log %]</PRE>
+[% END %]
+
+[%- IF pairtable %][% INCLUDE pairtable.tt2 round = round + 1 %][% END %]

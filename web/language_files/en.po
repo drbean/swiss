@@ -1,0 +1,197 @@
+msgid "(select language)"
+msgstr "select language"
+
+msgid "(Create new tournament)"
+msgstr "Create new tournament"
+
+msgid "(New tournament created)"
+msgstr "New tournament created"
+
+msgid "(tournament name:)"
+msgstr "tournament name:"
+
+msgid "(directory for tournament data:)"
+msgstr "directory for tournament data:"
+
+msgid "(number of rounds:)"
+msgstr "number of rounds:"
+
+msgid "(click here to submit data:)"
+msgstr "click here to submit data:"
+
+msgid "(create tournament)"
+msgstr "create tournament"
+
+msgid "(Select tournament)"
+msgstr "Select tournament"
+
+msgid "(select tournament)"
+msgstr "select tournament"
+
+msgid "(You can select one of the existing tournaments to manage it:)"
+msgstr "You can select one of the existing tournaments to manage it:"
+
+msgid "(Delete tournament)"
+msgstr "Delete tournament"
+
+msgid "(delete tournament)"
+msgstr "delete tournament"
+
+msgid "(Tournament deleted)"
+msgstr "Tournament deleted"
+
+msgid "(password:)"
+msgstr "password:"
+
+msgid "(You can delete one of the existing tournaments:)"
+msgstr "You can delete one of the existing tournaments:"
+
+msgid "(Deletion of tournament failed)"
+msgstr "Deletion of tournament failed"
+
+msgid "(Creation of tournament failed)"
+msgstr "Creation of tournament failed"
+
+msgid "(back to tournament selection)"
+msgstr "back to tournament selection"
+
+msgid "(Manage tournament)"
+msgstr "Manage tournament"
+
+msgid "(Tournament data (tournament name, directory or number of rounds) was incomplete or wrong.)"
+msgstr "Tournament data (tournament name, directory or number of rounds) was incomplete or wrong."
+
+msgid "(The selected tournament does not exist or it was not possible to delete it.)"
+msgstr "The selected tournament does not exist or it was not possible to delete it."
+
+msgid "(Please choose another directory.)"
+msgstr "Please choose another directory."
+
+msgid "(Invalid password.)"
+msgstr "Invalid password."
+
+msgid "(Please retry.)"
+msgstr "Please retry."
+
+msgid "(Tournament %1 with %2 rounds has been created in directory %3.)"
+msgstr "Tournament %1 with %2 rounds has been created in directory %3."
+
+msgid "(Tournament %1 has been successfully deleted.)"
+msgstr "Tournament %1 has been successfully deleted."
+
+msgid "(There already exists a file or a directory with this name.)"
+msgstr "There already exists a file or a directory with this name."
+
+msgid "(Failed to create new tournament at directory %1.)"
+msgstr "Failed to create new tournament at directory %1."
+
+msgid "(Pairings and Results)"
+msgstr "Pairings and Results"
+
+msgid "(There are no pairings for round %1. Trying to generate them.)"
+msgstr "There are no pairings for round %1. Trying to generate them."
+
+msgid "(Round %1 cannot be paired yet. Please check results of previous rounds.)"
+msgstr "Round %1 cannot be paired yet. Please check results of previous rounds."
+
+msgid "(Results of round %1:)"
+msgstr "Results of round %1:"
+
+msgid "(Please enter results of round %1:)"
+msgstr "Please enter results of round %1:"
+
+msgid "(Standings)"
+msgstr "Standings"
+
+msgid "(Board)"
+msgstr "Board"
+
+msgid "(back to management of tournament)"
+msgstr "back to management of tournament"
+
+msgid "(Management of tournament)"
+msgstr "Management of tournament"
+
+msgid "(Management for tournament %1)"
+msgstr "Management for tournament %1"
+
+msgid "(Participants)"
+msgstr "Participants"
+
+msgid "(Manage participants for tournament %1)"
+msgstr "Manage participants for tournament %1"
+
+msgid "(select round)"
+msgstr "select round"
+
+msgid "(tournament selection)"
+msgstr "tournament selection"
+
+msgid "(New Participant)"
+msgstr "New Participant"
+
+msgid "(Firstname: )"
+msgstr "Firstname: "
+
+msgid "(Surname: )"
+msgstr "Surname: "
+
+msgid "(Nr.)"
+msgstr "Nr."
+
+msgid "(Name)"
+msgstr "Name"
+
+msgid "(Rating: )"
+msgstr "Rating: "
+
+msgid "(Rating)"
+msgstr "Rating"
+
+msgid "(add participant)"
+msgstr "add participant"
+
+msgid "(List of Participants)"
+msgstr "List of Participants"
+
+msgid "(delete)"
+msgstr "delete"
+
+msgid "(Error while selecting tournament)"
+msgstr "Error while selecting tournament"
+
+msgid "(You didn't select a tournament.)"
+msgstr "You didn't select a tournament."
+
+msgid "(Please click below to return to tournament selection.)"
+msgstr "Please click below to return to tournament selection."
+
+msgid "(Output of pairing routines -- for debugging)"
+msgstr "Output of pairing routines -- for debugging"
+
+msgid "(Pairing Tables)"
+msgstr "Pairing Tables"
+
+msgid "(Pairing Table)"
+msgstr "Pairing Table"
+
+msgid "(save results)"
+msgstr "save results"
+
+msgid "(Bye)"
+msgstr "Bye"
+
+msgid "(Incomplete data.)"
+msgstr "Incomplete data."
+
+msgid "(Please insert firstname and surname!)"
+msgstr "Please insert firstname and surname!"
+
+msgid "(Points)"
+msgstr "Points"
+
+msgid "(Rank)"
+msgstr "Rank"
+
+msgid "(No)"
+msgstr "No"
