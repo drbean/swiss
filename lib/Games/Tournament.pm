@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2010 11月 26, 10時14分22秒
+# Last Edit: 2010 12月 04, 15時36分20秒
 # $Id: $
 
 use warnings;
@@ -22,13 +22,7 @@ use constant FIRSTROUND => $Games::Tournament::Swiss::Config::firstround;
 
 Games::Tournament - Contestant Pairing 
 
-=head1 VERSION
-
-Version 0.02
-
 =cut
-
-our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 

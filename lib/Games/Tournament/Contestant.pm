@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant;
 
-# Last Edit: 2010  9月 01, 13時29分53秒
+# Last Edit: 2010 12月 04, 15時35分53秒
 # $Id: $
 
 use warnings;
@@ -23,13 +23,7 @@ use constant SCORES => %Games::Tournament::Swiss::Config::scores?
 
 Games::Tournament::Contestant  A competitor matched with others over a series of rounds
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 

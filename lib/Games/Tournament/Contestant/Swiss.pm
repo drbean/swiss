@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2010 11月 20, 19時17分44秒
+# Last Edit: 2010 12月 04, 15時33分40秒
 # $Id: $
 
 use warnings;
@@ -21,13 +21,7 @@ use base qw/Games::Tournament::Contestant/;
 
 Games::Tournament::Contestant::Swiss  A competitor in a FIDE-Swiss-Rules event
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 

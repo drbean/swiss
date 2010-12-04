@@ -1,9 +1,7 @@
 
 # DESCRIPTION:  Check that F1 ordering works
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2010  2月 03, 14時35分49秒
-
-our $VERSION = 0.1;
+# Last Edit: 2010 12月 04, 15時37分20秒
 
 =head3 DESCRIPTION
 

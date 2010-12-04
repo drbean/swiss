@@ -3,8 +3,11 @@ Makefile
 Makefile.old
 Build
 _build*
+.build
 pm_to_blib*
 *.tar.gz
 .lwpcookies
+Games-Tournament-Swiss-0.18
+Games-Tournament-Swiss-0.18.tar.gz
 Games-Tournament-Swiss-*
 cover_db

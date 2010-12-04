@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2010 11月 14, 15時14分27秒
+# Last Edit: 2010 12月 04, 15時36分05秒
 # $Id: $
 
 use warnings;
@@ -19,13 +19,7 @@ use constant ROLES => @Games::Tournament::Swiss::Config::roles?
 
 Games::Tournament::Card - A record of the results of a match
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 

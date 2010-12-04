@@ -25,6 +25,7 @@ t/29440.t
 t/29495.t
 t/29682.t
 t/29682_2.t
+t/62502.t
 t/boilerplate.t
 t/c7shuffler.t
 t/c8iterator.t

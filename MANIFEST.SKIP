@@ -29,8 +29,25 @@
 
 \.gitignore
 
-# skip releases
-Games-Swiss-Tournament-.*\.tar\.gz$
+# skip releases, builds
+Games-Swiss-Tournament-
+
+# skip text files
+\.txt$
+
+# skip swiss files tagger
+\bperltags\.pl$
 
 # skip Swiss frontend
 \bweb
+
+# skip t subdirs, files
+# t\/(cc)?\d+$
+t/cc10112
+t/cc10942
+t/c8.pl
+# not working
+# because matching t files exist?
+t/62502$
+t/late$
+t/lateentry$

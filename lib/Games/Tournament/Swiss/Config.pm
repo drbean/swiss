@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Config;
 
-# Last Edit: 2010  9月 02, 11時31分54秒
+# Last Edit: 2010 12月 04, 15時33分53秒
 # $Id: $
 
 use warnings;
@@ -10,13 +10,7 @@ use strict;
 
 Games::Tournament::Swiss::Config - Swiss Competition Configuration
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 

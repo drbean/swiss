@@ -4,13 +4,7 @@
 
 pairingtable - Show player scoregroups for next round of swiss tournament
 
-=head1 VERSION
-
-Version 0.04
-
 =cut
-
-our $VERSION = '0.04';
 
 use strict;
 use warnings;
