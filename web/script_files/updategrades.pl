@@ -74,16 +74,17 @@ sub run {
 	my %entrants = map { $_->{id} => $_ } @$entrants;
 	my $members = $tourney->members;
 	my $grade = $grades->grades;
-
+	my $ratings = $d->resultset('Ratings');
 	while ( my $member = $members->next ) {
 		my $id = $member->player;
+		my $grade = $grade->{$id} || $ratings->find({ tournament => $tournament,
+				player => $id, round => ($thisround - 1) })->value || 0;
 		$ratings{$id} = { 
 				player => $id,
 				tournament => $tournament,
 				round => $thisround,
-				value => $grade->{$id} };
+				value => $grade };
 	}
-	my $ratings = $d->resultset('Ratings');
 	$ratings->update_or_create( $_ ) for values %ratings;
 	print Dump { map { $_ => $ratings{$_}->{value} } keys %ratings };
 
