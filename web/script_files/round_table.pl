@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2010 11月 17, 13時57分25秒
+# Last Edit: 2010 12月 27, 12時59分58秒
 # $Id$
 
 =head1 NAME
@@ -38,18 +38,18 @@ In round.yaml
 activity:
   drbean:
     1:
-      -
+      0:
         White: N9661740
         Black: U9714104
-      -
+      3:
         White: N9532037
         Black: U9714127
   novak:
     1:
-      -
+      1:
         White: T9722119
         Black: U9714111
-      -
+      2:
         White: N9661742
         Black: N9661748
 
@@ -83,6 +83,8 @@ my $scores = $d->resultset( "Scores" )->search({ tournament => $tourid });
 
 Generates {opponent,correct}.yaml files from handpairing in round.yaml.
 
+Make sure each pair in each topic and form has a unique table number. TODO Do this Jigsaw round.yaml way.
+
 Creating the pairs in round.yaml from a vim snippet is kind of fun. Anyway, it's necessary when swiss is not used to pair.
 
 There's no Grades methods for accessing the round.yaml file. The bye player is recorded as, bye: 
@@ -97,16 +99,15 @@ sub run {
     my $roundfile = $league->inspect( $g->compcompdirs . "/$round/round.yaml" );
     die "Round $round or $roundfile->{round}?" unless $round ==
 	$roundfile->{round};
-    my $n = 0;
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
+    my $byetablen = 0;
     my $activities = $roundfile->{activity};
     for my $key ( sort keys %$activities ) {
 	my $topic = $activities->{$key};
 	for my $form ( sort keys %$topic ) {
 	    my $pairs = $topic->{$form};
-	    my %pairs = map { $_->{White} => $_->{Black} } @$pairs;
-	    my @white = keys %pairs;
-	    my @black = values %pairs;
+	    my @white = map { $pairs->{$_}->{White} } keys %$pairs;
+	    my @black = map { $pairs->{$_}->{Black} } keys %$pairs;
 	    $dupe{ $_ }++ for ( @white, @black );
 	    my @dupe = grep { $dupe{$_} != 1 } keys %dupe;
 	    warn "$_ is dupe in $key topic, $form form" for @dupe;
@@ -114,7 +115,8 @@ sub run {
 	    @opponents{ @black } = @white;
 	    @roles{ @white } = ('White') x @white;
 	    @roles{ @black } = ('Black') x @black;
-	    for my $pair ( @$pairs ) {
+	    for my $n ( keys %$pairs ) {
+		my $pair = $pairs->{$n};
 		my @scores;
 		my @twoplayers = values %$pair;
 		next if all	{ my $player=$_;
@@ -136,7 +138,7 @@ sub run {
 		push @matches, {
 		    tournament => $tourid,
 		    round => $round,
-		    pair => $n++, 
+		    pair => $n, 
 		    white => $pair->{White},
 		    black => $pair->{Black},
 		    float => $float,
@@ -144,6 +146,7 @@ sub run {
 		    forfeit => 'Unknown',
 		    tardy => 'Unknown'
 			    };
+		$byetablen++;
 	    }
 	}
     }
@@ -154,7 +157,7 @@ sub run {
 	push @matches, {
 		tournament => $tourid,
 		round => $round,
-		pair => $n++, 
+		pair => $byetablen, 
 		white => $byeplayer,
 		black => 'Bye',
 		float => 1,
