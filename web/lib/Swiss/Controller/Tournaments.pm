@@ -1,12 +1,13 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2010 11月 05, 16時50分28秒
+# Last Edit: 2010 12月 28, 22時35分27秒
 # $Id$
 
 use Moose;
 BEGIN { extends 'Catalyst::Controller'; }
 
 use Grades;
+use Grades::Groupwork;
 
 use List::MoreUtils qw/none/;
 
@@ -269,8 +270,8 @@ sub rounds : Local {
 	my $league = League->new( leagues => $c->config->{leagues},
 					id => $tourid );
 	my $grades = Groupwork->new( league => $league );
-	my $series = $grades->series;
-	my $session = $series->[-1];
+	my $series = $grades->beancanseries;
+	my $session = ( sort {$a <=> $b} keys %$series )[-1];
 	my $beancans = $grades->beancans( $session );
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
