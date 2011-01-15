@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  1月 15, 17時24分15秒
+# Last Edit: 2011  1月 15, 17時26分39秒
 # $Id$
 
 =head1 NAME
@@ -146,8 +146,7 @@ sub run {
 		    forfeit => 'Unknown',
 		    tardy => 'Unknown'
 			    };
-		my $bign = max( $bytablen, $n );
-		$byetablen = $bign;
+		$byetablen = max( $byetablen, $n );
 	    }
 	}
     }
