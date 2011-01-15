@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2010 12月 27, 12時59分58秒
+# Last Edit: 2011  1月 15, 17時19分11秒
 # $Id$
 
 =head1 NAME
@@ -24,7 +24,7 @@ use lib "web/lib";
 
 use Cwd; use File::Basename;
 use YAML qw/Dump/;
-use List::Util qw/first/;
+use List::Util qw/first max/;
 use List::MoreUtils qw/any all/;
 
 =head1 SYNOPSIS
@@ -146,7 +146,7 @@ sub run {
 		    forfeit => 'Unknown',
 		    tardy => 'Unknown'
 			    };
-		$byetablen++;
+		$byetablen = max( $bytablen, $n );
 	    }
 	}
     }
@@ -157,7 +157,7 @@ sub run {
 	push @matches, {
 		tournament => $tourid,
 		round => $round,
-		pair => $byetablen, 
+		pair => ++$byetablen, 
 		white => $byeplayer,
 		black => 'Bye',
 		float => 1,
