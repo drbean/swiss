@@ -52,7 +52,7 @@ my $d = $model->connect( @$connect_info );
 my $s = $d->resultset('Tournaments');
 
 my @newtournaments;
-for my $tournament ( qw/GL00013 CLA0023 GL00006 MIA0014 FLA0030 BMA0071 FLA0014 FLA0017/ ) {
+for my $tournament ( qw/GL00013 otherCLA0023 CLA0023 GL00006 MIA0014 FLA0030 BMA0071 FLA0014 FLA0017/ ) {
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
 	my $members = $league->members;
