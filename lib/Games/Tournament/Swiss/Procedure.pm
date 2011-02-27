@@ -1,27 +1,20 @@
 package Games::Tournament::Swiss::Procedure;
 
-# Last Edit: 2007 Nov 28, 07:36:56 AM
+# Last Edit: 2011  2月 27, 21時17分29秒
 # $Id: $
 
 use warnings;
 use strict;
 
 # use Games::Tournament::Swiss::Config;
-use constant ALGORITHM => $Games::Tournament::Swiss::Config::algorithm;
-use base qq/$Games::Tournament::Swiss::Config::algorithm/;
+use base $Games::Tournament::Swiss::Config::algorithm;
 
 
 =head1 NAME
 
 Games::Tournament::Swiss::Procedure - A wrapper around a swiss pairing algorithm
 
-=head1 VERSION
-
-Version 0.04
-
 =cut
-
-our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
