@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss;
 
-# Last Edit: 2010 11月 20, 19時17分44秒
+# Last Edit: 2011  2月 27, 21時32分54秒
 # $Id: $
 
 use warnings;
@@ -21,13 +21,7 @@ use base qw/Games::Tournament::Contestant/;
 
 Games::Tournament::Contestant::Swiss  A competitor in a FIDE-Swiss-Rules event
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -144,7 +138,8 @@ sub roles {
     my $role = shift;
     if ( defined $role and defined $round ) {
 	my $oldrole = $self->{roles}->{$round};
-	warn "$oldrole role replaced by $role" if defined $oldrole;
+	warn "$oldrole role replaced by $role" if defined $oldrole and 
+	    $oldrole ne $role;
 	$self->{roles}->{$round} = $role;
     }
     elsif ( $self->{roles} and $round ) { return $self->{roles}->{$round}; }
