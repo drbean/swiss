@@ -4,13 +4,7 @@
 
 pairingtable - Show player scoregroups for next round of swiss tournament
 
-=head1 VERSION
-
-Version 0.04
-
 =cut
-
-our $VERSION = '0.04';
 
 use strict;
 use warnings;
@@ -18,7 +12,7 @@ use warnings;
 use YAML qw/LoadFile DumpFile/;
 use List::Util qw/reduce first/;
 use Scalar::Util qw/looks_like_number/;
-use List::MoreUtils qw/all/;
+use List::MoreUtils qw/any all/;
 use IO::Handle;
 
 use Games::Tournament::Swiss::Config;
@@ -49,26 +43,32 @@ require Games::Tournament::Card;
 my ($tourney, $lineup, $games, @rounds);
 
 my $nextRound = $ARGV[0];
+my ($previous, $round);
 if ( $nextRound and $nextRound =~ /^\d+$/ ) {
     @rounds = ($Games::Tournament::Swiss::Config::firstround .. $nextRound-1);
+    $previous = $nextRound-1;
+    $round = $previous;
 }
 elsif ( $nextRound ) { die "Round \"$nextRound\" not a round number"; }
 else {
     for my $number ( glob ('./comp/*') ) {
 	push @rounds, $1 if -d $number and $number =~ m/\/(\d+)$/
-		and -e "./scores/$number.yaml";
+		and -e "$number/scores.yaml";
     }
-    $nextRound = $#rounds;
+    @rounds = sort { $a <=> $b } @rounds;
+    $previous = $rounds[-1];
+    $nextRound = $previous + 1;
+    $round = $previous;
 }
 
-my $previous = $nextRound-1;
-my $round = $previous;
 my $n = 0;
 
-my @absentees = @{ $league->{absent} } if $league->{absent};
-for my $member ( @{ $league->{member} } ) {
-    next if grep {$member->{name} eq $_} @absentees;
-    push @$lineup, Games::Tournament::Contestant::Swiss->new( %$member );
+my $members = $league->{member};
+my $absentees = $league->{absent};
+my $out = $league->{out};
+for my $member ( @$members, @$absentees, @$out ) {
+    push @$lineup, Games::Tournament::Contestant::Swiss->new( %$member )
+	unless any { $member eq $_ } @$lineup;
 }
 
 $tourney = Games::Tournament::Swiss->new( entrants => $lineup,
@@ -154,6 +154,8 @@ for my $round ( @rounds )
 	for my $role ( keys %$group ) {
 	    my $id = $group->{$role};
 	    my $player = $tourney->ided( $id );
+die "Player $id, $role at table $n in round $round is not in tournament" unless
+		    $player;
 	    my $name = $player->name;
 	    push @players, $player;
 	    $group{contestants}->{$role} = $player;
@@ -195,11 +197,11 @@ my %brackets = $tourney->formBrackets;
 my $playerN = 0;
 
 print "
-		Round @{[$#rounds+2]} Pairing Groups
+		Round $nextRound Pairing Groups
 -------------------------------------------------------------------------
 Place  No  Opponents     Roles     Float Score
 ";
-for my $index ( reverse sort keys %brackets )
+for my $index ( reverse sort { $a <=> $b } keys %brackets )
 {
 	$playerN++;
 	my $place = $playerN;
@@ -222,8 +224,8 @@ for my $index ( reverse sort keys %brackets )
 
 	# no warnings;
 	format STDOUT =
-@<<<<< @<< @<<<<<<<<<<<<< @<<<<<<<< @<< @<<<
-"\t", $no,  $table->{$id}->{opponents}, $table->{$id}->{roles}, $float, $score
+@<<<< @<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<< @<< @<<<
+" ", $no,  $table->{$id}->{opponents}, $table->{$id}->{roles}, $float, $score
 .
 	write;
 	# use warnings;
