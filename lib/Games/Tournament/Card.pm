@@ -1,6 +1,6 @@
 package Games::Tournament::Card;
 
-# Last Edit: 2010 11月 14, 15時14分27秒
+# Last Edit: 2011  2月 27, 21時34分46秒
 # $Id: $
 
 use warnings;
@@ -19,13 +19,7 @@ use constant ROLES => @Games::Tournament::Swiss::Config::roles?
 
 Games::Tournament::Card - A record of the results of a match
 
-=head1 VERSION
-
-Version 0.03
-
 =cut
-
-our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -223,13 +217,13 @@ sub myRole {
     my $self       = shift;
     my $contestant = shift;
     my $id = $contestant->id;
+    my $round = $self->round;
     my $contestants = $self->contestants;
     my @contestants = $self->myPlayers;
+    my $players;
+    $players .= " $_: " . $contestants->{$_}->id for keys %$contestants;
     unless ( $self->hasPlayer($contestant) ) {
-	my $round = $self->round;
-	my $players;
-	$players .= " $_: " . $contestants->{$_}->id for keys %$contestants;
-	carp "Player $id not in Round $round match. Contestants are $players.";
+	carp "Player $id not in Round $round. Contestants are $players.";
 	return;
     }
     my %dupes;
@@ -240,7 +234,8 @@ sub myRole {
 		$contestant->isa('Games::Tournament::Contestant::Swiss');
     }
     my @dupes = grep { $dupes{$_->id}++ } @contestants;
-    croak "Players @dupes had more than one role" if @dupes;
+    croak "Player $id not in Round $round match. Contestants are $players."
+	    if @dupes;
     my %roleReversal;
     for my $role ( keys %$contestants )
     {
