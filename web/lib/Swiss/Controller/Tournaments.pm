@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2010 12月 28, 22時35分27秒
+# Last Edit: 2011  2月 28, 18時28分23秒
 # $Id$
 
 use Moose;
@@ -279,6 +279,7 @@ sub rounds : Local {
 	for my $can ( sort keys %$beancans ) {
 		my $group = $beancans->{$can};
 		for my $player ( @$group ) {
+			next if not defined $player;
 			my $id = $league->ided( $player );
 			my $member = $members->find({ player => $id });
 			push @players, { id => $id, name => $member->profile->name,
