@@ -55,7 +55,7 @@ my $p = $d->resultset('Players');
 
 my $leagues = $script->league;
 my %players;
-for my $tournament ( qw/GL00013 otherCLA0023 CLA0023 GL00006 MIA0014 FLA0030 BMA0071 FLA0014 FLA0017/ ) {
+for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
 	my $league = League->new( leagues => 
 		$config{leagues}, id => $tournament );
 	my $grades = Grades->new({ league => $league });
