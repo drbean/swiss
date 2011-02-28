@@ -35,6 +35,7 @@ my $io = io '-';
 use Grades;
 
 use Config::General;
+use Try::Tiny;
 
 my $script = Grades::Script->new_with_options;
 
@@ -60,7 +61,7 @@ OFFICIALS
 $d->resultset('Arbiters')->populate( \@officials );
 
 my $roundset = $d->resultset('Round');
-my (@startingrounds, %players, @members);
+my (@startingrounds, %players, @members, @scores);
 for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
 	my $league = League->new( leagues => $config{leagues}, id => $tournament );
 	my $members = $league->members;
@@ -83,6 +84,7 @@ for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 
 		my $id = $member->{id};
 		push @members, { player => $id, tournament => $tournament,
 							absent => 'False', firstround => $round };
+		push @scores, { tournament => $tournament, player => $id };
 		unless ( defined $players{$id} ) { 
 			$players{$id} = {
 				name => $member->{name},
@@ -108,11 +110,15 @@ my @players = values %players;
 find_or_populate( 'Players', \@players );
 find_or_populate( 'Round', \@startingrounds );
 find_or_populate( 'Members', \@members );
+find_or_populate( 'Scores', \@scores );
 
 sub find_or_populate
 {
     my $class = $d->resultset(shift);
     my $entries = shift;
-    foreach my $entry ( @$entries ) {  $class->find_or_create( $entry ); }
+    foreach my $entry ( @$entries ) {
+		try { $class->find_or_create( $entry ); }
+			catch { warn "$_ in " .  $class->result_source->source_name };
+	}
 }
 
