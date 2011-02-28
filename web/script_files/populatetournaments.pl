@@ -49,10 +49,20 @@ my $modelmodule = "${name}::Model::DB";
 
 my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
-my $s = $d->resultset('Tournaments');
 
-my @newtournaments;
-for my $tournament ( qw/GL00013 otherCLA0023 CLA0023 GL00006 MIA0014 FLA0030 BMA0071 FLA0014 FLA0017/ ) {
+my $s = $d->resultset('Arbiters');
+
+my @officials = ( [ qw/id name password/ ] );
+push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
+193001	DrBean	ok
+greg	greg	ok
+OFFICIALS
+$s->populate( \@officials );
+
+$s = $d->resultset('Tournaments');
+
+my (@newtournaments, @firstrounds);
+for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
 	my $league = League->new( leagues =>
 		$config{leagues}, id => $tournament );
 	my $members = $league->members;
@@ -72,19 +82,11 @@ for my $tournament ( qw/GL00013 otherCLA0023 CLA0023 GL00006 MIA0014 FLA0030 BMA
 		description => $description,
 		arbiter => $arbiter,
 		rounds => 6,
-		round => { value => 0, tournament => $tournament },
 		members => \@members,
 		};
+	my $firstround = { value => 0, tournament => $tournament };
 	push @newtournaments, $newtournament;
+	push @firstrounds, $firstround;
 }
 $s->populate( \@newtournaments );
-
-$s = $d->resultset('Arbiters');
-
-my @officials = ( [ qw/id name password/ ] );
-push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
-193001	DrBean	ok
-greg	greg	ok
-OFFICIALS
-$s->populate( \@officials );
-
+$s->populate( \@firstrounds );
