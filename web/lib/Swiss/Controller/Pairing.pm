@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2010  9月 19, 14時59分37秒
+# Last Edit: 2011  2月 28, 17時27分16秒
 # $Id$
 
 use strict;
@@ -103,6 +103,7 @@ sub preppair : Local {
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
+$DB::single=1 unless $member->$field;
 			my $value = $member->$field->value;
 			$fieldhistory->{$member->profile->id}=$value;
 		}
@@ -153,7 +154,7 @@ sub preppair : Local {
 				$player->score( $latestscores->{$id} );
 				$scoreset->update_or_create( {
 					tournament => $tourid, player => $id,
-					score => $latestscores->{$id} } );
+					value => $latestscores->{$id} } );
 			}
 			my $scorestring;
 			$scorestring = join '&', map { $latestscores->{$_} }
@@ -186,7 +187,7 @@ sub preppair : Local {
 			$fieldset->update_or_create( {
 				tournament => $tourid,
 				player => $id, 
-				$field => $fieldhistory
+				value => $fieldhistory
 			} );
 		}
 	}
