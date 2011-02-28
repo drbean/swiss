@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2010 11月 09, 22時28分50秒
+# Last Edit: 2011  2月 28, 16時13分29秒
 # $Id$
 
 use strict;
@@ -539,8 +539,7 @@ sub cardData {
 	else {
 		%card = map { lc( $_ ) => $pair->{$_}->id } keys %$pair;
 		%floats = map { $_ => $game->float($pair->{$_}) } @$roles;
-		$card{float} = all { $floats{$_} eq 'Not' } keys %floats?
-							0 : 1;
+		$card{float} = ( all { $floats{$_} eq 'Not' } keys %floats ) ?  0 : 1;
 		@card{ qw/win forfeit tardy/ } = ('Unknown') x 3;
 	}
 	return \%card;
