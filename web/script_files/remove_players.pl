@@ -60,7 +60,7 @@ my @ids = map { $_->{id} } @$membersonfile;
 while ( my $dbmember = $members->next ) {
 	my $id = $dbmember->player;
 	if ( none { $_ eq $id } @ids ) {
-		print "Deleting $id\t$chinese\n";
+		print "Deleting $id\t$chinese{$id}\n";
 		$dbmember->delete;
 	}
 }
