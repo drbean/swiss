@@ -53,12 +53,9 @@ my $modelmodule = "${name}::Model::DB";
 my $connect_info = $modelmodule->config->{connect_info};
 my $d = $model->connect( @$connect_info );
 
-my @officials = ( [ qw/id name password/ ] );
-push @officials, [split] for <<OFFICIALS =~ m/^.*$/gm;
-193001	DrBean	ok
-greg	greg	ok
-OFFICIALS
-$d->resultset('Arbiters')->populate( \@officials );
+my @officials;
+push @officials, { id => '193001', name => 'DrBean', password => 'ok' };
+find_or_populate( 'Arbiters', \@officials );
 
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @scores);
