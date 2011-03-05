@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  2月 28, 17時27分16秒
+# Last Edit: 2011  3月 05, 21時09分22秒
 # $Id$
 
 use strict;
@@ -259,7 +259,7 @@ sub nextround : Local {
 		$player->{rating} = $rating->value;
 		$player->{score} = $pairingtable->{score}->{ $player->{id} };
 		push @playerlist, $player;
-		push @absentees, $player if $member->absent eq 'True';
+		push @absentees, $player if $member->absent eq 1;
 	}
 	my $tourney = $c->model( 'SetupTournament', {
 			name => $tourid,
