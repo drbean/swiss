@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  1月 15, 17時26分39秒
+# Last Edit: 2011  3月 01, 16時00分48秒
 # $Id$
 
 =head1 NAME
@@ -67,14 +67,16 @@ my %members = map { $_->{id} => $_ } @$leaguemembers;
 my $lastround = $g->all_weeks->[-1];
 my $round = $script->round || $lastround;
 
-my %config = Config::General->new( "web/swiss.conf" )->getall;
-my $name = $config{name};
-require $name . ".pm";
-my $model = "${name}::Schema";
-my $modelfile = "$name/Model/DB.pm";
-my $modelmodule = "${name}::Model::DB";
-my $connect_info = $modelmodule->config->{connect_info};
-my $d = $model->connect( @$connect_info );
+# use lib '../../swiss/web/lib';
+use lib '/var/www/cgi-bin/swiss/lib';
+use Swiss;
+use Swiss::Model::DB;
+use Swiss::Schema;
+
+my $connect_info = Swiss::Model::DB->config->{connect_info};
+my $d = Swiss::Schema->connect( @$connect_info );
+my $foundround = $d->resultset('Round')->find( { tournament => $id } )
+                ->value;
 my $members = $d->resultset('Members')->search({ tournament => $tourid });
 my $cardset = $d->resultset( "Matches" )->search({ tournament => $tourid });
 my $scores = $d->resultset( "Scores" )->search({ tournament => $tourid });
@@ -96,7 +98,7 @@ Finally, the swiss database 'matches' table is updated.
 run() unless caller;
 
 sub run {
-    my $roundfile = $league->inspect( $g->compcompdirs . "/$round/round.yaml" );
+    my $roundfile = $league->yaml;
     die "Round $round or $roundfile->{round}?" unless $round ==
 	$roundfile->{round};
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
