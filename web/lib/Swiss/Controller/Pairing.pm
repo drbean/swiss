@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  3月 05, 21時09分22秒
+# Last Edit: 2011  3月 21, 08時57分08秒
 # $Id$
 
 use strict;
@@ -9,6 +9,7 @@ use parent 'Catalyst::Controller';
 
 use List::MoreUtils qw/none any all notall/;
 use Scalar::Util qw/blessed/;
+use Try::Tiny;
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
 
@@ -256,7 +257,10 @@ sub nextround : Local {
 		$player->{firstround} = $member->firstround;
 		my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round-1 });
-		$player->{rating} = $rating->value;
+		my $value;
+		try { $value = $rating->value; }
+			catch { warn "No rating for $player->{id}: $_"; };
+		$player->{rating} = $value;
 		$player->{score} = $pairingtable->{score}->{ $player->{id} };
 		push @playerlist, $player;
 		push @absentees, $player if $member->absent eq 1;
