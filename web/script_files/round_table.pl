@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  3月 01, 16時00分48秒
+# Last Edit: 2011  4月 06, 20時46分51秒
 # $Id$
 
 =head1 NAME
@@ -74,7 +74,7 @@ use Swiss::Model::DB;
 use Swiss::Schema;
 
 my $connect_info = Swiss::Model::DB->config->{connect_info};
-my $d = Swiss::Schema->connect( @$connect_info );
+my $id = Swiss::Schema->connect( @$connect_info );
 my $foundround = $d->resultset('Round')->find( { tournament => $id } )
                 ->value;
 my $members = $d->resultset('Members')->search({ tournament => $tourid });
