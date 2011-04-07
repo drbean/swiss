@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  4月 06, 20時46分51秒
+# Last Edit: 2011  4月 07, 08時06分43秒
 # $Id$
 
 =head1 NAME
@@ -74,8 +74,8 @@ use Swiss::Model::DB;
 use Swiss::Schema;
 
 my $connect_info = Swiss::Model::DB->config->{connect_info};
-my $id = Swiss::Schema->connect( @$connect_info );
-my $foundround = $d->resultset('Round')->find( { tournament => $id } )
+my $d = Swiss::Schema->connect( @$connect_info );
+my $foundround = $d->resultset('Round')->find( { tournament => $tourid } )
                 ->value;
 my $members = $d->resultset('Members')->search({ tournament => $tourid });
 my $cardset = $d->resultset( "Matches" )->search({ tournament => $tourid });
@@ -98,9 +98,10 @@ Finally, the swiss database 'matches' table is updated.
 run() unless caller;
 
 sub run {
-    my $roundfile = $league->yaml;
+    my $roundfile = $g->config($round);
     die "Round $round or $roundfile->{round}?" unless $round ==
 	$roundfile->{round};
+    die "Round $round? No such round" unless $round <= $roundfile->{round};
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
     my $byetablen = 0;
     my $activities = $roundfile->{activity};
@@ -108,6 +109,7 @@ sub run {
 	my $topic = $activities->{$key};
 	for my $form ( sort keys %$topic ) {
 	    my $pairs = $topic->{$form};
+	    $pairs = $roundfile->{group};
 	    my @white = map { $pairs->{$_}->{White} } keys %$pairs;
 	    my @black = map { $pairs->{$_}->{Black} } keys %$pairs;
 	    $dupe{ $_ }++ for ( @white, @black );
@@ -122,7 +124,7 @@ sub run {
 		my @scores;
 		my @twoplayers = values %$pair;
 		next if all	{ my $player=$_;
-		    any { $player eq $_->{white} or $player eq $_->{black}
+		    any { $player eq $_->[3] or $player eq $_->[4]
 			} @matches
 				} @twoplayers;
 		for my $id ( @twoplayers ) {
@@ -137,17 +139,10 @@ sub run {
 		}
 		my $test = any { $_ != $scores[0] } @scores;
 		my $float = $test? 1: 0;
-		push @matches, {
-		    tournament => $tourid,
-		    round => $round,
-		    pair => $n, 
-		    white => $pair->{White},
-		    black => $pair->{Black},
-		    float => $float,
-		    win => 'Unknown',
-		    forfeit => 'Unknown',
-		    tardy => 'Unknown'
-			    };
+		push @matches, [
+		$tourid, $round, $n, $pair->{White}, $pair->{Black}, $float,
+		    'Unknown', 'Unknown', 'Unknown'
+			    ];
 		$byetablen = max( $byetablen, $n );
 	    }
 	}
@@ -156,17 +151,10 @@ sub run {
 	my $byeplayer = $roundfile->{bye};
 	$opponents{$byeplayer} = 'Bye' if $byeplayer;
 	$roles{$byeplayer} = 'Bye' if $byeplayer;
-	push @matches, {
-		tournament => $tourid,
-		round => $round,
-		pair => ++$byetablen, 
-		white => $byeplayer,
-		black => 'Bye',
-		float => 1,
-		win => 'White',
-		forfeit => 'None',
-		tardy => 'None'
-			};
+	push @matches, [
+		    $tourid, $round, ++$byetablen, $byeplayer, 'Bye', 1,
+				'White', 'None', 'None'
+			];
     }
     $opponents{$_} ||= 'Unpaired' for keys %members;
     $roles{$_} ||= 'Unpaired' for keys %members;
@@ -176,7 +164,31 @@ sub run {
     }
     print Dump \%opponents;
     print Dump \%roles;
-    $cardset->populate( \@matches );
+    uptodatepopulate( 'Matches', [ [ qw/
+		tournament
+		round
+		pair
+		white
+		black
+		float
+		win
+		forfeit
+		tardy/ ],
+                @matches ] );
+
+    sub uptodatepopulate
+    {
+	my $class = $d->resultset(shift);
+	my $entries = shift;
+	my $columns = shift @$entries;
+	foreach my $row ( @$entries )
+	{  
+	    my %hash;
+	    @hash{@$columns} = @$row;
+	    $class->update_or_create(\%hash);
+	}
+    }
+
 }
 
 =head1 AUTHOR
