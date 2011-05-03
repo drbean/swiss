@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2011  2月 28, 16時13分29秒
+# Last Edit: 2011  5月 03, 10時06分09秒
 # $Id$
 
 use strict;
@@ -603,11 +603,12 @@ sub writeCard {
 			$result{ $role } = 'Tardy';
 		}
 	}
+$DB::single=1 if $forfeit eq 'Both';
 	return Games::Tournament::Card->new(
 		round => $round,
 		contestants => \%contestant,
 		floats => \%float,
-		result => \%result ) if $forfeit eq ' Both' or $tardy eq 'Both';
+		result => \%result ) if $forfeit eq 'Both' or $tardy eq 'Both';
 	my $win = $game->win;
 	die "$win winners? Update matches for round $round." if
 					$win eq 'Unknown';
