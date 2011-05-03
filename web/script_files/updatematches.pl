@@ -47,6 +47,7 @@ use Config::General;
 use List::Util qw/first/;
 use List::MoreUtils qw/all/;
 use Scalar::Util qw/looks_like_number/;
+use Try::Tiny;
 
 sub run {
     my $script = Grades::Script->new_with_options;
@@ -76,6 +77,7 @@ sub run {
     my $tardies = $config->{late};
     my %dupes;
     for my $id ( @$forfeiters, @$tardies ) {
+	next unless $id;
 	die "Is $id forfeiter or tardy?" if $dupes{$id}++;
     }
     my $pairs = $comp->tables( $round );
@@ -88,6 +90,7 @@ sub run {
 	my $table = $match->pair;
 	my $result = $results->{$table};
 	my %id = map { $_ => $match->$_ } @roles;
+	warn "All table $table players?" unless all { defined } values %id;
 	my %ID = map { ucfirst( $_ ) => $id{$_} } keys %id;
 	my %opponent; @opponent{ 'White', 'Black' } = ( 'Black', 'White' );
 	my %roleplayer = reverse %ID;
@@ -108,8 +111,9 @@ sub run {
 	    $values{win} = $opponent{ $roleplayer{ $forfeit[0] } };
 	}
 	else { $values{forfeit} = 'Both'; $values{win} = 'None' }
-	my @tardy = grep( ( $_ eq $id{$roles[0]} or $_ eq $id{$roles[1]} ),
-		    @$tardies);
+	my @tardy = try {
+	    grep( ( $_ eq $id{$roles[0]} or $_ eq $id{$roles[1]} ),
+		    @$tardies); };
 	if ( @tardy == 0 ) { $values{tardy} = 'None' }
 	elsif ( @tardy == 1 ) { $values{tardy} = $roleplayer{ $tardy[0] } }
 	else { $values{tardy} = 'Both' }
