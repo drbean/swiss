@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  4月 07, 08時06分43秒
+# Last Edit: 2011  5月 03, 11時47分53秒
 # $Id$
 
 =head1 NAME
@@ -98,18 +98,20 @@ Finally, the swiss database 'matches' table is updated.
 run() unless caller;
 
 sub run {
-    my $roundfile = $g->config($round);
-    die "Round $round or $roundfile->{round}?" unless $round ==
-	$roundfile->{round};
-    die "Round $round? No such round" unless $round <= $roundfile->{round};
+    my $config = $g->config($round);
+    die "Round $round or $config->{round}?" unless $round ==
+	$config->{round};
+    die "Round $round? No such round" unless $round <= $config->{round};
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
     my $byetablen = 0;
-    my $activities = $roundfile->{activity};
+    my $lates; $lates = $config->{late} if defined $config->{late};
+    my $forfeits; $forfeits = $config->{forfeit} if defined $config->{forfeit};
+    my $activities = $config->{activity};
     for my $key ( sort keys %$activities ) {
 	my $topic = $activities->{$key};
 	for my $form ( sort keys %$topic ) {
 	    my $pairs = $topic->{$form};
-	    $pairs = $roundfile->{group};
+	    $pairs = $config->{group};
 	    my @white = map { $pairs->{$_}->{White} } keys %$pairs;
 	    my @black = map { $pairs->{$_}->{Black} } keys %$pairs;
 	    $dupe{ $_ }++ for ( @white, @black );
@@ -119,6 +121,7 @@ sub run {
 	    @opponents{ @black } = @white;
 	    @roles{ @white } = ('White') x @white;
 	    @roles{ @black } = ('Black') x @black;
+
 	    for my $n ( keys %$pairs ) {
 		my $pair = $pairs->{$n};
 		my @scores;
@@ -128,7 +131,7 @@ sub run {
 			} @matches
 				} @twoplayers;
 		for my $id ( @twoplayers ) {
-		    die "Fix $roles{$id}, $id at table $n, doing $key$form,"
+		    die "$roles{$id}, $id at table $n, doing $key$form, member?"
 			unless $league->is_member($id);
 		    die "$id not member in db," unless
 			$members->find({ player => $id });
@@ -137,8 +140,7 @@ sub run {
 			push @scores, $score->value || 0;
 		    }
 		}
-		my $test = any { $_ != $scores[0] } @scores;
-		my $float = $test? 1: 0;
+		my $float = ( any { $_ != $scores[0] } @scores ) ? 1: 0;
 		push @matches, [
 		$tourid, $round, $n, $pair->{White}, $pair->{Black}, $float,
 		    'Unknown', 'Unknown', 'Unknown'
@@ -147,13 +149,16 @@ sub run {
 	    }
 	}
     }
-    if ( exists $roundfile->{bye} ) {
-	my $byeplayer = $roundfile->{bye};
+    if ( exists $config->{bye} ) {
+	my $byeplayer = $config->{bye};
 	$opponents{$byeplayer} = 'Bye' if $byeplayer;
 	$roles{$byeplayer} = 'Bye' if $byeplayer;
+	my $late = 'None';
+	$late = 'White' if ( ( defined $lates ) and ( ref($lates) eq 'ARRAY' ) and
+	    ( any { $_ eq $byeplayer } @$lates ) );
 	push @matches, [
 		    $tourid, $round, ++$byetablen, $byeplayer, 'Bye', 1,
-				'White', 'None', 'None'
+				'White', 'None', $late
 			];
     }
     $opponents{$_} ||= 'Unpaired' for keys %members;
