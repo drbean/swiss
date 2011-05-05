@@ -63,8 +63,9 @@ $s = $d->resultset('Tournaments');
 
 my (@newtournaments, @firstrounds);
 for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
+	( my $id = $tournament ) = s/^(\w*).*$/$1/;
 	my $league = League->new( leagues =>
-		$config{leagues}, id => $tournament );
+		$config{leagues}, id => $id );
 	my $members = $league->members;
 	# @$members = grep { $_->{name} =~ m/^[0-9a-zA-Z'-]*$/ } @$members;
 	my @members = map { {
@@ -90,3 +91,16 @@ for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 
 }
 $s->populate( \@newtournaments );
 $s->populate( \@firstrounds );
+
+sub uptodatepopulate {
+	my $class = $d->resultset(shift);
+	my $entries = shift;
+	my $columns = shift @$entries;
+	foreach my $row ( @$entries )
+	{  
+	    my %hash;
+	    @hash{@$columns} = @$row;
+	    $class->update_or_create(\%hash);
+	}
+}
+
