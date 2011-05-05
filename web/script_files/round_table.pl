@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  5月 03, 11時47分53秒
+# Last Edit: 2011  5月 03, 13時10分49秒
 # $Id$
 
 =head1 NAME
@@ -121,7 +121,6 @@ sub run {
 	    @opponents{ @black } = @white;
 	    @roles{ @white } = ('White') x @white;
 	    @roles{ @black } = ('Black') x @black;
-
 	    for my $n ( keys %$pairs ) {
 		my $pair = $pairs->{$n};
 		my @scores;
