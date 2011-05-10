@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use YAML qw/LoadFile DumpFile/;
-use List::Util qw/reduce first/;
+use List::Util qw/reduce first max/;
 use Scalar::Util qw/looks_like_number/;
 use List::MoreUtils qw/any all/;
 use IO::Handle;
@@ -60,8 +60,6 @@ else {
     $nextRound = $previous + 1;
     $round = $previous;
 }
-
-my $n = 0;
 
 my $members = $league->{member};
 my $absentees = $league->{absent};
@@ -136,18 +134,9 @@ for my $round ( @rounds )
     else { die "Unknown format or invalid/incomplete results in round $round" }
     my @games;
 
-    my $activities = $schedule->{activity};
-
-    my $n=0;
-    my $groups;
-    for my $key ( sort keys %$activities ) {
-	    my $topic = $activities->{$key};
-	    for my $form ( sort keys %$topic ) {
-		my $pairs = $topic->{$form};
-		$groups->{$n++} = $_ for @$pairs;
-	    }
-    }
-    $groups->{$n} = { Bye => $schedule->{bye} } if $schedule->{bye};
+    my $groups = $schedule->{group};
+    my $maxn = max keys %$groups;
+    $groups->{++$maxn} = { Bye => $schedule->{bye} } if $schedule->{bye};
     for my $n ( keys %$groups ) {
 	my $group = $groups->{$n};
 	my (%group, @players);
