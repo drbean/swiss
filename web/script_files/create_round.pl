@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2011  3月 13, 21時32分31秒
+# Last Edit: 2011  5月 10, 16時54分48秒
 # $Id$
 
 =head1 NAME
@@ -88,6 +88,7 @@ $round{group} = $players;
 $round{round} = $round;
 $round{late} = [undef];
 $round{week} = undef;
+$round{pairing} = "swiss";
 $round{text} = undef;
 $round{activity}->{$topic}->{$form} = \@tables;
 
