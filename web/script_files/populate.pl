@@ -59,8 +59,9 @@ find_or_populate( 'Arbiters', \@officials );
 
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @scores);
-for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
-	my $league = League->new( leagues => $config{leagues}, id => $tournament );
+for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0016-1 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
+( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+	my $league = League->new( leagues => $config{leagues}, id => $id );
 	my $members = $league->members;
 	my $name = $league->name;
 	my $description = $league->field;
