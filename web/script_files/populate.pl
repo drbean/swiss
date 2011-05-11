@@ -63,6 +63,7 @@ for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0016-1 FLA0030 MIA0012 FLA002
 ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $league = League->new( leagues => $config{leagues}, id => $id );
 	my $members = $league->members;
+	my $grade = Grades->new({ league => $league })->grades;
 	my $name = $league->name;
 	my $description = $league->field;
 	my $arbiter = '193001';
@@ -91,7 +92,7 @@ for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0016-1 FLA0030 MIA0012 FLA002
 					player => $member->{id},
 					tournament => $tournament,
 					round => 0,
-					value => $member->{rating} || 0 } ]
+					value => $grade->{$id} || $member->{rating} || 0 } ]
 			};
 		}
 		else {
@@ -100,7 +101,7 @@ for my $tournament ( qw/FIA0038 BMA0033 FLA0016 FLA0016-1 FLA0030 MIA0012 FLA002
 					player => $member->{id},
 					tournament => $tournament,
 					round => 0,
-					value => $member->{rating} || 0 };
+					value => $grade->{$id} || $member->{rating} || 0 };
 		}
 	}
 }
