@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2011  2月 28, 18時28分23秒
+# Last Edit: 2011  5月 11, 12時14分32秒
 # $Id$
 
 use Moose;
@@ -265,10 +265,11 @@ Number of rounds
 sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
+	( my $leagueid = $tourid ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->value;
 	my $league = League->new( leagues => $c->config->{leagues},
-					id => $tourid );
+					id => $leagueid );
 	my $grades = Groupwork->new( league => $league );
 	my $series = $grades->beancanseries;
 	my $session = ( sort {$a <=> $b} keys %$series )[-1];
