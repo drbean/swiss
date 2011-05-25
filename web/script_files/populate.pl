@@ -58,8 +58,8 @@ push @officials, { id => '193001', name => 'DrBean', password => 'ok' };
 find_or_populate( 'Arbiters', \@officials );
 
 my $roundset = $d->resultset('Round');
-my (@startingrounds, %players, @members, @scores);
-for my $tournament ( qw/FIA0038 BMA0033 BMA0033-1 FLA0016 FLA0016-1 FLA0030 MIA0012 FLA0021 GL00022 GL00005/ ) {
+my (@startingrounds, %players, @members, @ratings, @scores);
+for my $tournament ( qw/FIA0038 FIA0038-1 BMA0033 BMA0033-1 FLA0016 FLA0016-1 FLA0030 MIA0012 MIA0012-1 FLA0021 FLA0021-1 GL00022 GL00005 GL00005-1/ ) {
 ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $league = League->new( leagues => $config{leagues}, id => $id );
 	my $members = $league->members;
@@ -96,7 +96,7 @@ for my $tournament ( qw/FIA0038 BMA0033 BMA0033-1 FLA0016 FLA0016-1 FLA0030 MIA0
 			};
 		}
 		else {
-			push @{ $players{$id}->{rating} }, 
+			push @ratings, 
 				{ 
 					player => $member->{id},
 					tournament => $tournament,
@@ -109,6 +109,7 @@ my @players = values %players;
 find_or_populate( 'Players', \@players );
 find_or_populate( 'Round', \@startingrounds );
 find_or_populate( 'Members', \@members );
+find_or_populate( 'Ratings', \@ratings );
 find_or_populate( 'Scores', \@scores );
 
 sub find_or_populate
