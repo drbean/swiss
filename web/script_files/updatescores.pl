@@ -56,7 +56,8 @@ my $script = Grades::Script->new_with_options;
 my $league = $script->league;
 my $round = $script->round;
 
-my $leagueobject = League->new( leagues => $config{leagues}, id => $league );
+( my $leagueid = $league ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+my $leagueobject = League->new( leagues => $config{leagues}, id => $leagueid );
 my $tournament = Compcomp->new( league => $leagueobject );
 my $members = $leagueobject->members;
 my $matches = $d->resultset('Matches')->search({ tournament => $league });
