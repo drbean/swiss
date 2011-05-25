@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2011  5月 10, 16時54分48秒
+# Last Edit: 2011  5月 22, 16時31分24秒
 # $Id$
 
 =head1 NAME
@@ -52,8 +52,9 @@ my $topic = $script->exercise;
 my $form = 0;
 
 my $leagues = '/home/drbean/992';
+( my $leagueid = $id ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 
-my $league = League->new( leagues => $leagues, id => $id );
+my $league = League->new( leagues => $leagues, id => $leagueid );
 my $g = Compcomp->new( league => $league );
 my $members = $league->members;
 my %members = map { $_->{id} => $_ } @$members;
