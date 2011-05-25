@@ -53,8 +53,9 @@ sub run {
     my $connect_info = $modelmodule->config->{connect_info};
     my $d = $model->connect( @$connect_info );
 
+    ( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
     my $league = League->new( leagues =>
-	$config{leagues}, id => $tournament );
+	$config{leagues}, id => $leagueid );
     my $comp = Compcomp->new( league => $league );
     my $thisweek = $league->approach eq 'Compcomp'?
 	$comp->all_weeks->[-1]: 0;
