@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  5月 03, 13時10分49秒
+# Last Edit: 2011  5月 25, 14時11分50秒
 # $Id$
 
 =head1 NAME
@@ -31,7 +31,10 @@ use List::MoreUtils qw/any all/;
 
 In comp directory:
 
-perl round_table.pl -l GL00027 -r 6
+perl round_table.pl -l GL00027 -r 6 -o 14
+
+  Options:
+   -o --one	      the old round (overall round) in the whole league season
 
 In round.yaml
 
@@ -60,12 +63,14 @@ use Config::General;
 
 my $script = Grades::Script->new_with_options;
 my $tourid = $script->league || basename( getcwd );
-my $league = League->new( id => $tourid );
+( my $leagueid = $tourid ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+my $league = League->new( id => $leagueid );
 my $g = Compcomp->new( league => $league );
 my $leaguemembers = $league->members;
 my %members = map { $_->{id} => $_ } @$leaguemembers;
 my $lastround = $g->all_weeks->[-1];
 my $round = $script->round || $lastround;
+my $overallround = $script->one || $round;
 
 # use lib '../../swiss/web/lib';
 use lib '/var/www/cgi-bin/swiss/lib';
@@ -98,10 +103,10 @@ Finally, the swiss database 'matches' table is updated.
 run() unless caller;
 
 sub run {
-    my $config = $g->config($round);
+    my $config = $g->config($overallround);
     die "Round $round or $config->{round}?" unless $round ==
 	$config->{round};
-    die "Round $round? No such round" unless $round <= $config->{round};
+    # die "Round $round? No such round" unless $round <= $config->{round};
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
     my $byetablen = 0;
     my $lates; $lates = $config->{late} if defined $config->{late};
