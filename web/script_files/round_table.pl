@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  5月 25, 14時11分50秒
+# Last Edit: 2011  5月 28, 21時30分12秒
 # $Id$
 
 =head1 NAME
@@ -111,17 +111,17 @@ sub run {
     my $byetablen = 0;
     my $lates; $lates = $config->{late} if defined $config->{late};
     my $forfeits; $forfeits = $config->{forfeit} if defined $config->{forfeit};
+    my $pairs = $config->{group};
     my $activities = $config->{activity};
     for my $key ( sort keys %$activities ) {
 	my $topic = $activities->{$key};
 	for my $form ( sort keys %$topic ) {
-	    my $pairs = $topic->{$form};
-	    $pairs = $config->{group};
-	    my @white = map { $pairs->{$_}->{White} } keys %$pairs;
-	    my @black = map { $pairs->{$_}->{Black} } keys %$pairs;
+	    my $actives = $topic->{$form};
+	    my @white = map { $pairs->{$_}->{White} } @$actives;
+	    my @black = map { $pairs->{$_}->{Black} } @$actives;
 	    $dupe{ $_ }++ for ( @white, @black );
 	    my @dupe = grep { $dupe{$_} != 1 } keys %dupe;
-	    warn "$_ is dupe in $key topic, $form form" for @dupe;
+	    warn "$_ is dupe in other than $key topic, $form form" for @dupe;
 	    @opponents{ @white } = @black;
 	    @opponents{ @black } = @white;
 	    @roles{ @white } = ('White') x @white;
