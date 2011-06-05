@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  3月 21, 08時57分08秒
+# Last Edit: 2011  6月 05, 13時26分49秒
 # $Id$
 
 use strict;
@@ -12,7 +12,6 @@ use Scalar::Util qw/blessed/;
 use Try::Tiny;
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
-
 
 =head1 NAME
 
@@ -104,7 +103,6 @@ sub preppair : Local {
 		my $fieldhistory;
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
-$DB::single=1 unless $member->$field;
 			my $value = $member->$field->value;
 			$fieldhistory->{$member->profile->id}=$value;
 		}
@@ -326,6 +324,17 @@ sub nextround : Local {
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
+	my $ftp = Net::FTP->new('web.nuu.edu.tw') or return;
+	$ftp->login('greg', '1514') or return;
+	$ftp->binary;
+	my %genres;
+	my @genres = qw/intermediate business friends/;
+	my $genres{$_} = __PACKAGE__->config( $_ ) for @genres;
+	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
+						map { $_ => $genre } @$genres } @genres;
+	$ftp->cwd("/public_html/draw/$leaguegenre{$tourid}");
+	$ftp->put($view) or return;
+	$c->response->redirect( $c->uri_for("/exercises/list") );
 }
 
 
