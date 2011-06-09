@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 06, 12時41分03秒
+# Last Edit: 2011  6月 09, 10時50分45秒
 # $Id$
 
 use strict;
@@ -325,8 +325,8 @@ sub nextround : Local {
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
-	my $ftp = Net::FTP->new('web.nuu.edu.tw') or return;
-	$ftp->login('greg', '1949') or return;
+	my $ftp = Net::FTP->new('web.nuu.edu.tw');
+	$ftp->login('greg', '1949');
 	$ftp->binary;
 	my %genres;
 	my @genres = qw/intermediate business friends/;
@@ -337,7 +337,7 @@ sub nextround : Local {
 	$ftp->cwd("/public_html/$genre/draw");
 	io("/tmp/$genre/draw/$tourid")->print
 		( $c->view('TT')->render($c, 'draw.tt2') );
-	$ftp->put("/tmp/$genre/draw/$tourid") or return;
+	$ftp->put("/tmp/$genre/draw/$tourid");
 	$c->response->redirect
 		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
