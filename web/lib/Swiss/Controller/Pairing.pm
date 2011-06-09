@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 09, 10時50分45秒
+# Last Edit: 2011  6月 09, 20時50分24秒
 # $Id$
 
 use strict;
@@ -13,6 +13,7 @@ use Try::Tiny;
 use IO::All;
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
+use Net::FTP;
 
 =head1 NAME
 
