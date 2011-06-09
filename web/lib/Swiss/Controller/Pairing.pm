@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 05, 13時26分49秒
+# Last Edit: 2011  6月 06, 12時41分03秒
 # $Id$
 
 use strict;
@@ -10,6 +10,7 @@ use parent 'Catalyst::Controller';
 use List::MoreUtils qw/none any all notall/;
 use Scalar::Util qw/blessed/;
 use Try::Tiny;
+use IO::All;
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
 
@@ -325,16 +326,20 @@ sub nextround : Local {
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
 	my $ftp = Net::FTP->new('web.nuu.edu.tw') or return;
-	$ftp->login('greg', '1514') or return;
+	$ftp->login('greg', '1949') or return;
 	$ftp->binary;
 	my %genres;
 	my @genres = qw/intermediate business friends/;
-	my $genres{$_} = __PACKAGE__->config( $_ ) for @genres;
+	$genres{$_} = __PACKAGE__->config( $_ ) for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
 						map { $_ => $genre } @$genres } @genres;
-	$ftp->cwd("/public_html/draw/$leaguegenre{$tourid}");
-	$ftp->put($view) or return;
-	$c->response->redirect( $c->uri_for("/exercises/list") );
+	my $genre = $leaguegenre{$tourid};
+	$ftp->cwd("/public_html/$genre/draw");
+	io("/tmp/$genre/draw/$tourid")->print
+		( $c->view('TT')->render($c, 'draw.tt2') );
+	$ftp->put("/tmp/$genre/draw/$tourid") or return;
+	$c->response->redirect
+		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
 
 
