@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 13, 09時07分11秒
+# Last Edit: 2011  6月 13, 09時15分11秒
 # $Id$
 
 use strict;
@@ -337,9 +337,9 @@ $DB::single=1;
 						map { $_ => $genre } @$genres } @genres;
 	my $genre = $leaguegenre{$tourid};
 	$ftp->cwd("/public_html/$genre/draw");
-	io("/tmp/$genre/draw/$tourid")->print
+	io("/tmp/$genre/draw/$tourid.html")->print
 		( $c->view('TT')->render($c, 'draw.tt2') );
-	$ftp->put("/tmp/$genre/draw/$tourid");
+	$ftp->put("/tmp/$genre/draw/$tourid.html");
 	$c->response->redirect
 		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
