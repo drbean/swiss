@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 13, 09時01分28秒
+# Last Edit: 2011  6月 13, 09時07分11秒
 # $Id$
 
 use strict;
@@ -332,7 +332,7 @@ sub nextround : Local {
 	my %genres;
 	my @genres = qw/intermediate business friends/;
 $DB::single=1;
-	$genres{$_} = $c->config( $_ ) for @genres;
+	$genres{$_} = $c->config->{ $_ } for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
 						map { $_ => $genre } @$genres } @genres;
 	my $genre = $leaguegenre{$tourid};
