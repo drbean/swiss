@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2011  5月 03, 10時06分09秒
+# Last Edit: 2011  6月 15, 20時34分10秒
 # $Id$
 
 use strict;
@@ -390,7 +390,7 @@ sub assignScores {
 	PARAM: for my $param ( keys %$params ) {
 		my ( $firstroleplayer, $secondroleplayer);
 		{
-			next PARAM unless $param =~ m/^(.*)_:_(.*)$/;
+			next PARAM unless $param =~ m/^\d+:(.*):(.*)$/;
 			$firstroleplayer = $1;
 			$secondroleplayer = $2;
 		}
@@ -594,7 +594,7 @@ sub writeCard {
 		}
 	}
 	my $tardy = $game->tardy;
-	die "$tardy tardies? Update matches for round $round." if
+	warn "$tardy tardies? Update matches for round $round." if
 					$tardy eq 'Unknown';
 	unless ( $tardy eq 'None' ) {
 		my @tardies = $tardy eq 'Both'? @$roles:
