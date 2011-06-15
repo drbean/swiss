@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 13, 09時15分11秒
+# Last Edit: 2011  6月 15, 10時50分58秒
 # $Id$
 
 use strict;
@@ -80,12 +80,12 @@ sub preppair : Local {
         my ($self, $c) = @_;
 	my $requestargs = $c->request->args;
 	my $tourid = $c->session->{tournament};
-	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-			->value;
-	my $members = $c->model('DB::Members')->search(
-		{ tournament => $tourid });
+	my $tournament = $c->model('DB::Tournaments')->find(
+		{ id => $tourid });
+	my $rounds = $tournament->rounds;
+	my $round = $tournament->round->value;
+	my $members = $tournament->members;
 	my @columns = Swiss::Schema::Result::Players->columns;
-	my $rounds = $c->stash->{rounds};
 	my (@playerlist, @absentees);
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
@@ -106,7 +106,7 @@ sub preppair : Local {
 		while ( my $member = $members->next ) {
 			my $player = $member->profile;
 			my $value = $member->$field->value;
-			$fieldhistory->{$member->profile->id}=$value;
+			$fieldhistory->{$player->id} = $value;
 		}
 		$pairingtable->{$field} = $fieldhistory;
 	}
@@ -331,7 +331,6 @@ sub nextround : Local {
 	$ftp->binary;
 	my %genres;
 	my @genres = qw/intermediate business friends/;
-$DB::single=1;
 	$genres{$_} = $c->config->{ $_ } for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
 						map { $_ => $genre } @$genres } @genres;
