@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 15, 10時50分58秒
+# Last Edit: 2011  6月 17, 12時05分01秒
 # $Id$
 
 use strict;
@@ -145,8 +145,31 @@ sub preppair : Local {
 			$c->request->params->{Submit} eq
 				"Record Round $round results" ) {
 			my $params = $c->request->params;
-			$latestscores = $c->model('GTS')->assignScores(
-				$tourney, $pairingtable, $params);
+			for my $select ( keys %$params ) {
+				next if $select eq 'Submit';
+				my ( $table, $white, $black ) = split ':', $select;
+				my ( $whiteplay, $blackplay ) = split ':', $params->{$select};
+				my ( $game, $float, $win, $forfeit, $late );
+				$game->{tournament} = $tourid;
+				$game->{round} = $round;
+				$game->{pair} = $table;
+				$game->{white} = $white;
+				$game->{black} = $black;
+				if ( $whiteplay eq 'draw' and $blackplay eq 'draw' ) {
+					$game->{win} = 'Both';
+				}
+				elsif ( $whiteplay eq 'win' ) { $game->{win} = 'White' }
+				elsif ( $blackplay eq 'win' ) { $game->{win} = 'Black' }
+				else { $game->{win} = 'None' }
+				if ( $whiteplay eq 'forfeit' and $blackplay eq 'forfeit') {
+					$game->{forfeit} = 'Both';
+				}
+				elsif ($whiteplay eq 'forfeit') { $game->{forfeit} = 'White' }
+				elsif ($blackplay eq 'forfeit') { $game->{forfeit} = 'Black' }
+				else { $game->{forfeit} = 'None' }
+				push @$games, $game;
+			}
+			$latestscores = $c->model('GTS')->assignScores( $tourney, $pairingtable, $params);
 			$pairingtable->{score} = $latestscores;
 			my $scoreset = $c->model('DB::Scores');
 			for my $player ( @{ $tourney->entrants } ) {
@@ -163,57 +186,59 @@ sub preppair : Local {
 				all { defined } values %$latestscores;
 		}
 	}
-	if ( ( not defined $latestscores or not all { defined }
-				values %$latestscores ) and $round >= 2 ) {
-		$games = $c->model('GTS')->postPlayPaperwork(
-			$tourney, $pairingtable, $round );
-		$c->stash->{round} = $round;
-		$c->stash->{roles} = $c->model('GTS')->roles;
-		$c->stash->{games} = $games;
+	$c->stash->{round} = $round;
+	$c->stash->{roles} = $c->model('GTS')->roles;
+	$c->stash->{games} = $games;
+	unless ( defined $latestscores and all { defined } values %$latestscores) {
 		$c->stash->{error_msg} = "Can't pair Round " . ($round+1) .
 			" with unfinished games in Round $round.";
 		$c->stash->{template} = "cards.tt2";
 		return;
 	}
-	my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
-		$c->model('GTS')->changeHistory($tourney, $pairingtable,
-				$games) : $pairingtable;
-	for my $field ( qw/pairingnumber / ) {
-		my $Fields = ucfirst $field . 's';
-		my $fieldset = $c->model( "DB::$Fields" );
-		$members->reset;
-		while ( my $member = $members->next ) {
-			my $id = $member->profile->id;
-			my $fieldhistory = $newhistory->{$field}->{$id};
-			$fieldset->update_or_create( {
-				tournament => $tourid,
-				player => $id, 
-				value => $fieldhistory
-			} );
-		}
+	my $cardset = $c->model( "DB::Matches" );
+	my $n = 0;
+	for my $game ( @$games ) {
+		$cardset->update_or_create( $game );
 	}
-	for my $field ( qw/opponent role float/ ) {
-		my $Fields = ucfirst $field . 's';
-		my $fieldset = $c->model( "DB::$Fields" );
-		$members->reset;
-		while ( my $member = $members->next ) {
-			my $id = $member->profile->id;
-			my $fieldhistory = $newhistory->{$field}->{$id};
-			my %series = map { ($_+1) => $fieldhistory->[$_] }
-					0 .. $#$fieldhistory;
-			for my $round ( keys %series ) {
-				$fieldset->update_or_create( {
-					tournament => $tourid,
-					player => $id, 
-					round => $round,
-					$field => $series{$round}
-				} );
-			}
-		}
-	}
-	@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
-		$newhistory );
-	$c->stash->{pairtable} = \@playerlist;
+	#my $newhistory = ( $games and ref $games eq 'ARRAY' ) ?
+	#	$c->model('GTS')->changeHistory($tourney, $pairingtable,
+	#			$games) : $pairingtable;
+	#for my $field ( qw/pairingnumber / ) {
+	#	my $Fields = ucfirst $field . 's';
+	#	my $fieldset = $c->model( "DB::$Fields" );
+	#	$members->reset;
+	#	while ( my $member = $members->next ) {
+	#		my $id = $member->profile->id;
+	#		my $fieldhistory = $newhistory->{$field}->{$id};
+	#		$fieldset->update_or_create( {
+	#			tournament => $tourid,
+	#			player => $id, 
+	#			value => $fieldhistory
+	#		} );
+	#	}
+	#}
+	#for my $field ( qw/opponent role float/ ) {
+	#	my $Fields = ucfirst $field . 's';
+	#	my $fieldset = $c->model( "DB::$Fields" );
+	#	$members->reset;
+	#	while ( my $member = $members->next ) {
+	#		my $id = $member->profile->id;
+	#		my $fieldhistory = $newhistory->{$field}->{$id};
+	#		my %series = map { ($_+1) => $fieldhistory->[$_] }
+	#				0 .. $#$fieldhistory;
+	#		for my $round ( keys %series ) {
+	#			$fieldset->update_or_create( {
+	#				tournament => $tourid,
+	#				player => $id, 
+	#				round => $round,
+	#				$field => $series{$round}
+	#			} );
+	#		}
+	#	}
+	#}
+	#@playerlist = buildPairingtable( $c, $tourid, \@playerlist,
+	#	$newhistory );
+	#$c->stash->{pairtable} = \@playerlist;
 	$c->stash->{tournament} = $tourid;
 	$c->stash->{round} = ++$round;
 	$c->stash->{roles} = $c->model('GTS')->roles;
