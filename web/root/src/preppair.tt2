@@ -1,9 +1,8 @@
 [% META title = 'Pair Next Round' -%]
 
-[% INCLUDE pairtable.tt2 %]
-
 <form method="post" action="[% c.uri_for('/pairing/nextround') %]">
 <fieldset>
+<input type="submit" name="add" value="Pair Round [% round %]">
 <legend>Output options</legend>
 <ul>
   <li><input type="checkbox" name="cards" value="Yes" checked> Score cards
@@ -11,7 +10,8 @@
   <li><input type="checkbox" name="pairtable" value="Yes"> Pairing table for Round [% round + 1 %]
 </ul>
 </fieldset>
-<input type="submit" name="add" value="Pair Round [% round %]">
 </form>
+
+[% INCLUDE pairtable.tt2 %]
 
 <H3><a href="[% c.uri_for('/login') %]"> Return to top level </a></H3>
