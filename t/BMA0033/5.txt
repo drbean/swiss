@@ -1,4 +1,4 @@
-
+After Round 7 failed to be paired, a new tournament that failed again pairing Round 5. Actually it was round 6 (not 5), but greg lost count and the first round of the new tournament was lost from the database.
 		Round 5 Pairing Groups
 -------------------------------------------------------------------------
 Place  No  Opponents     Roles     Float Score
