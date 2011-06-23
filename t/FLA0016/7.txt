@@ -1,3 +1,4 @@
+50, Michelle (N9661752) was late and given Bye in Round 4, and got 1 or 5. In Round 6, got Bye again (in handpairing.)
 
 		Round 7 Pairing Groups
 -------------------------------------------------------------------------
@@ -5,7 +6,6 @@ Place  No  Opponents     Roles     Float Score
 1-2
        7   32,28,18,17,10,3  BWBWBB        26
        50  25,13,1,-,48,-    WBW-B-    D   26
-Michelle (N9661752) was late and given Bye in Round 4, and got 1 or 5. In Round 6, got Bye again (in handpairing.)
 3-5
        2   27,8,24,47,3,33   WBWBWB        25
        10  34,23,8,18,7,41   WBWBWB        25

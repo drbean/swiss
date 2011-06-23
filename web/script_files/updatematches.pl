@@ -6,7 +6,10 @@ updatematches.pl - Enter results of matches in database via script
 
 =head1 SYNOPSIS
 
-updatematches.pl -l FLA0018 -r n
+updatematches.pl -l FLA0018 -r 1 -o 9
+
+  Options:
+   -o --one	      the old round (overall round) in the whole league season
 
 =head1 DESCRIPTION
 
@@ -69,11 +72,12 @@ sub run {
     my $thisweek = $league->approach eq 'Compcomp'?
 	$comp->all_weeks->[-1]: 0;
     my $round = $script->round || $thisweek || 1;
+    my $overallround = $script->one || $round;
     my $matches = $d->resultset('Matches')->search({
 	tournament => $tournament,
 	round => $round });
 
-    my $config = $comp->config( $round );
+    my $config = $comp->config( $overallround );
     my $forfeiters = $config->{forfeit};
     my $tardies = $config->{late};
     my %dupes;
@@ -81,11 +85,11 @@ sub run {
 	next unless $id;
 	die "Is $id forfeiter or tardy?" if $dupes{$id}++;
     }
-    my $pairs = $comp->tables( $round );
-    $io->print( $league->id . " Tournament Results, Round $round\n" .
+    my $pairs = $comp->tables( $overallround );
+    $io->print( $league->id . " Tournament Results, Round $overallround\n" .
 	"Table\tWhite\tBlack\tWin\tForfeit\tTardy\n" );
     my @roles = qw/white black/;
-    my $results = $comp->scores( $round );
+    my $results = $comp->scores( $overallround );
     while ( my $match = $matches->next ) {
 	next if $match->black eq 'Bye';
 	my $table = $match->pair;

@@ -18,7 +18,7 @@
     <td>[% white.rating %]
     <td>[[% white.score.defined ? white.score : '-' %]]
     <td> 
-<select name="[% games.$n.contestants.$roles.0.id %]_:_[% games.$n.contestants.$roles.1.id %]" size="1">
+<select name="[% n %]:[% games.$n.contestants.$roles.0.id %]:[% games.$n.contestants.$roles.1.id %]" size="1">
 
 [% win = games.$n.win %]
 [% forfeit = games.$n.forfeit %]

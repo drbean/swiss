@@ -64,7 +64,7 @@ else {
 my $members = $league->{member};
 my $absentees = $league->{absent};
 my $out = $league->{out};
-for my $member ( @$members, @$absentees, @$out ) {
+for my $member ( @$members, @$absentees ) {
     push @$lineup, Games::Tournament::Contestant::Swiss->new( %$member )
 	unless any { $member eq $_ } @$lineup;
 }

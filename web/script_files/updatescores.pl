@@ -55,13 +55,14 @@ use Grades;
 my $script = Grades::Script->new_with_options;
 my $league = $script->league;
 my $round = $script->round;
+my $oldround = $script->one || $round;
 
 ( my $leagueid = $league ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 my $leagueobject = League->new( leagues => $config{leagues}, id => $leagueid );
 my $tournament = Compcomp->new( league => $leagueobject );
 my $members = $leagueobject->members;
 my $matches = $d->resultset('Matches')->search({ tournament => $league });
-my $conversations = defined $round? [ 1..$round ]: $tournament->all_weeks;
+my $conversations = defined $oldround? [ 1..$oldround ]: $tournament->all_weeks;
 my $points;
 my @Roles = qw/White Black/;
 my @roles = map { lcfirst $_ } @Roles;
