@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 23, 08時54分58秒
+# Last Edit: 2011  6月 25, 19時18分53秒
 # $Id$
 
 use strict;
@@ -13,6 +13,7 @@ use Try::Tiny;
 use IO::All;
 use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
+use Grades;
 use Net::FTP;
 
 =head1 NAME
@@ -169,11 +170,21 @@ sub preppair : Local {
 				else { $game->{forfeit} = 'None' }
 				push @$games, $game;
 			}
+			( my $leagueid = $tournament ) =~
+				s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+			my $league = League->new( leagues =>
+				$c->config->{leagues}, id => $leagueid );
+			my $grade = Grades->new({ league => $league })->grades;
+			my $ratingset = $c->model('DB::Ratings');
 			$latestscores = $c->model('GTS')->assignScores( $tourney, $pairingtable, $params);
 			$pairingtable->{score} = $latestscores;
 			my $scoreset = $c->model('DB::Scores');
 			for my $player ( @{ $tourney->entrants } ) {
 				next if $player->absent;
+				## TODO
+				#$ratingset->update_or_create( {
+				#	tournament => $tourid, player => $id,
+				#	value => $latestscores->{$id} } );
 				my $id = $player->id;
 				$player->score( $latestscores->{$id} );
 				$scoreset->update_or_create( {
@@ -357,7 +368,6 @@ sub nextround : Local {
 	my %genres;
 	my @genres = qw/intermediate business friends/;
 	$genres{$_} = $c->config->{ $_ } for @genres;
-$DB::single=1;
 	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
 						map { $_ => $genre } @$genres } @genres;
 	my $genre = $leaguegenre{$tourid};
