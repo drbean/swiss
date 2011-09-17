@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011 Sep 17, 12:33:45 PM
+# Last Edit: 2011  6月 25, 19時18分53秒
 # $Id$
 
 use strict;
@@ -15,7 +15,6 @@ use Games::Tournament::Contestant::Swiss;
 use Games::Tournament::Swiss;
 use Grades;
 use Net::FTP;
-use Net::Netrc;
 
 =head1 NAME
 
@@ -363,11 +362,8 @@ sub nextround : Local {
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
-	my $website = 'web.nuu.edu.tw';
-	my $ftp = Net::FTP->new($website);
-	my $netrc = Net::Netrc->lookup($website);
-	my ($id, $passwd, $acc) = $netrc->lpa;
-	$ftp->login($id, $passwd);
+	my $ftp = Net::FTP->new('web.nuu.edu.tw');
+	$ftp->login('greg', '1949');
 	$ftp->binary;
 	my %genres;
 	my @genres = qw/intermediate business friends/;
