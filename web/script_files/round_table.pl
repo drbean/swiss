@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011  5月 28, 21時30分12秒
+# Last Edit: 2011 Sep 28, 02:17:09 PM
 # $Id$
 
 =head1 NAME
@@ -119,6 +119,7 @@ sub run {
 	    my $actives = $topic->{$form};
 	    my @white = map { $pairs->{$_}->{White} } @$actives;
 	    my @black = map { $pairs->{$_}->{Black} } @$actives;
+	    warn "Some table not there," if any { not defined } @white, @black;
 	    $dupe{ $_ }++ for ( @white, @black );
 	    my @dupe = grep { $dupe{$_} != 1 } keys %dupe;
 	    warn "$_ is dupe in other than $key topic, $form form" for @dupe;

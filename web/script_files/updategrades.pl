@@ -78,8 +78,8 @@ sub run {
 	my $ratings = $d->resultset('Ratings');
 	while ( my $member = $members->next ) {
 		my $id = $member->player;
-		my $grade = $grade->{$id} || $ratings->find({ tournament => $tournament,
-				player => $id, round => ($thisround - 1) })->value || 0;
+$DB::single=1 unless defined $ratings->find({ tournament => $tournament, player => $id, round => ($thisround - 1) });
+		my $grade = $grade->{$id} || $ratings->find({ tournament => $tournament, player => $id, round => ($thisround - 1) })->value || 0;
 		$ratings{$id} = { 
 				player => $id,
 				tournament => $tournament,
