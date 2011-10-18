@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2011  6月 15, 20時34分10秒
+# Last Edit: 2011 Oct 18, 10:21:03 PM
 # $Id$
 
 use strict;
@@ -454,7 +454,8 @@ sub pair {
 		@$bracketmatches;
 	}
 	my @tables = $tourney->publishCards(@games);
-	return ($message, $log, \@tables);
+	my @reversetables = reverse @tables;
+	return ($message, $log, \@reversetables);
 }
 
 
