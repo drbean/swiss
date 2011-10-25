@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011  6月 25, 19時18分53秒
+# Last Edit: 2011 Oct 25, 12:55:00 PM
 # $Id$
 
 use strict;
@@ -363,7 +363,7 @@ sub nextround : Local {
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
 	my $ftp = Net::FTP->new('web.nuu.edu.tw');
-	$ftp->login('greg', '1949');
+	$ftp->login('greg', '');
 	$ftp->binary;
 	my %genres;
 	my @genres = qw/intermediate business friends/;
@@ -404,7 +404,7 @@ sub draw : Local {
 		$player->{firstround} = $member->firstround;
 		my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round-1 });
-		$player->{rating} = $rating->value;
+		$player->{rating} = $rating? $rating->value: 0;
 		$playerlist{ $player->{id} } = $player;
 		push @absentees, $player if $member->absent eq 'True';
 	}
