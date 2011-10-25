@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011 Oct 25, 01:48:00 PM
+# Last Edit: 2011 Oct 25, 01:50:10 PM
 # $Id$
 
 use strict;
@@ -411,7 +411,7 @@ sub draw : Local {
 	my $Roles = $c->model('GTS')->roles;
 	my @roles = map { lcfirst $_ } @$Roles;
 	my $matches = $tournament->matches->search({ round => $round });
-	my $games;
+	my %games;
 	while ( my $match = $matches->next ) {
 		my %contestants;
 		if ( $match->black eq 'Bye' ) {
@@ -427,11 +427,11 @@ sub draw : Local {
 				win => $match->win,
 				forfeit => $match->forfeit };
 	}
-	my @games = map $games{$_}, sort {$a<=>$b} keys %$games;
+	my @games = map $games{$_}, sort {$a<=>$b} keys %games;
 	$c->stash->{tournament} = $tourid;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $Roles;
-	$c->stash->{games} = $games;
+	$c->stash->{games} = \@games;
 	$c->stash->{template} = "draw.tt2";
 }
 
