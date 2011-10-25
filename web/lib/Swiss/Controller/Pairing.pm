@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011 Oct 25, 12:55:00 PM
+# Last Edit: 2011 Oct 25, 01:48:00 PM
 # $Id$
 
 use strict;
@@ -422,10 +422,12 @@ sub draw : Local {
 			%contestants = map { ucfirst($_) =>
 				$playerlist{ $match->$_ } } @roles;
 		}
-		push @$games, {contestants => \%contestants,
+		my $table = $match->pair;
+		$games{$table} = {contestants => \%contestants,
 				win => $match->win,
 				forfeit => $match->forfeit };
 	}
+	my @games = map $games{$_}, sort {$a<=>$b} keys %$games;
 	$c->stash->{tournament} = $tourid;
 	$c->stash->{round} = $round;
 	$c->stash->{roles} = $Roles;
