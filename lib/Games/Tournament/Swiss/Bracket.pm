@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2010 11月 15, 20時33分48秒
+# Last Edit: 2011 Dec 09, 01:49:18 PM
 # $Id: $
 
 use warnings;
@@ -378,13 +378,13 @@ Resetter of S1 and S2 to the original members, ranked before exchanges in C8. A6
 
 sub resetS12 {
     my $self    = shift;
+    my $number = $self->number;
     my $members = $self->residents;
     return [] unless $#$members >= 1;
     my (@s1, @s2);
     use Games::Tournament;
     if ( $self->hetero ) {
 	my %scorers;
-	my $number = $self->number;
 	for my $member (@$members)
 	{
 	    my $score = defined $member->score? $member->score: 0;
@@ -406,6 +406,7 @@ sub resetS12 {
     $self->s2(\@s2);
     my @lastS2ids = reverse map { $_->pairingNumber } @s2;
     $self->{lastS2ids} = \@lastS2ids;
+    die "undef player in Bracket $number S1, S2" if any { not defined } @s1, @s2;
     return;
 }
 
@@ -944,7 +945,10 @@ sub c8iterator {
         ( $members[ $_->[0] ], $members[ $_->[1] ] ) =
           ( $members[ $_->[1] ], $members[ $_->[0] ] )
           for @$exchange;
-        return "exchange " . ($letter++), @members;
+	my $number = $letter++;
+	die "undef player in exchange $number of S1, S2" if
+		any { not defined } @members;
+        return "exchange $number", @members;
       }
 }
 
