@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2011 Dec 09, 10:32:39 AM
+# Last Edit: 2011 Dec 09, 01:49:53 PM
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -1192,7 +1192,7 @@ sub c11 {
  Games::Tournament::Swiss::Procedure->c12
 
 If the group contains a player who cannot be paired without violating B1 or B2 and this is a heterogeneous group, undo the pairing of the previous score bracket. If in this previous score bracket a pairing can be made whereby another player will be moved down to the current one, and this now allows p pairing to be made then this pairing in the previous score bracket will be accepted. (If there was only one (or two) players in the previous score bracket, obviously (heh-heh) there is no use going back and trying to find another pairing). Using a c12repaired flag to tell if this is the 2nd time through (but what if this is a backtrack to a different bracket?).
-
+ 
 =cut 
 
 sub c12 {
@@ -1332,6 +1332,7 @@ sub c12 {
 	number      => "$floaterSourceNumber(post-C12)"
 	);
 	$group->exit($_) for @downfloaters;
+	$group->c8swapper('');
 	$floaterSource->exit($_) for @$paired;
 	$_->floating('')            for @downfloaters;
 	$c12RepairGroup->entry($_) for @downfloaters, @$paired;
