@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2010 11月 14, 15時21分09秒
+# Last Edit: 2011 Dec 09, 10:32:39 AM
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -310,7 +310,7 @@ sub c1 {
         if (@unpairables) {
             my @ids = map { $_->pairingNumber } @unpairables;
             $self->log(
-                "$nokmessage @ids B1a/B2a incompatible in $number ($index)");
+                "$nokmessage: @ids B1a/B2a incompatible in $number ($index)");
         }
     }
     my @unpairableIds = map {$_->pairingNumber} @unpairables;
