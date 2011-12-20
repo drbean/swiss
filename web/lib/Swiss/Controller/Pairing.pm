@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011 Oct 25, 01:50:10 PM
+# Last Edit: 2011 Dec 20, 08:47:31 AM
 # $Id$
 
 use strict;
@@ -362,6 +362,20 @@ sub nextround : Local {
 	$c->stash->{games} = $games;
 	$c->stash->{log} = $log if $c->request->params->{log};
 	$c->stash->{template} = "draw.tt2";
+	$c->detach('ftp');
+}
+
+
+=head2 ftp
+
+	$self->forward('ftp')
+
+Private method used by pairing, draw actions to put pairing on http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html
+
+=cut
+
+sub ftp : Private {
+	my ($self, $c, $round) = @_;
 	my $ftp = Net::FTP->new('web.nuu.edu.tw');
 	$ftp->login('greg', '');
 	$ftp->binary;
@@ -370,6 +384,7 @@ sub nextround : Local {
 	$genres{$_} = $c->config->{ $_ } for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $genres = $genres{$_};
 						map { $_ => $genre } @$genres } @genres;
+	my $tourid = $c->stash->{tournament};
 	my $genre = $leaguegenre{$tourid};
 	$ftp->cwd("/public_html/$genre/draw");
 	io("/tmp/$genre/draw/$tourid.html")->print
@@ -378,7 +393,6 @@ sub nextround : Local {
 	$c->response->redirect
 		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
-
 
 =head2 draw
 
@@ -433,6 +447,7 @@ sub draw : Local {
 	$c->stash->{roles} = $Roles;
 	$c->stash->{games} = \@games;
 	$c->stash->{template} = "draw.tt2";
+	$c->detach('ftp');
 }
 
 
