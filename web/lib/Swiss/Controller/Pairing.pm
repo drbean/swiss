@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2011 Dec 20, 08:47:31 AM
+# Last Edit: 2011 Dec 20, 04:40:38 PM
 # $Id$
 
 use strict;
@@ -414,11 +414,17 @@ sub draw : Local {
 	my (%playerlist, @absentees);
 	while ( my $member = $members->next ) {
 		my $player = { map { $_ => $member->profile->$_ } @columns };
-		$player->{score} = $member->score->value;
 		$player->{firstround} = $member->firstround;
 		my $rating = $member->profile->rating->find({
 				tournament => $tourid, round => $round-1 });
-		$player->{rating} = $rating? $rating->value: 0;
+		my $value;
+		try { $value = $rating->value; }
+			catch { warn "No rating for $player->{id}: $_"; };
+		$player->{rating} = $value || 0;
+		my $score;
+		try { $score = $member->score->value; }
+			catch { warn "No score for $player->{id}: $_"; };
+		$player->{score} = $score || 0;
 		$playerlist{ $player->{id} } = $player;
 		push @absentees, $player if $member->absent eq 'True';
 	}
