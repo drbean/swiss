@@ -29,6 +29,7 @@ use strict;
 use warnings;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
+use Cwd; use File::Basename;
 
 use List::MoreUtils qw/none/;
 use IO::All;
@@ -39,7 +40,8 @@ use Grades;
 use Config::General;
 
 my $script = Grades::Script->new_with_options;
-my $tournament = $script->league;
+my $tournament = $script->league || basename( getcwd );
+( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 my $round = $script->round;
 
 my @MyAppConf = glob( "$Bin/../*.conf" );
@@ -59,10 +61,9 @@ my $players = $d->resultset('Players');
 my $ratings = $d->resultset('Ratings')->search({ tournament => $tournament });
 my $members = $d->resultset('Members')->search({ tournament => $tournament });
 my (%players, @newbies, @absentees, @returnees, @ratings);
-my $leagues = $script->league;
-my $league = League->new( leagues => $config{leagues}, id => $tournament );
+my $league = League->new( leagues => $config{leagues}, id => $leagueid );
 my $filemembers = $league->members;
-my $activemembers = $league->yaml->{active};
+my $activemembers = $filemembers;
 my $dropouts = $league->yaml->{out};
 foreach my $member ( @$filemembers ) {
 	my $id = $member->{id};
@@ -107,7 +108,7 @@ $ratings->update_or_create( $_ ) for @ratings;
 
 my $n=0;
 if ( @absentees ) {
-	my $pool = $filemembers;
+	my $pool = [ @$filemembers, @$dropouts ];
 	my %pool = map { $_->{id} => $_ } @$pool;
 	my %out = map { $_->{id} => $_ } @$dropouts;
 	@pool{ keys %out } = values %out;
