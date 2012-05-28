@@ -66,7 +66,7 @@ sub run {
 		$config{leagues}, id => $leagueid );
 	my $grades = Grades->new({ league => $league });
 	my $thisweek = $league->approach eq 'Compcomp'?
-			$grades->classwork->all_weeks->[-1]: 0;
+			$grades->classwork->all_events->[-1]: 0;
 	my $thisround = $script->round || $thisweek || 0;
 	my $lastround = $thisround - 1;
 	my $tourney = $d->resultset('Tournaments')->find({ id => $tournament });

@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2011 Sep 28, 02:17:09 PM
+# Last Edit: 2012 May 28, 11:07:56 AM
 # $Id$
 
 =head1 NAME
@@ -68,7 +68,7 @@ my $league = League->new( id => $leagueid );
 my $g = Compcomp->new( league => $league );
 my $leaguemembers = $league->members;
 my %members = map { $_->{id} => $_ } @$leaguemembers;
-my $lastround = $g->all_weeks->[-1];
+my $lastround = $g->all_events->[-1];
 my $round = $script->round || $lastround;
 my $overallround = $script->one || $round;
 

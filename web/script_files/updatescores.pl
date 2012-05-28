@@ -62,7 +62,8 @@ my $leagueobject = League->new( leagues => $config{leagues}, id => $leagueid );
 my $tournament = Compcomp->new( league => $leagueobject );
 my $members = $leagueobject->members;
 my $matches = $d->resultset('Matches')->search({ tournament => $league });
-my $conversations = defined $oldround? [ 1..$oldround ]: $tournament->all_weeks;
+my $conversations = defined $oldround? [ 1..$oldround ]:
+										$tournament->all_events;
 my $points;
 my @Roles = qw/White Black/;
 my @roles = map { lcfirst $_ } @Roles;

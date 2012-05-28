@@ -67,7 +67,7 @@ sub run {
 		$config{leagues}, id => $tournament );
 	my $comp = Compcomp->new({ league => $league });
 	my $thisweek = $league->approach eq 'Compcomp'?
-			$comp->all_weeks->[-1]: 0;
+			$comp->all_events->[-1]: 0;
 	my $thisround = $script->round || $thisweek || 0;
 	my $lastround = $thisround - 1;
 	my $tourney = $d->resultset('Tournaments')->find({ id => $tournament });

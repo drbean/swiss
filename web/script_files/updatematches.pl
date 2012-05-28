@@ -70,7 +70,7 @@ sub run {
 	$config{leagues}, id => $leagueid );
     my $comp = Compcomp->new( league => $league );
     my $thisweek = $league->approach eq 'Compcomp'?
-	$comp->all_weeks->[-1]: 0;
+	$comp->all_events->[-1]: 0;
     my $round = $script->round || $thisweek || 1;
     my $overallround = $script->one || $round;
     my $matches = $d->resultset('Matches')->search({
@@ -101,6 +101,8 @@ sub run {
 	my %roleplayer = reverse %ID;
 	my @id = values %id;
 	my %values;
+	die "Not $id[0], $id[1]'s table $table result" unless
+	    defined $result->{$id[0]} and defined $result->{$id[1]};
 	if ( $result->{$id[0]} > $result->{$id[1]} ) {
 	    $values{win} = $roleplayer{$id[0]};
 	}

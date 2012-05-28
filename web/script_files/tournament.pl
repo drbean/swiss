@@ -1245,7 +1245,7 @@ Print the pairing table after a given round. An external script
 
 =item C<print_crosstable>
 
-Print the crosstable after a given round. Rankings and single results are
+Print the crosstable after a given round. Rankings and SINGLE results are
 computed and presented as a simple table (CSS: class="standings").
 
 =item C<read_games_from_file>
@@ -1278,7 +1278,7 @@ Writes results to file.
 
 =item C<get_result>
 
-Returns "single character value" for literal result. 
+Returns "SINGLE character value" for literal result. 
  'Win'  -> '1'
  'Draw' -> '='
  'Loss' -> '0'
