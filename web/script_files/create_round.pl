@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2012 Jun 27, 09:41:34 PM
+# Last Edit: 2012 Jun 27, 09:42:27 PM
 # $Id$
 
 =head1 NAME
@@ -88,7 +88,7 @@ Bless( $players )->keys([ @tables ]);
 $round{group} = $players;
 $round{round} = $round;
 $round{late} = [undef];
-$ground{assistant} = undef;
+$round{assistant} = undef;
 $round{dispensation} = undef;
 $round{week} = undef;
 $round{pairing} = "swiss";
