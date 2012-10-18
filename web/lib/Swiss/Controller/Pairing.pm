@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2012 Oct 18, 09:11:21 AM
+# Last Edit: 2012 Oct 18, 09:17:28 AM
 # $Id$
 
 use strict;
@@ -377,7 +377,7 @@ Private method used by pairing, draw actions to put pairing on http://web.nuu.ed
 sub ftp : Private {
 	my ($self, $c, $round) = @_;
 	my $ftp = Net::FTP->new('web.nuu.edu.tw');
-	$ftp->login('greg', '6y6t6y6t');
+	$ftp->login('greg', '');
 	$ftp->binary;
 	my %leaguesByGenre;
 	my @genres = qw/conversation intermediate business friends customs/;
@@ -387,9 +387,10 @@ sub ftp : Private {
 	my $tourid = $c->stash->{tournament};
 	my $genre = $leaguegenre{$tourid};
 	$ftp->cwd("/public_html/$genre/draw");
-	io("/tmp/$genre/draw/$tourid.html")->print
+	my $drawfile = "$leaguedirs/$tourid/comp/draw.html";
+	io($drawfile)->print
 		( $c->view('TT')->render($c, 'draw.tt2') );
-	$ftp->put("/tmp/$genre/draw/$tourid.html");
+	$ftp->put($drawfile, "$tourid.html");
 	$c->response->redirect
 		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
