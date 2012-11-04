@@ -105,13 +105,14 @@ for my $round ( @$conversations ) {
 		die "$win winners? Update matches for $round round." if
 						$win eq 'Unknown';
 		unless ( $win eq 'None' ) {
-			my %points = $win eq 'White'?
-				( White => 5, Black => 3 ):
-				$win eq 'Black'?
-				( White => 3, Black => 5 ):
-				$win eq 'Both'?
-				( White => 4, Black => 4 ):
-				( White => '??', Black => '??' );
+			my $payout = $tournament->payout( values %contestant, $round );
+            my %points = $win eq 'White'?
+                ( White => $payout->{win}, Black => $payout->{loss} ):
+                $win eq 'Black'?
+                ( White => $payout->{loss}, Black => $payout->{win} ):
+                $win eq 'Both'?
+                ( White => $payout->{draw}, Black => $payout->{draw} ):
+                ( White => '??', Black => '??' );
 			for ( @Roles ) {
 				$points->{$round}->{$contestant{$_}}=$points{$_}
 					unless $forfeit eq $_ or $tardy eq $_;
