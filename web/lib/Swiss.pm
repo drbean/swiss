@@ -22,7 +22,7 @@ use Catalyst qw/
 		Authorization::Roles
 
 		Session
-    Session::Store::FastMmap
+    Session::Store::DBIC
     Session::State::Cookie
 		/;
 #                Static::Simple
@@ -52,7 +52,11 @@ __PACKAGE__->config({
 				user_class => 'DB::Arbiters',
 			}
 		}
-	}
+	},
+	'Plugin::Session' => {
+		dbic_class => 'DB::Session',
+		expires    => 3600,
+	},
 });
 
 # Start the application
