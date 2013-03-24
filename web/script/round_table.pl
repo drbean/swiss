@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2012 May 28, 11:07:56 AM
+# Last Edit: 2012 Nov 14, 12:55:38 PM
 # $Id$
 
 =head1 NAME
@@ -83,7 +83,6 @@ my $d = Swiss::Schema->connect( @$connect_info );
 my $foundround = $d->resultset('Round')->find( { tournament => $tourid } )
                 ->value;
 my $members = $d->resultset('Members')->search({ tournament => $tourid });
-my $cardset = $d->resultset( "Matches" )->search({ tournament => $tourid });
 my $scores = $d->resultset( "Scores" )->search({ tournament => $tourid });
 
 =head1 DESCRIPTION
@@ -96,7 +95,7 @@ Creating the pairs in round.yaml from a vim snippet is kind of fun. Anyway, it's
 
 There's no Grades methods for accessing the round.yaml file. The bye player is recorded as, bye: 
 
-Finally, the swiss database 'matches' table is updated.
+Finally, the swiss database 'matches' rows are deleted and recreated. Make sure the round.yaml file is correct before running this script.
 
 =cut
 
@@ -169,7 +168,7 @@ sub run {
     $opponents{$_} ||= 'Unpaired' for keys %members;
     $roles{$_} ||= 'Unpaired' for keys %members;
     for my $id ( keys %opponents ) { 
-	warn "$id out of tournament, but playing $opponents{$id}," if
+	die "$id out of tournament, but playing $opponents{$id}," if
 	    $members->find({ player => $id })->absent eq 'True';
     }
     print Dump \%opponents;
@@ -188,15 +187,12 @@ sub run {
 
     sub uptodatepopulate
     {
-	my $class = $d->resultset(shift);
+	my $resultset = $d->resultset(shift)->search({
+		tournament => $tourid,
+		round => $round });
+	$resultset->delete;
 	my $entries = shift;
-	my $columns = shift @$entries;
-	foreach my $row ( @$entries )
-	{  
-	    my %hash;
-	    @hash{@$columns} = @$row;
-	    $class->update_or_create(\%hash);
-	}
+	$resultset->populate( $entries );
     }
 
 }
