@@ -32,7 +32,7 @@ use lib "$FindBin::Bin/../lib";
 use Config::General;
 use List::MoreUtils qw/any/;
 
-my @MyAppConf = glob( "$FindBin::Bin/../*.conf" );
+my @MyAppConf = glob( "/var/www/cgi-bin/swiss/swiss.conf" );
 die "Which of @MyAppConf is the configuration file?"
 			unless @MyAppConf == 1;
 my %config = Config::General->new($MyAppConf[0])->getall;

@@ -52,7 +52,7 @@ sub run {
 	my $script = Grades::Script->new_with_options;
 	my $tournament = $script->league or die "League id?";
 
-	my %config = Config::General->new( "$Bin/../swiss.conf" )->getall;
+	my %config = Config::General->new( "/var/www/cgi-bin/swiss/swiss.conf" )->getall;
 	my $name = $config{name};
 	require $name . ".pm";
 	my $model = "${name}::Schema";

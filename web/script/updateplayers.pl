@@ -44,7 +44,7 @@ my $tournament = $script->league || basename( getcwd );
 ( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 my $round = $script->round;
 
-my @MyAppConf = glob( "$Bin/../*.conf" );
+my @MyAppConf = glob( "/var/www/cgi-bin/swiss/swiss.conf" );
 die "Which of @MyAppConf is the configuration file?"
 			unless @MyAppConf == 1;
 my %config = Config::General->new($MyAppConf[0])->getall;
