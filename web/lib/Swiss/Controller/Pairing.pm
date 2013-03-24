@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2012 Oct 18, 09:17:28 AM
+# Last Edit: 2013 Mar 24, 03:07:35 PM
 # $Id$
 
 use strict;
@@ -379,9 +379,11 @@ sub ftp : Private {
 	my $ftp = Net::FTP->new('web.nuu.edu.tw');
 	$ftp->login('greg', '');
 	$ftp->binary;
+	my $config = $c->config;
+	my $leaguedirs = $config->{leagues};
 	my %leaguesByGenre;
-	my @genres = qw/conversation intermediate business friends customs/;
-	$leaguesByGenre{$_} = $c->config->{ $_ } for @genres;
+	my @genres = qw/conversation intermediate business friends customs media literature/;
+	$leaguesByGenre{$_} = $config->{ $_ } for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $leagues = $leaguesByGenre{$genre};
 						map { $_ => $genre } @$leagues } @genres;
 	my $tourid = $c->stash->{tournament};
