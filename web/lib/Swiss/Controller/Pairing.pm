@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2013 Mar 24, 03:07:35 PM
+# Last Edit: 2013 Mar 26, 09:35:21 AM
 # $Id$
 
 use strict;
@@ -382,7 +382,7 @@ sub ftp : Private {
 	my $config = $c->config;
 	my $leaguedirs = $config->{leagues};
 	my %leaguesByGenre;
-	my @genres = qw/conversation intermediate business friends customs media literature/;
+	my @genres = qw/conversation intermediate business friends customs media literature intercultural/;
 	$leaguesByGenre{$_} = $config->{ $_ } for @genres;
 	my %leaguegenre = map { my $genre = $_ ;  my $leagues = $leaguesByGenre{$genre};
 						map { $_ => $genre } @$leagues } @genres;
