@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure;
 
-# Last Edit: 2013 Nov 06, 11:50:34 AM
+# Last Edit: 2011  2月 27, 21時17分29秒
 # $Id: $
 
 use warnings;
@@ -8,14 +8,6 @@ use strict;
 
 # use Games::Tournament::Swiss::Config;
 use base $Games::Tournament::Swiss::Config::algorithm;
-
-# use parent 'Games::Tournament::Swiss::Procedure::FIDE';
-#BEGIN {
-#	@Games::Tournament::Swiss::Config::roles = (qw/A B/);
-#	$Games::Tournament::Swiss::Config::firstround = 1;
-#	$Games::Tournament::Swiss::Config::algorithm = Games::Tournament::Swiss::Config->algorithm;
-#}
-
 
 
 =head1 NAME
