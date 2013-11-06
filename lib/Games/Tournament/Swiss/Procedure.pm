@@ -1,13 +1,16 @@
 package Games::Tournament::Swiss::Procedure;
 
-# Last Edit: 2011  2月 27, 21時17分29秒
+# Last Edit: 2013 Nov 06, 09:19:13 AM
 # $Id: $
 
 use warnings;
 use strict;
 
-# use Games::Tournament::Swiss::Config;
-use base $Games::Tournament::Swiss::Config::algorithm;
+BEGIN {
+    use Games::Tournament::Swiss::Config;
+    my $algo = Games::Tournament::Swiss::Config->algorithm;
+    use base $algo;
+}
 
 
 =head1 NAME
