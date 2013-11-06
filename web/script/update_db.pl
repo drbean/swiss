@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年05月02日 12時25分36秒
-# Last Edit: 2013 Mar 24, 02:12:06 PM
+# Last Edit: 2013 Nov 04, 10:18:30 AM
 # $Id$
 
 =head1 NAME
@@ -34,16 +34,16 @@ Updates database, running 4 scripts, updatematches.pl, updategrades.pl, updatesc
 
 =cut
 
-require "/home/drbean/swiss/web/script_files/updatematches.pl";
+require "/home/drbean/swiss/web/script/updatematches.pl";
 run();
 
-require "/home/drbean/swiss/web/script_files/updategrades.pl";
+require "/home/drbean/swiss/web/script/updategrades.pl";
 run();
 
-require "/home/drbean/swiss/web/script_files/updatescores.pl";
+require "/home/drbean/swiss/web/script/updatescores.pl";
 run();
 
-require "/home/drbean/swiss/web/script_files/updateround.pl";
+require "/home/drbean/swiss/web/script/updateround.pl";
 run();
 
 =head1 AUTHOR
