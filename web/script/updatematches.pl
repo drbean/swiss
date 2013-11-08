@@ -37,9 +37,11 @@ it under the same terms as Perl itself.
 
 use strict;
 use warnings;
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib";
-use lib "web/lib";
+
+delete $INC{'FindBin.pm'};
+require FindBin;
+use lib "$FindBin::Bin/../lib";
+# use lib "/var/www/cgi-bin/swiss/lib";
 
 use IO::All;
 my $io = io '-';
