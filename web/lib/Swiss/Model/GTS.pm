@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2011 Oct 18, 10:21:03 PM
+# Last Edit: 2013 Nov 09, 05:53:02 PM
 # $Id$
 
 use strict;
@@ -651,7 +651,7 @@ sub allFieldCheck {
 	my $message;
 	for my $player ( @playerlist ) {
 		for my $field ( qw/id name rating/ ) {
-			if ( not $player->{$field} ) {
+			if ( not defined $player->{$field} ) {
 				$message ||=
 				"Each entrant must have an id, name and rating.<BR>";
 				$message .=
