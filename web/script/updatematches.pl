@@ -63,9 +63,9 @@ sub run {
     my %config = Config::General->new( "/var/www/cgi-bin/swiss/swiss.conf" )->getall;
     my $name = $config{name};
 delete $INC{'FindBin.pm'};
-require "FindBin.pm";
+require FindBin;
 # FindBin->again;
-use lib "$FindBin::Bin/../lib";
+unshift @INC, "$FindBin::Bin/../lib";
 # use lib "/home/drbean/swiss/web/lib";
     require $name . ".pm";
     my $model = "${name}::Schema";
