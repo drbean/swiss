@@ -38,10 +38,12 @@ it under the same terms as Perl itself.
 use strict;
 use warnings;
 
-delete $INC{'FindBin.pm'};
-require FindBin;
-use lib "$FindBin::Bin/../lib";
-# use lib "/var/www/cgi-bin/swiss/lib";
+use FindBin qw/$Bin/;
+
+# use lib "$FindBin::Bin/../lib";
+# # use lib "/var/www/cgi-bin/swiss/lib";
+# use lib "/home/drbean/swiss/web/lib";
+# use Swiss;
 
 use IO::All;
 my $io = io '-';
@@ -60,6 +62,11 @@ sub run {
 
     my %config = Config::General->new( "/var/www/cgi-bin/swiss/swiss.conf" )->getall;
     my $name = $config{name};
+delete $INC{'FindBin.pm'};
+require "FindBin.pm";
+# FindBin->again;
+use lib "$FindBin::Bin/../lib";
+# use lib "/home/drbean/swiss/web/lib";
     require $name . ".pm";
     my $model = "${name}::Schema";
     my $modelfile = "$name/Model/DB.pm";

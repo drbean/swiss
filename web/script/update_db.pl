@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年05月02日 12時25分36秒
-# Last Edit: 2013 Nov 08, 10:27:10 AM
+# Last Edit: 2013 Nov 10, 04:05:30 PM
 # $Id$
 
 =head1 NAME
@@ -19,8 +19,6 @@ our $VERSION = '0.01';
 use strict;
 use warnings;
 
-use FindBin qw/$Bin/;
-
 =head1 SYNOPSIS
 
 perl web/script_files/update_db.pl -l MIA0012 -r 5
@@ -34,7 +32,8 @@ Updates database, running 4 scripts, updatematches.pl, updategrades.pl, updatesc
 
 =cut
 
-chdir "/home/drbean/swiss/web/script";
+require "/home/drbean/swiss/web/script/chdir.pl";
+run();
 
 require "/home/drbean/swiss/web/script/updatematches.pl";
 run();

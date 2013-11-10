@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2013 Oct 08, 09:03:06 PM
+# Last Edit: 2013 Nov 10, 04:21:14 PM
 # $Id$
 
 use strict;
@@ -377,7 +377,7 @@ Private method used by pairing, draw actions to put pairing on http://web.nuu.ed
 sub ftp : Private {
 	my ($self, $c, $round) = @_;
 	my $ftp = Net::FTP->new('web.nuu.edu.tw');
-	$ftp->login('greg', '');
+	$ftp->login('greg', '6y6t6y6t');
 	$ftp->binary;
 	my $config = $c->config;
 	my $leaguedirs = $config->{leagues};
