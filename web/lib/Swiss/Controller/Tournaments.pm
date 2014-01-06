@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2014 Jan 06, 08:58:19 AM
+# Last Edit: 2014 Jan 06, 09:00:41 AM
 # $Id$
 
 use Moose;
@@ -273,12 +273,12 @@ sub rounds : Local {
 	my $grades = Groupwork->new( league => $league );
 	my $series = $grades->beancanseries;
 	my $session = ( sort {$a <=> $b} keys %$series )[-1];
-	my $beancans = $grades->beancans( $session );
+	my $beancans = $grades->beancan_names( $session );
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
 	my (@players, %seen);
 	for my $can ( sort keys %$beancans ) {
-		my $group = $beancan_names->{$can};
+		my $group = $beancans->{$can};
 		for my $player ( @$group ) {
 			next if not defined $player;
 			my $id = $league->ided( $player );
