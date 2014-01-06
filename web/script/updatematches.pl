@@ -50,7 +50,7 @@ my $io = io '-';
 
 use Grades;
 
-use Config::General;
+use YAML qw/LoadFile/;
 use List::Util qw/first/;
 use List::MoreUtils qw/all/;
 use Scalar::Util qw/looks_like_number/;
@@ -60,13 +60,13 @@ sub run {
     my $script = Grades::Script->new_with_options;
     my $tournament = $script->league or die "League id?";
 
-    my %config = Config::General->new( "/var/www/cgi-bin/swiss/swiss.conf" )->getall;
-    my $name = $config{name};
+    my $config = LoadFile "/var/www/cgi-bin/swiss/swiss.yaml";
+    my $name = $config->{name};
 delete $INC{'FindBin.pm'};
 require FindBin;
 # FindBin->again;
 unshift @INC, "$FindBin::Bin/../lib";
-# use lib "/home/drbean/swiss/web/lib";
+use lib "/home/drbean/swiss/web/lib";
     require $name . ".pm";
     my $model = "${name}::Schema";
     my $modelfile = "$name/Model/DB.pm";
@@ -76,7 +76,7 @@ unshift @INC, "$FindBin::Bin/../lib";
 
     ( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
     my $league = League->new( leagues =>
-	$config{leagues}, id => $leagueid );
+	$config->{leagues}, id => $leagueid );
     my $comp = Compcomp->new( league => $league );
     my $thisweek = $league->approach eq 'Compcomp'?
 	$comp->all_events->[-1]: 0;
@@ -86,9 +86,9 @@ unshift @INC, "$FindBin::Bin/../lib";
 	tournament => $tournament,
 	round => $round });
 
-    my $config = $comp->config( $overallround );
-    my $forfeiters = $config->{forfeit};
-    my $tardies = $config->{late};
+    my $comp_config = $comp->config( $overallround );
+    my $forfeiters = $comp_config->{forfeit};
+    my $tardies = $comp_config->{late};
     my %dupes;
     for my $id ( @$forfeiters, @$tardies ) {
 	next unless $id;

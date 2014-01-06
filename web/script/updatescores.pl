@@ -29,14 +29,14 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Config::General;
+use YAML qw/LoadFile/;
 use List::MoreUtils qw/any/;
 
-my @MyAppConf = glob( "/var/www/cgi-bin/swiss/swiss.conf" );
+my @MyAppConf = glob( "/var/www/cgi-bin/swiss/swiss.yaml" );
 die "Which of @MyAppConf is the configuration file?"
 			unless @MyAppConf == 1;
-my %config = Config::General->new($MyAppConf[0])->getall;
-my $name = $config{name};
+my $config = LoadFile $MyAppConf[0];
+my $name = $config->{name};
 require $name . ".pm";
 my $model = "${name}::Schema";
 my $modelfile = "$name/Model/DB.pm";
@@ -58,7 +58,7 @@ my $round = $script->round;
 my $oldround = $script->one || $round;
 
 ( my $leagueid = $league ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
-my $leagueobject = League->new( leagues => $config{leagues}, id => $leagueid );
+my $leagueobject = League->new( leagues => $config->{leagues}, id => $leagueid );
 my $tournament = Compcomp->new( league => $leagueobject );
 my $members = $leagueobject->members;
 my $matches = $d->resultset('Matches')->search({ tournament => $league });

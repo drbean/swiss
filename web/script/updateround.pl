@@ -36,7 +36,7 @@ use lib "web/lib";
 
 use IO::All;
 my $io = io '-';
-use Config::General;
+use YAML qw/LoadFile/;
 
 use Grades;
 
@@ -44,8 +44,8 @@ sub run {
     my $script = Grades::Script->new_with_options;
     my $tournament = $script->league or die "League id?";
 
-    my %config = Config::General->new( "/var/www/cgi-bin/swiss/swiss.conf" )->getall;
-    my $name = $config{name};
+    my $config = LoadFile "/var/www/cgi-bin/swiss/swiss.yaml";
+    my $name = $config->{name};
     require $name . ".pm";
     my $model = "${name}::Schema";
     my $modelfile = "$name/Model/DB.pm";
@@ -55,7 +55,7 @@ sub run {
 
     ( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
     my $league = League->new( leagues =>
-	$config{leagues}, id => $leagueid );
+	$config->{leagues}, id => $leagueid );
     my $comp = Compcomp->new( league => $league );
     my $thisweek = $league->approach eq 'Compcomp'?
 	$comp->all_events->[-1]: 0;
