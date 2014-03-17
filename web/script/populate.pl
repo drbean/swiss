@@ -34,16 +34,13 @@ my $io = io '-';
 
 use Grades;
 
-use Config::General;
+use YAML qw/LoadFile/;
 use Try::Tiny;
 
 my $script = Grades::Script->new_with_options;
 
-my @MyAppConf = glob( "$Bin/../*.conf" );
-die "Which of @MyAppConf is the configuration file?"
-			unless @MyAppConf == 1;
-my %config = Config::General->new($MyAppConf[0])->getall;
-my $name = $config{name};
+my $config = LoadFile "swiss.yaml";
+my $name = $config->{name};
 require $name . ".pm";
 my $model = "${name}::Schema";
 my $modelfile = "$name/Model/DB.pm";
@@ -60,11 +57,11 @@ find_or_populate( 'Arbiters', \@officials );
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @ratings, @scores);
 for my $tournament (
-    qw/AFN3Y0 AFN300 AFN2N0 GL00006 GL00030 FLA0006 FLA0007 yd40001280/
+    qw/FLA0018 FLA0021 FLA0027 2040 3024 AFB1J0 AFBB32/
 	) {
 	# ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $id = $tournament;
-	my $league = League->new( leagues => $config{leagues}, id => $id );
+	my $league = League->new( leagues => $config->{leagues}, id => $id );
 	my $members = $league->members;
 	my $name = substr $league->name, 0, 14;
 	my $description = $league->field;
