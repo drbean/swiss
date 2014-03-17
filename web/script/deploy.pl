@@ -5,16 +5,13 @@ use warnings;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 
-use Config::General;
+use YAML qw/LoadFile/;
 use Cwd;
 use File::Spec;
 
 BEGIN {
-	my @MyAppConf = glob( "$Bin/../*.conf" );
-	die "Which of @MyAppConf is the configuration file?"
-				unless @MyAppConf == 1;
-	my %config = Config::General->new($MyAppConf[0])->getall;
-	$::name = $config{name};
+	my $config = LoadFile "swiss.yaml";
+	$::name = $config->{name};
 	require "$::name.pm"; $::name->import;
 	require "$::name/Schema.pm"; $::name->import;
 }
