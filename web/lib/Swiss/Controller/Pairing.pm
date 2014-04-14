@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2013 Nov 10, 04:29:01 PM
+# Last Edit: 2014 Apr 14, 02:24:51 PM
 # $Id$
 
 use strict;
@@ -388,11 +388,11 @@ sub ftp : Private {
 						map { $_ => $genre } @$leagues } @genres;
 	my $tourid = $c->stash->{tournament};
 	my $genre = $leaguegenre{$tourid};
-	$ftp->cwd("/public_html/$genre/draw");
+	$ftp->cwd("/public_html/$tourid/");
 	my $drawfile = "$leaguedirs/$tourid/comp/draw.html";
 	io($drawfile)->print
 		( $c->view('TT')->render($c, 'draw.tt2') );
-	$ftp->put($drawfile, "$tourid.html");
+	$ftp->put($drawfile, "draw.html");
 	$c->response->redirect
 		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
 }
