@@ -1,6 +1,6 @@
 package Swiss::Controller::Pairing;
 
-# Last Edit: 2014 Apr 14, 02:24:51 PM
+# Last Edit: 2014 Apr 14, 02:39:10 PM
 # $Id$
 
 use strict;
@@ -394,7 +394,7 @@ sub ftp : Private {
 		( $c->view('TT')->render($c, 'draw.tt2') );
 	$ftp->put($drawfile, "draw.html");
 	$c->response->redirect
-		("http://web.nuu.edu.tw/~greg/$genre/draw/$tourid.html");
+		("http://web.nuu.edu.tw/~greg/$tourid/draw.html");
 }
 
 =head2 draw
