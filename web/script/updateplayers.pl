@@ -37,18 +37,15 @@ my $io = io '-';
 
 use Grades;
 
-use Config::General;
+use YAML qw/LoadFile/;
 
 my $script = Grades::Script->new_with_options;
 my $tournament = $script->league || basename( getcwd );
 ( my $leagueid = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 my $round = $script->round;
 
-my @MyAppConf = glob( "/var/www/cgi-bin/swiss/swiss.conf" );
-die "Which of @MyAppConf is the configuration file?"
-			unless @MyAppConf == 1;
-my %config = Config::General->new($MyAppConf[0])->getall;
-my $name = $config{name};
+my $config = LoadFile "/var/www/cgi-bin/swiss/swiss.yaml";
+my $name = $config->{name};
 require $name . ".pm";
 my $model = "${name}::Schema";
 my $modelfile = "$name/Model/DB.pm";
@@ -61,7 +58,7 @@ my $players = $d->resultset('Players');
 my $ratings = $d->resultset('Ratings')->search({ tournament => $tournament });
 my $members = $d->resultset('Members')->search({ tournament => $tournament });
 my (%players, @newbies, @absentees, @returnees, @ratings);
-my $league = League->new( leagues => $config{leagues}, id => $leagueid );
+my $league = League->new( leagues => $config->{leagues}, id => $leagueid );
 my $filemembers = $league->members;
 my $activemembers = $filemembers;
 my $dropouts = $league->yaml->{out};
