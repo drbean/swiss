@@ -6,12 +6,20 @@
 <form method="post" action="[% c.uri_for('absentees') %]">
 <input type="submit" name="absent" value="Record Absentees">
 <table>
-  <tr><th>Absent<th>Id<th>Name</tr>
-[% FOREACH player IN playerlist %]
+  <tr><th>Group<th>Players</tr>
+[% FOREACH can IN playerlist.keys.sort %]
   <tr>
-    <td><input type="checkbox" name="[% player.id %]" value="Absent" [% "checked" IF player.absent == 'True' %]>
-    <td>[% player.id %]
-    <td>[% player.name %]
+	<td>[% playerlist.$can.id %]
+	<td>
+	<table>
+	  <tr><th>Absent<th>Id<th>Name</tr>
+	[% FOREACH player IN playerlist.$can.player %]
+	  <tr>
+	    <td><input type="checkbox" name="[% player.id %]" value="Absent" [% "checked" IF player.absent == 'True' %]>
+	    <td>[% player.id %]
+	    <td>[% player.name %]
+	[% END -%]
+	</table>
 [% END -%]
 </table>
 <input type="submit" name="absent" value="Record Absentees">

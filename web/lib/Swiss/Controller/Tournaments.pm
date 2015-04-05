@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2014 Jan 06, 09:00:41 AM
+# Last Edit: 2015  4月 05, 16時36分32秒
 # $Id$
 
 use Moose;
@@ -276,8 +276,9 @@ sub rounds : Local {
 	my $beancans = $grades->beancan_names( $session );
 	my $members = $c->model('DB::Members')->search(
 		{ tournament => $tourid });
-	my (@players, %seen);
+	my (%players, %seen);
 	for my $can ( sort keys %$beancans ) {
+		my @players;
 		my $group = $beancans->{$can};
 		for my $player ( @$group ) {
 			next if not defined $player;
@@ -287,19 +288,22 @@ sub rounds : Local {
 				absent => $member->absent };
 			$seen{$id}++;
 		}
-		push @players, { id => undef, name => undef, absent => undef };
+		$players{$can}{id} = $can;
+		$players{$can}{player} = \@players;
 	}
+	my @players;
 	while ( my $member = $members->next ) {
 		my $id = $member->player;
 		push @players, { id => $id, name => $member->profile->name,
 			absent => $member->absent } unless $seen{$id};
 	}
+	$players{ungrouped} = {id => "ungrouped", player => \@players};
 	my $rounds = $c->request->params->{rounds};
 	$c->model('DB::Tournaments')->find( { id => $tourid } )
 				->update( { rounds => $rounds } );
 	$c->stash->{tournament} = $tourid;
 	$c->stash->{round} = $round + 1;
-	$c->stash->{playerlist} = \@players;
+	$c->stash->{playerlist} = \%players;
 	$c->stash->{template} = 'absentees.tt2';
 }
 
