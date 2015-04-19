@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2015  4月 05, 16時36分32秒
+# Last Edit: 2015 Apr 19, 04:49:38 PM
 # $Id$
 
 use Moose;
@@ -265,6 +265,67 @@ Number of rounds
 sub rounds : Local {
         my ($self, $c) = @_;
 	my $tourid = $c->session->{tournament};
+	( my $leagueid = $tourid ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->value;
+	my $league = League->new( leagues => $c->config->{leagues},
+					id => $leagueid );
+	my $grades = Groupwork->new( league => $league );
+	my $series = $grades->beancanseries;
+	my $session = ( sort {$a <=> $b} keys %$series )[-1];
+	my $beancans = $grades->beancan_names( $session );
+	my $members = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	my (%players, %seen);
+	for my $can ( sort keys %$beancans ) {
+		my @players;
+		my $group = $beancans->{$can};
+		for my $player ( @$group ) {
+			next if not defined $player;
+			my $id = $league->ided( $player );
+			my $member = $members->find({ player => $id });
+			push @players, { id => $id, name => $member->profile->name,
+				absent => $member->absent };
+			$seen{$id}++;
+		}
+		$players{$can}{id} = $can;
+		$players{$can}{player} = \@players;
+	}
+	my @players;
+	while ( my $member = $members->next ) {
+		my $id = $member->player;
+		push @players, { id => $id, name => $member->profile->name,
+			absent => $member->absent } unless $seen{$id};
+	}
+	$players{ungrouped} = {id => "ungrouped", player => \@players};
+	my $rounds = $c->request->params->{rounds};
+	$c->model('DB::Tournaments')->find( { id => $tourid } )
+				->update( { rounds => $rounds } );
+	$c->stash->{tournament} = $tourid;
+	$c->stash->{round} = $round + 1;
+	$c->stash->{playerlist} = \%players;
+	$c->stash->{template} = 'assistants.tt2';
+}
+
+
+=head2 assistants
+
+Assistants
+
+=cut
+
+sub assistants : Local {
+        my ($self, $c) = @_;
+	my $tourid = $c->session->{tournament};
+	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
+			->value;
+	my $members = $c->model('DB::Members')->search(
+		{ tournament => $tourid });
+	while ( my $member = $members->next ) {
+		my $absence = $c->request->params->{ $member->profile->id };
+		if ( $absence ) { $member->update( { absent => 'True' } ) }
+		else { $member->update( { absent => 'False' } ) }
+	}
 	( my $leagueid = $tourid ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
 			->value;
