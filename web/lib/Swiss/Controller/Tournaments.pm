@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2015 Oct 04, 11:18:15
+# Last Edit: 2015 Oct 04, 11:31:28
 # $Id$
 
 use Moose;
@@ -349,6 +349,7 @@ sub assistants : Local {
 		$players{$can}{player} = \@players;
 	}
 	my @players;
+	$members->reset;
 	while ( my $member = $members->next ) {
 		my $id = $member->player;
 		push @players, { id => $id, name => $member->profile->name,
