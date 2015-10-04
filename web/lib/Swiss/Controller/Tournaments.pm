@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2015 Oct 03, 17:20:44
+# Last Edit: 2015 Oct 04, 11:18:15
 # $Id$
 
 use Moose;
@@ -327,16 +327,12 @@ sub assistants : Local {
 		else { $member->update( { absent => 'False' } ) }
 	}
 	( my $leagueid = $tourid ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
-	#my $round = $c->model('DB::Round')->find( { tournament => $tourid } )
-	#		->value;
 	my $league = League->new( leagues => $c->config->{leagues},
 					id => $leagueid );
 	my $grades = Groupwork->new( league => $league );
 	my $series = $grades->beancanseries;
 	my $session = ( sort {$a <=> $b} keys %$series )[-1];
 	my $beancans = $grades->beancan_names( $session );
-	#my $members = $c->model('DB::Members')->search(
-	#	{ tournament => $tourid });
 	my (%players, %seen);
 	for my $can ( sort keys %$beancans ) {
 		my @players;
