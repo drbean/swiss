@@ -122,7 +122,17 @@ for my $round ( @$conversations ) {
 	my @unpaired = grep	{	my $id = $_->{id};
 							not any { $_ eq $id } @paired
 						} @$members;
-	$points->{$round}->{$_} = 0 for map { $_->{id} } @unpaired;
+	my $assistant_ids = $tournament->assistants( $round );
+	my @unpaired_ids = map { $_->{id} } @unpaired;
+	for my $id ( @unpaired_ids ) {
+		if ( any { $_ eq $id } @$assistant_ids ) {
+			$points->{$round}->{$id} =
+				$tournament->assistant_payout( $round, $id )
+		}
+		else {
+			$points->{$round}->{$id} = 0;
+		}
+	}
 }
 my @scores;
 for my $player ( @$members ) {
