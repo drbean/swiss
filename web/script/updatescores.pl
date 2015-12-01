@@ -76,6 +76,12 @@ for my $round ( @$conversations ) {
 		my %opponent; @opponent{ 'White', 'Black' } =
 			@contestant{ 'Black', 'White' };
 		if ( $contestant{Black} eq 'Bye' ) {
+			if ( $tardy eq "White" ) {
+				$points->{$round}->{ $contestant{White} } = 1;
+			}
+			else {
+				$points->{$round}->{ $contestant{White} } = 5;
+			}
 			$points->{$round}->{ $contestant{White} } = 5;
 			next MATCH;
 		}
