@@ -75,6 +75,7 @@ for my $round ( @$conversations ) {
 		push @paired, values %contestant;
 		my %opponent; @opponent{ 'White', 'Black' } =
 			@contestant{ 'Black', 'White' };
+		my $tardy = $match->tardy;
 		if ( $contestant{Black} eq 'Bye' ) {
 			if ( $tardy eq "White" ) {
 				$points->{$round}->{ $contestant{White} } = 1;
@@ -96,7 +97,6 @@ for my $round ( @$conversations ) {
 				$points->{$round}->{ $contestant{$_} } = 0;
 			}
 		}
-		my $tardy = $match->tardy;
 		die "$tardy tardies? Update matches for $round round." if
 						$tardy eq 'Unknown';
 		unless ( $tardy eq 'None' ) {
