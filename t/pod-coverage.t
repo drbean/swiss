@@ -3,7 +3,7 @@
 BEGIN {
     $Games::Tournament::Swiss::Config::firstround = 1;
     $Games::Tournament::Swiss::Config::algorithm  =
-      'Games::Tournament::Swiss::Dummy';
+      'Games::Tournament::Swiss::Procedure::Dummy';
 }
 
 use Games::Tournament::Contestant::Swiss;
