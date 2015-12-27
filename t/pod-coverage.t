@@ -1,4 +1,4 @@
-#!perl 
+#!perl -T
 
 BEGIN {
     $Games::Tournament::Swiss::Config::firstround = 1;
