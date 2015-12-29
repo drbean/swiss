@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2010 11月 14, 17時37分48秒
+# Last Edit: 2015 Dec 29, 09:28:08
 # $Id$
 
 use warnings;
@@ -36,7 +36,7 @@ Version 0.17
 
 =cut
 
-our $VERSION = '0.17';
+our $VERSION = '0.19';
 
 =head1 SYNOPSIS
 
