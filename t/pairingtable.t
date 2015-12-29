@@ -71,13 +71,13 @@ chdir '1' or warn "No round 1 directory: $!";
 
 my $round = Load(<<'...');
 ---
-activity:
-  topic:
-    form:
-      - White: 1
-        Black: 3
-      - White: 4
-        Black: 2
+group:
+  0:
+    White: 1
+    Black: 3
+  1:
+    White: 4
+    Black: 2
 ...
 DumpFile './round.yaml', $round;
 
@@ -97,7 +97,7 @@ chdir '../../' or warn "No tourney directory: $!";
 my $table = qx{$secure_perl_path $Bin/../script_files/pairingtable 2};
 
 my @tests = (
-[ $table, qr/^		Round 2 Pairing Groups\n-------------------------------------------------------------------------\nPlace  No  Opponents     Roles     Float Score\n1-2\n       1   3              (W|B)             1\n       2   4              (W|B)             1\n3-4\n       3   1              (W|B)             0\n       4   2              (W|B)             0\n/m, 'round 1 table'],
+[ $table, qr/^		Round 2 Pairing Groups\n-------------------------------------------------------------------------\nPlace  No  Opponents     Roles     Float Score\n1-2\n      1   3\s+(W|B)\s+1\n      2   4\s+(W|B) +1\n3-4\n      3   1\s+(W|B)\s+0\n      4   2\s+(W|B)\s+0\n/m, 'round 1 table'],
 );
 
 chdir 'comp' or warn "No tourney directory: $!";
@@ -106,13 +106,13 @@ chdir '2';
 
 $round = Load(<<'...');
 ---
-activity:
-  topic:
-    form:
-      - White: 2
-        Black: 1
-      - White: 3
-        Black: 4
+group:
+  0:
+    White: 2
+    Black: 1
+  1:
+    White: 3
+    Black: 4
 ...
 DumpFile './round.yaml', $round;
 
@@ -129,7 +129,7 @@ DumpFile './scores.yaml', $scores;
 chdir '../../' or warn "No tourney directory: $!";
 $table = qx{$secure_perl_path $Bin/../script_files/pairingtable 3};
 push @tests, (
-[ $table, qr/^		Round 3 Pairing Groups\n-------------------------------------------------------------------------\nPlace  No  Opponents     Roles     Float Score\n1\n       1   3,2            (WB|BW)            2\n2-3\n       2   4,1            (WB|BW)            1\n       3   1,4            (WB|BW)            1\n4\n       4   2,3            (WB|BW)            0\n/m,
+[ $table, qr/^		Round 3 Pairing Groups\n-------------------------------------------------------------------------\nPlace  No  Opponents     Roles     Float Score\n1\n      1   3,2\s+(WB|BW)\s+2\n2-3\n      2   4,1\s+(WB|BW)\s+1\n      3   1,4\s+(WB|BW)\s+1\n4\n      4   2,3\s+(WB|BW)\s+0\n/m,
 'round 2 table'],
 );
 
