@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2016 Jan 01, 12:09:39
+# Last Edit: 2016 Jan 01, 13:44:35
 # $Id$
 
 use warnings;
@@ -30,13 +30,7 @@ use List::MoreUtils qw/any all/;
 
 Games::Tournament::Swiss - FIDE Swiss Same-Rank Contestant Pairing 
 
-=head1 VERSION
-
-Version 0.19
-
 =cut
-
-our $VERSION = '0.19';
 
 =head1 SYNOPSIS
 

@@ -1,8 +1,6 @@
 # DESCRIPTION:  Check that late entering players get assimilated
 # Created:  西元2009年07月03日 12時18分05秒
-# Last Edit: 2009 12月 31, 15時53分33秒
-
-our $VERSION =  0.2;
+# Last Edit: 2016 Jan 01, 13:37:36
 
 use lib qw/t lib/;
 

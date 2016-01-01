@@ -1,19 +1,13 @@
 #!/usr/bin/perl
 
-# Last Edit: 2010 11月 14, 17時35分52秒
+# Last Edit: 2016 Jan 01, 13:39:16
 # $Id: /swiss/trunk/script_files/pair 1532 2007-10-27T03:38:38.615327Z greg  $
 
 =head1 NAME
 
 pair - Pair players for the next round of a swiss tournament
 
-=head1 VERSION
-
-Version 0.09
-
 =cut
-
-our $VERSION = '0.09';
 
 use strict;
 use warnings;

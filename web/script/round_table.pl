@@ -1,20 +1,14 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2012 Nov 14, 12:55:38 PM
+# Last Edit: 2016 Jan 01, 13:44:12
 # $Id$
 
 =head1 NAME
 
 round_table.pl - handpaired round updated to database
 
-=head1 VERSION
-
-Version 0.02
-
 =cut
-
-our $VERSION = '0.02';
 
 use strict;
 use warnings;

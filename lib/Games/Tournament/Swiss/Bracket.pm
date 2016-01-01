@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Bracket;
 
-# Last Edit: 2011 Dec 09, 01:49:18 PM
+# Last Edit: 2016 Jan 01, 13:44:55
 # $Id: $
 
 use warnings;
@@ -19,13 +19,7 @@ use List::MoreUtils qw/any notall/;
 
 Games::Tournament::Swiss::Bracket - Players with same/similar scores pairable with each other
 
-=head1 VERSION
-
-Version 0.06
-
 =cut
-
-our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 

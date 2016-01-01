@@ -26,7 +26,6 @@ use Catalyst qw/-Debug
     Session::State::Cookie
 		/;
 #                Static::Simple
-our $VERSION = '0.01';
 
 # Configure the application.
 #

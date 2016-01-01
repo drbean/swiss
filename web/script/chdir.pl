@@ -1,20 +1,14 @@
 #!/usr/bin/perl 
 
 # Created: 11/10/2013 04:05:43 PM
-# Last Edit: 2013 Nov 10, 04:10:05 PM
+# Last Edit: 2016 Jan 01, 13:44:09
 # $Id$
 
 =head1 NAME
 
 chdir.pl - FindBin will find in this file's dir rather than master script
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
-
-our $VERSION = '0.01';
 
 use strict;
 use warnings;

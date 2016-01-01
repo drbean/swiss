@@ -1,20 +1,14 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2015 Oct 03, 17:02:07
+# Last Edit: 2016 Jan 01, 13:42:14
 # $Id$
 
 =head1 NAME
 
 create_round.pl - Generate a round.yaml file representing a CompComp round
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
-
-our $VERSION = '0.01';
 
 use strict;
 use warnings;

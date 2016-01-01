@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss::Procedure::FIDE;
 
-# Last Edit: 2011 Dec 09, 01:49:53 PM
+# Last Edit: 2016 Jan 01, 13:44:53
 # $Id: /swiss/trunk/lib/Games/Tournament/Swiss/Procedure/FIDE.pm 1657 2007-11-28T09:30:59.935029Z dv  $
 
 use warnings;
@@ -44,14 +44,7 @@ use constant    PREV      => "PREV";
 
 Games::Tournament::Swiss::Procedure::FIDE - FIDE Swiss Rules Based on Rating 04.1
 
-=head1 VERSION
-
-Version 0.13
-
 =cut
-
-our $VERSION = '0.13';
-
 
 =head1 SYNOPSIS
 

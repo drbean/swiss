@@ -1,6 +1,6 @@
 package Games::Tournament::Contestant::Swiss::Preference;
 
-# Last Edit: 2010  1月 01, 18時07分25秒
+# Last Edit: 2016 Jan 01, 13:45:02
 # $Id: $
 
 use warnings;
@@ -24,13 +24,7 @@ use base qw/Games::Tournament/;
 
 Games::Tournament::Contestant::Swiss::Preference  A competitor's right to a role.
 
-=head1 VERSION
-
-Version 0.04
-
 =cut
-
-our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 

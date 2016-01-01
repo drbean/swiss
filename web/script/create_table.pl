@@ -1,20 +1,14 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月07日 09時52分04秒
-# Last Edit: 2010  4月 17, 12時24分02秒
+# Last Edit: 2016 Jan 01, 13:43:54
 # $Id$
 
 =head1 NAME
 
 create_table.pl - Collate opponents, roles to create table card
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
-
-our $VERSION = '0.01';
 
 use strict;
 use warnings;

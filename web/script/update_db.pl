@@ -1,20 +1,14 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年05月02日 12時25分36秒
-# Last Edit: 2013 Nov 10, 04:05:30 PM
+# Last Edit: 2016 Jan 01, 13:39:39
 # $Id$
 
 =head1 NAME
 
 update_db.pl - run updatematches.pl, updategrades.pl, updatescores.pl. updateround.pl
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
-
-our $VERSION = '0.01';
 
 use strict;
 use warnings;
