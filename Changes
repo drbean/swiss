@@ -1,4 +1,11 @@
 ---
+version: 0.19
+date: Tue 29 Dec 10:38:54 CST 2015
+revision: about 1353
+changes:
+  - fixed t/pairingtable.t, t/pod-coverage.t
+
+---
 version: 0.16
 date: 二  6月 30 13:40:45 CST 2009
 revision: about 1700
