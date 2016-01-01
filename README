@@ -114,6 +114,10 @@ GENERATING PAIRINGS
 
 Starting with an empty main directory, create league.yaml, and an empty subdirectory for the first round. Run the script, 'pair' in the empty round subdirectory. A log of the pairing is printed and 'round.yaml' in the directory contains the matches. After the games in the round are complete, in the scores subdirectory, enter the scores for the players in the file, '1.yaml', or whatever the round is. You can use the file called 1.yaml, or whatever in the round subdirectory as a template and afterward move it to the scores subdirectory. Then you can run 'crosstable 1' or 'pairingtable 1' in the original directory above the subdirectory, to get current standings. Convert your pairing table into YAML form with 'pairtable2yaml' and copy it into a subdirectory for the next round, and continue as before.
 
+WEB INTERFACE
+
+Check out the web app that you can front this library with in the web subdirectory of the repository.
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the perldoc command.
@@ -133,6 +137,9 @@ You can also look for information at:
 
     CPAN Ratings:
         http://cpanratings.perl.org/d/Games-Tournament-Swiss
+
+    Repository:
+        http://www.openfoundry.org/of/projects/swiss
 
 COPYRIGHT AND LICENCE
 
