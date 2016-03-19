@@ -1,19 +1,19 @@
 # rename this file to Swiss.yml and put a ':' in front of 'name' if
 # you want to use YAML like in old versions of Catalyst
 name: Swiss
-database: swiss041
-leagues: /home/drbean/041
+database: swiss042
+leagues: /home/drbean/042
 
-tourism:
-  - FLA0003
+tech:
+  - FLA0021
 
 conversation:
-  - FLA0008
-  - FLA0011
+  - FLA0003
+  - FLA0013
 
-media:
-  - FLA0024
+business:
+  - FLA0019
 
 speaking:
-  - MB1
-  - 2L1
+  - MB2
+  - 2L2

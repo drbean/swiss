@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2016 Jan 01, 13:42:14
+# Last Edit: 2016 Mar 19, 04:37:29 PM
 # $Id$
 
 =head1 NAME
@@ -45,7 +45,7 @@ my $round = $script->round;
 my $topic = $script->exercise;
 my $form = 0;
 
-my $leagues = '/home/drbean/041';
+my $leagues = '/home/drbean/042';
 ( my $leagueid = $id ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 
 my $league = League->new( leagues => $leagues, id => $leagueid );

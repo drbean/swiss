@@ -7,7 +7,7 @@ use Catalyst;
 use Swiss;
 
 my $name = Swiss->config->{database};
-# my $name = 'swiss041';
+# my $name = 'swiss042';
 
 my $connect_info;
 if ( $^O eq 'linux' ) { $connect_info = [ "dbi:Pg:dbname=$name", '', '', ]; }

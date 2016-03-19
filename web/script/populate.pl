@@ -57,7 +57,64 @@ find_or_populate( 'Arbiters', \@officials );
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @ratings, @scores);
 for my $tournament (
-    qw/FLA0003 FLA0008 FLA0011 FLA0024 2L1 MB1/
+    qw/FLA0003 FLA0013 FLA0019 FLA0021 2L2 MB2/
+	) {
+	# ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
+	my $id = $tournament;
+	my $league = League->new( leagues => $config->{leagues}, id => $id );
+	my $members = $league->members;
+	my $name = substr $league->name, 0, 14;
+	my $description = $league->field;
+	my $arbiter = '193001';
+	my $rounds = 18;
+	my $firstround = { value => 0, tournament => $tournament };
+	$d->resultset('Tournaments')->find_or_create( {
+			name => $name,
+			id => $tournament,
+			description => $description,
+			arbiter => $arbiter,
+			rounds => $rounds,
+		} );
+	my $round = $roundset->find({ tournament => $tournament });
+	$round = $round? $round->value: 0;
+	push @startingrounds, { tournament => $tournament, value => $round };
+	foreach my $member ( @$members ) {
+		my $id = $member->{id};
+		push @members, { player => $id, tournament => $tournament,
+							absent => 'False', firstround => $round };
+		push @scores, { tournament => $tournament, player => $id };
+		unless ( defined $players{$id} ) { 
+			$players{$id} = {
+				name => $member->{name},
+				id => $id,
+				rating => [ { 
+					player => $member->{id},
+					tournament => $tournament,
+					round => 0,
+					value => $member->{rating} || 0 } ]
+			};
+		}
+		else {
+			push @ratings, 
+				{ 
+					player => $member->{id},
+					tournament => $tournament,
+					round => 0,
+					value => $member->{rating} || 0 };
+		}
+	}
+}
+my @players = values %players;
+find_or_populate( 'Players', \@players );
+find_or_populate( 'Round', \@startingrounds );
+find_or_populate( 'Members', \@members );
+find_or_populate( 'Ratings', \@ratings );
+find_or_populate( 'Scores', \@scores );
+
+my $roundset = $d->resultset('Round');
+my (@startingrounds, %players, @members, @ratings, @scores);
+for my $tournament (
+    qw/FLA0003 FLA0013 FLA0019 FLA0021 2L2 MB2/
 	) {
 	# ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $id = $tournament;
