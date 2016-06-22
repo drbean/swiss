@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2015 Oct 04, 11:31:28
+# Last Edit: 2016 May 19, 08:30:44 PM
 # $Id$
 
 use Moose;
@@ -284,6 +284,12 @@ sub rounds : Local {
 			next if not defined $player;
 			my $id = $league->ided( $player );
 			my $member = $members->find({ player => $id });
+			unless ($member) 
+			{
+				$c->stash({error_msg => $player . ": " . $id . "??"}) unless $member;
+				$c->stash->{template} = 'assistants.tt2';
+				return;
+			}
 			push @players, { id => $id, name => $member->profile->name,
 				absent => $member->absent };
 			$seen{$id}++;
