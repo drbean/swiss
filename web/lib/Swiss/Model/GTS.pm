@@ -1,6 +1,6 @@
 package Swiss::Model::GTS;
 
-# Last Edit: 2016 Jun 23, 05:40:03 PM
+# Last Edit: 2016 Jun 23, 05:41:43 PM
 # $Id$
 
 use strict;
@@ -582,9 +582,9 @@ sub writeCard {
 		$contestant{White}->score < $contestant{Black}->score ) {
 		%float = ( White => 'Up', Black => 'Down' );
 	}
-	#else { die "Round " . $tourney->round . " contestants, " . 
-	#	@id{qw/Black White/} . ", floating: " . $game->float . ", but  White: " . $contestant{White}->score . " = Black: " . $contestant{Black}->score
-	#}
+	else { die "Round " . $tourney->round . " contestants, " . 
+		@id{qw/Black White/} . ", floating: " . $game->float . ", but  White: " . $contestant{White}->score . " = Black: " . $contestant{Black}->score
+	}
 	my %result;
 	my $forfeit = $game->forfeit;
 	die "$forfeit forfeiters? Update matches for round $round." if
