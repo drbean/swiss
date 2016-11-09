@@ -57,7 +57,7 @@ find_or_populate( 'Arbiters', \@officials );
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @ratings, @scores);
 for my $tournament (
-    qw/FLA0003 FLA0013 FLA0019 FLA0021 2L2 MB2/
+    qw/FLA0003 GL00043 MA1/
 	) {
 	# ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $id = $tournament;
@@ -66,7 +66,7 @@ for my $tournament (
 	my $name = substr $league->name, 0, 14;
 	my $description = $league->field;
 	my $arbiter = '193001';
-	my $rounds = 18;
+	my $rounds = 6;
 	my $firstround = { value => 0, tournament => $tournament };
 	$d->resultset('Tournaments')->find_or_create( {
 			name => $name,
@@ -114,7 +114,7 @@ find_or_populate( 'Scores', \@scores );
 my $roundset = $d->resultset('Round');
 my (@startingrounds, %players, @members, @ratings, @scores);
 for my $tournament (
-    qw/FLA0003 FLA0013 FLA0019 FLA0021 2L2 MB2/
+    qw/FLA0003 GL00043 MA1/
 	) {
 	# ( my $id = $tournament ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 	my $id = $tournament;
@@ -123,7 +123,7 @@ for my $tournament (
 	my $name = substr $league->name, 0, 14;
 	my $description = $league->field;
 	my $arbiter = '193001';
-	my $rounds = 18;
+	my $rounds = 6;
 	my $firstround = { value => 0, tournament => $tournament };
 	$d->resultset('Tournaments')->find_or_create( {
 			name => $name,
