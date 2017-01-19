@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2010年04月14日 21時33分46秒
-# Last Edit: 2016 Jan 01, 13:44:12
+# Last Edit: 2017 Jan 19, 01:59:18 PM
 # $Id$
 
 =head1 NAME
@@ -97,8 +97,9 @@ run() unless caller;
 
 sub run {
     my $config = $g->config($overallround);
-    die "Round $round or $config->{round}?" unless $round ==
-	$config->{round};
+    die
+"Round $round, overallround $overallround, lastround $lastround, or config $config->{round}?"
+	unless $round == $config->{round};
     # die "Round $round? No such round" unless $round <= $config->{round};
     my ( @allwhite, @allblack, %opponents, %roles, %dupe, @matches );
     my $byetablen = 0;
@@ -112,7 +113,7 @@ sub run {
 	    my $actives = $topic->{$form};
 	    my @white = map { $pairs->{$_}->{White} } @$actives;
 	    my @black = map { $pairs->{$_}->{Black} } @$actives;
-	    warn "Some table not there," if any { not defined } @white, @black;
+	    warn "Some $key table id, White, Black? missing," if any { not defined } @white, @black;
 	    $dupe{ $_ }++ for ( @white, @black );
 	    my @dupe = grep { $dupe{$_} != 1 } keys %dupe;
 	    warn "$_ is dupe in other than $key topic, $form form" for @dupe;
