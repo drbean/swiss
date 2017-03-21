@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2016 Nov 19, 05:17:08 PM
+# Last Edit: 2017 Mar 21, 01:47:59 PM
 # $Id$
 
 =head1 NAME
@@ -39,13 +39,15 @@ use Swiss;
 use Swiss::Model::DB;
 use Swiss::Schema;
 
+my $semester = $ARGS{SEMESTER} || "052";
+
 my $script = Grades::Script->new_with_options;
 my $id = $script->league || basename( getcwd );
 my $round = $script->round;
 my $topic = $script->exercise;
 my $form = 0;
 
-my $leagues = '/home/drbean/051';
+my $leagues = "/home/drbean/$semester";
 ( my $leagueid = $id ) =~ s/^([[:alpha:]]+[[:digit:]]+).*$/$1/;
 
 my $league = League->new( leagues => $leagues, id => $leagueid );
