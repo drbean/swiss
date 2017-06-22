@@ -1,6 +1,6 @@
 package Games::Tournament;
 
-# Last Edit: 2016 Jan 01, 13:44:32
+# Last Edit: 2017 Jun 22, 01:47:14 PM
 # $Id: $
 
 use warnings;
@@ -96,7 +96,7 @@ sub enter {
 
  @rankings = $tourney->rank(@players)
 
-Ranks a list of Games::Tournament::Contestant player objects by score, rating, title and name if they all have a score, otherwise ranks them by rating, title and name. This is the same ordering that is used to determine pairing numbers in a swiss tournament.
+Ranks a list of Games::Tournament::Contestant player objects by score, rating, title and name if they all have a score, otherwise ranks them by rating, title and name. This is the same ordering that is used to determine pairing numbers in a swiss tournament. If there is no rating, ranks by title and name. .
 
 =cut
 
@@ -111,10 +111,16 @@ sub rank {
               || $a->name cmp $b->name
         } @players;
     }
-    else {
+    elsif ( all { defined $_->rating } @players ) {
         sort {
                  $b->rating <=> $a->rating
               || $a->title cmp $b->title
+              || $a->name cmp $b->name
+        } @players;
+    }
+    else {
+        sort {
+                 $a->title cmp $b->title
               || $a->name cmp $b->name
         } @players;
     }
