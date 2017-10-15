@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 
 # Created: 西元2011年03月01日 13時36分22秒
-# Last Edit: 2017 Mar 21, 01:47:59 PM
+# Last Edit: 2017 Oct 15, 04:26:34 PM
 # $Id$
 
 =head1 NAME
@@ -39,7 +39,7 @@ use Swiss;
 use Swiss::Model::DB;
 use Swiss::Schema;
 
-my $semester = $ARGS{SEMESTER} || "052";
+my $semester = $ENV{SEMESTER} || "061";
 
 my $script = Grades::Script->new_with_options;
 my $id = $script->league || basename( getcwd );
