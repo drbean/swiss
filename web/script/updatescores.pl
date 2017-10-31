@@ -83,7 +83,6 @@ for my $round ( @$conversations ) {
 			else {
 				$points->{$round}->{ $contestant{White} } = 5;
 			}
-			$points->{$round}->{ $contestant{White} } = 5;
 			next MATCH;
 		}
 		my $forfeit = $match->forfeit;
