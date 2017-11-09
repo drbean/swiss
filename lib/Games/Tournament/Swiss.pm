@@ -1,6 +1,6 @@
 package Games::Tournament::Swiss;
 
-# Last Edit: 2016 Jan 01, 13:44:35
+# Last Edit: 2017 Nov 09, 07:58:50 PM
 # $Id$
 
 use warnings;
@@ -675,7 +675,7 @@ L<http://search.cpan.org/dist/Games-Tournament-Swiss>
 
 =head1 ACKNOWLEDGEMENTS
 
-See L<http://www.fide.com/official/handbook.asp?level=C04> for the FIDE's Swiss rules.
+See L<http://www.fide.com/fide/handbook.html?id=18&view=category> for the FIDE's Swiss rules.
 
 =head1 COPYRIGHT & LICENSE
 
