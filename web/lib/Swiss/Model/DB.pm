@@ -10,7 +10,7 @@ my $name = Swiss->config->{database};
 # my $name = 'swiss042';
 
 my $connect_info;
-if ( $^O eq 'linux' ) { $connect_info = [ "dbi:Pg:dbname=$name", '', '', ]; }
+if ( $^O eq 'linux' ) { $connect_info = [ "dbi:Pg:dbname=$name;port=5434", '', '', ]; }
 
 __PACKAGE__->config(
     schema_class => 'Swiss::Schema',
