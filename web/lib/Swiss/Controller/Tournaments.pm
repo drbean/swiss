@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2016 May 19, 08:30:44 PM
+# Last Edit: 2018 Oct 23, 03:40:45 PM
 # $Id$
 
 use Moose;
@@ -347,6 +347,7 @@ sub assistants : Local {
 			next if not defined $player;
 			my $id = $league->ided( $player );
 			my $member = $members->find({ player => $id });
+			$c->stash->{error_msg} = "$id member profile?" unless $member;
 			push @players, { id => $id, name => $member->profile->name,
 				absent => $member->absent };
 			$seen{$id}++;
