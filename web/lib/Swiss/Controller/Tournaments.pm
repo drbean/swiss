@@ -1,6 +1,6 @@
 package Swiss::Controller::Tournaments;
 
-# Last Edit: 2018 Oct 23, 04:35:32 PM
+# Last Edit: 2019 Jan 25, 01:51:12 PM
 # $Id$
 
 use Moose;
@@ -286,7 +286,7 @@ sub rounds : Local {
 			my $member = $members->find({ player => $id });
 			unless ($member) 
 			{
-				$c->stash({error_msg => $player . ": " . $id . "??"}) unless $member;
+				$c->stash({error_msg => $player . ": " . $id . "??"});
 				$c->stash->{template} = 'assistants.tt2';
 				return;
 			}
